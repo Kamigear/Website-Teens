@@ -115,7 +115,8 @@ button {
   transition: all 0.3s;
 }
 
-a {
+a,
+bold {
   color: var(--primary-color);
   text-decoration: none;
 }
