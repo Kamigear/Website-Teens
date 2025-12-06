@@ -4,273 +4,120 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-
     <meta name="description" content="">
     <meta name="author" content="">
     <link rel="icon" type="image/png" href="images/web-logo.png">
 
     <title>VDR Teens</title>
 
-    <!-- CSS FILES -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
-
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-
     <link href="https://fonts.googleapis.com/css2?family=League+Spartan:wght@100;300;400;600;700&display=swap"
         rel="stylesheet">
-
     <link href="css/bootstrap.min.css" rel="stylesheet">
-
     <link href="css/bootstrap-icons.css" rel="stylesheet">
-
     <link href="css/owl.carousel.min.css" rel="stylesheet">
-
     <link href="css/owl.theme.default.min.css" rel="stylesheet">
-
     <link href="css/tooplate-gotto-job.css" rel="stylesheet">
-
 </head>
 
 <body id="top">
 
-<nav class="navbar navbar-expand-lg">
-    <div class="container">
-        <!-- 1. LOGO -->
-        <a class="navbar-brand d-flex align-items-center" href="index.html">
-            <img src="images/logo.png" class="img-fluid logo-image" alt="Logo">
-            <div class="d-flex flex-column">
-                <strong class="logo-text">Teens</strong>
-                <small class="logo-small-text">Puja bakti Remaja</small>
-            </div>
-        </a>
-
-        <!-- 
-           2. MOBILE NAVBAR TRIGGER (The "Fake" Login Button) 
-           - Visible only on Mobile (d-lg-none).
-           - Clicking this OPENS the menu.
-        -->
-        <div class="d-flex d-lg-none ms-auto align-items-center">
-            <a class="btn custom-btn btn-sm mobile-nav-trigger" href="#" role="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasNavbar" aria-controls="offcanvasNavbar">
-                Login
-            </a>
-        </div>
-
-        <!-- 3. OFFCANVAS (The Menu) -->
-        <div class="visible offcanvas offcanvas-end custom-offcanvas" tabindex="-1" id="offcanvasNavbar" aria-labelledby="offcanvasNavbarLabel">
-            
-            <!-- Mobile Menu Header -->
-            <div class="offcanvas-header">
-                <div class="d-flex align-items-center">
-                    <img src="images/logo.png" class="img-fluid logo-image offcanvas-logo-img">
-                    <h5 class="offcanvas-title mb-0" id="offcanvasNavbarLabel">Menu</h5>
+    <nav class="navbar navbar-expand-lg">
+        <div class="container">
+            <a class="navbar-brand d-flex align-items-center" href="index.html">
+                <img src="images/logo.png" class="img-fluid logo-image" alt="Logo">
+                <div class="d-flex flex-column">
+                    <strong class="logo-text">Teens</strong>
+                    <small class="logo-small-text">Puja bakti Remaja</small>
                 </div>
+            </a>
+
+            <div class="d-flex d-lg-none ms-auto align-items-center">
+                <a class="btn custom-btn btn-sm mobile-nav-trigger" href="#" role="button" data-bs-toggle="offcanvas"
+                    data-bs-target="#offcanvasNavbar" aria-controls="offcanvasNavbar">
+                    Login
+                </a>
             </div>
 
-            <div class="offcanvas-body d-flex flex-column">
-                <!-- Navigation Links -->
-                <ul class="navbar-nav align-items-lg-center ms-lg-5 flex-grow-1 pe-3">
-                    <li class="nav-item">
-                        <a class="nav-link active" href="index.html">Beranda</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="about.html">Tentang Teens</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="contact.html">Kontak</a>
-                    </li>
-                </ul>
+            <div class="visible offcanvas offcanvas-end custom-offcanvas" tabindex="-1" id="offcanvasNavbar"
+                aria-labelledby="offcanvasNavbarLabel">
 
-                <!-- 
-                   MOBILE ONLY: REAL Login/Daftar (Pushed to bottom)
-                -->
-                <div class="mt-auto mb-4 d-lg-none w-100 mobile-auth-section">
-                    <div class="d-grid gap-2">
-                        <span class="mobile-auth-label">AKUN</span>
-                        <a class="btn custom-btn" href="login.html">Login</a>
+                <div class="offcanvas-header">
+                    <div class="d-flex align-items-center">
+                        <img src="images/logo.png" class="img-fluid logo-image offcanvas-logo-img">
+                        <h5 class="offcanvas-title mb-0" id="offcanvasNavbarLabel">Menu</h5>
+                    </div>
+                </div>
+
+                <div class="offcanvas-body d-flex flex-column">
+                    <ul class="navbar-nav align-items-lg-center ms-lg-5 flex-grow-1 pe-3">
+                        <li class="nav-item">
+                            <a class="nav-link active" href="index.html">Beranda</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="events.html">Kegiatan Teens</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="about.html">Tentang Teens</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="contact.html">Kontak</a>
+                        </li>
+                    </ul>
+
+                    <div class="mt-auto mb-4 d-lg-none w-100 mobile-auth-section">
+                        <div class="d-grid gap-2">
+                            <span class="mobile-auth-label">AKUN</span>
+                            <a class="btn custom-btn" href="login.html">Login</a>
+                        </div>
                     </div>
                 </div>
             </div>
+
+            <div class="d-none d-lg-flex align-items-center ms-lg-auto desktop-auth-container">
+                <a class="custom-btn btn mt-2 mt-lg-0" href="login.html">Login</a>
+            </div>
         </div>
+    </nav>
 
-        <!-- 4. DESKTOP ONLY: Real Login/Daftar buttons -->
-        <div class="d-none d-lg-flex align-items-center ms-lg-auto desktop-auth-container">
-            <a class="custom-btn btn mt-2 mt-lg-0" href="login.html">Login</a>
-        </div>
-
-    </div>
-</nav>
-
-<!-- FAB Toggle Button (Bottom Right) -->
-<button
-    class="btn rounded-circle shadow position-fixed bottom-0 end-0 m-4 d-lg-none d-flex justify-content-center align-items-center toggle-button"
-    type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasNavbar" aria-controls="offcanvasNavbar">
-    <i class="bi bi-list fs-2 d-flex" id="fabIcon"></i>
-</button>
+    <button
+        class="btn rounded-circle shadow position-fixed bottom-0 end-0 m-4 d-lg-none d-flex justify-content-center align-items-center toggle-button"
+        type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasNavbar" aria-controls="offcanvasNavbar">
+        <i class="bi bi-list fs-2 d-flex" id="fabIcon"></i>
+    </button>
 
     <main>
-
         <section class="section-hero d-flex justify-content-center align-items-center">
             <div class="section-overlay"></div>
-
             <div class="container">
                 <div class="row">
-
                     <div class="col-lg-9 col-12 mb-5 mb-lg-0">
                         <div class="section-hero-text mt-5">
                             <h6 class="text-white">Sandya Parama, Bersatu untuk menjadi unggul</h6>
-
                             <h1 class="hero-title text-white mt-5 mb-4">Bertumbuh dalam Dhamma. <br> Berkembang dalam
                                 kebajikan</h1>
-
-                            <a href="#categories-section" class="custom-btn custom-border-btn btn">Jelajahi</a>
+                            <a href="#about-section" class="custom-btn custom-border-btn btn">Jelajahi</a>
                         </div>
                     </div>
-
-                    <!-- <div class="col-lg-6 col-12">
-                            <form class="custom-form hero-form" action="#" method="get" role="form">
-                                <h3 class="text-white mb-3">Search your dream job</h3>
-
-                                <div class="row">
-                                    <div class="col-lg-6 col-md-6 col-12">
-                                        <div class="input-group">
-                                            <span class="input-group-text" id="basic-addon1"><i class="bi-person custom-icon"></i></span>
-
-                                            <input type="text" name="job-title" id="job-title" class="form-control" placeholder="Job Title" required>
-                                        </div>
-                                    </div>
-
-                                    <div class="col-lg-6 col-md-6 col-12">
-                                        <div class="input-group">
-                                            <span class="input-group-text" id="basic-addon2"><i class="bi-geo-alt custom-icon"></i></span>
-
-                                            <input type="text" name="job-location" id="job-location" class="form-control" placeholder="Location" required>
-                                        </div>
-                                    </div>
-
-                                    <div class="col-lg-12 col-12">
-                                        <button type="submit" class="form-control">
-                                            Find a job
-                                        </button>
-                                    </div>
-
-                                    <div class="col-12">
-                                        <div class="d-flex flex-wrap align-items-center mt-4 mt-lg-0">
-                                            <span class="text-white mb-lg-0 mb-md-0 me-2">Popular keywords:</span>
-
-                                            <div>
-                                                <a href="job-listings.html" class="badge">Web design</a>
-
-                                                <a href="job-listings.html" class="badge">Marketing</a>
-
-                                                <a href="job-listings.html" class="badge">Customer support</a>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </form>
-                        </div> -->
-
                 </div>
             </div>
         </section>
 
-
-        <section class="categories-section section-padding" id="categories-section">
+        <section class="about-section" id="about-section">
             <div class="container">
-                <div class="row justify-content-center align-items-center">
-
-                    <div class="col-lg-12 col-12 text-center">
-                        <h2 class="mb-5">Puja Bakti Teens</h2>
-                    </div>
-
-                    <div class="col-lg-2 col-md-4 col-6">
-                        <div class="categories-block">
-                            <div class="d-flex flex-column justify-content-center align-items-center h-100">
-                                <i class="categories-icon bi-flower1"></i>
-
-                                <small class="categories-block-title">Namaskara</small>
-
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="col-lg-2 col-md-4 col-6">
-                        <div class="categories-block">
-                            <div class="d-flex flex-column justify-content-center align-items-center h-100">
-                                <i class="categories-icon bi-book-fill"></i>
-
-                                <small class="categories-block-title">Paritta</small>
-
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="col-lg-2 col-md-4 col-6">
-                        <div class="categories-block">
-                            <div class="d-flex flex-column justify-content-center align-items-center h-100">
-                                <i class="categories-icon bi-gift-fill"></i>
-
-                                <small class="categories-block-title">Berdana</small>
-
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="col-lg-2 col-md-4 col-6">
-                        <div class="categories-block">
-                            <div class="d-flex flex-column justify-content-center align-items-center h-100">
-                                <i class="categories-icon bi-heart-pulse"></i>
-
-                                <small class="categories-block-title">Meditasi</small>
-
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="col-lg-2 col-md-4 col-6">
-                        <div class="categories-block">
-                            <div class="d-flex flex-column justify-content-center align-items-center h-100">
-                                <i class="categories-icon bi-chat-text-fill"></i>
-
-                                <small class="categories-block-title">Mendengarkan Dhamma</small>
-
-                            </div>
-                        </div>
-                    </div>
-
-                </div>
-            </div>
-        </section>
-
-
-        <section class="about-section">
-            <div class="container">
-                <div class="row">
-
-                    <div class="col-lg-3 col-12">
-                        <div class="about-image-wrap custom-border-radius-start">
-                            <img src="images/ruphing.png"
-                                class="about-image custom-border-radius-start img-fluid" alt="">
-
-                            <div class="about-info">
-                                <h4 class="text-white mb-0 me-2">Ruphing</h4>
-
-                                <p class="text-white mb-0">Ketua VDR Teens</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="col-lg-6 col-12">
-                        <div class="custom-text-block">
+                <div class="row justify-content-center section-padding">
+                    <div class="col-lg-7 col-12">
+                        <div class="custom-text-block custom-border-radius-start">
                             <h2 class="text-white mb-2">VDR Teens</h2>
-
-                            <p class="text-white">Halo Teens! Selamat datang di VDR Teens — tempat di mana kamu bisa <bold>belajar Dhamma,</bold> <bold>bertemu teman baru,</bold> dan menemukan <bold>versi terbaik dari dirimu</bold>. 
-                            Kami percaya bahwa latihan kecil setiap hari dapat membawa perubahan besar. Yuk, ikut puja bakti dan kegiatan seru lainnya bareng kami!
+                            <p class="text-white">Halo Teens! Selamat datang di VDR Teens — tempat di mana kamu bisa
+                                <bold>belajar Dhamma,</bold>
+                                <bold>bertemu teman baru,</bold> dan menemukan <bold>versi terbaik dari dirimu</bold>.
+                                Kami percaya bahwa latihan kecil setiap hari dapat membawa perubahan besar. Yuk, ikut
+                                puja bakti dan kegiatan seru lainnya bareng kami!
                             </p>
-
                             <div class="custom-border-btn-wrap d-flex align-items-center mt-5">
                                 <a href="about.html" class="custom-btn custom-border-btn btn me-4">Kenali Kami</a>
-
                                 <a href="#job-section" class="custom-link smoothscroll"></a>
                             </div>
                         </div>
@@ -280,7 +127,6 @@
                         <div class="instagram-block">
                             <img src="images/view-buddha-statuette.jpg"
                                 class="about-image custom-border-radius-end img-fluid" alt="">
-
                             <div class="instagram-block-text">
                                 <a href="https://www.instagram.com/vdrteens" class="custom-btn btn">
                                     <i class="bi-instagram"></i>
@@ -289,583 +135,131 @@
                             </div>
                         </div>
                     </div>
-
                 </div>
             </div>
         </section>
 
-
-        <section class="job-section job-featured-section section-padding" id="job-section">
+        <section class="brief-events-section section-padding" id="brief-events-section">
             <div class="container">
                 <div class="row">
-
-                    <div class="col-lg-6 col-12 text-center mx-auto mb-4">
-                        <h2>Featured Jobs</h2>
-
-                        <p><strong>Over 10k opening jobs</strong> Feel free to download and use our free HTML templates
-                            from Tooplate website.</p>
+                    <div class="col-lg-12 col-12 text-center mb-5">
+                        <h2 class="mb-3">Kegiatan Teens</h2>
+                        <p class="text-muted">Jelajahi kegiatan spiritual dan sosial yang seru bersama VDR Teens</p>
                     </div>
-
-                    <div class="col-lg-12 col-12">
-                        <div class="job-thumb d-flex">
-                            <div class="job-image-wrap bg-white shadow-lg">
-                                <img src="images/logos/google.png" class="job-image img-fluid" alt="">
-                            </div>
-
-                            <div class="job-body d-flex flex-wrap flex-auto align-items-center ms-4">
-                                <div class="mb-3">
-                                    <h4 class="job-title mb-lg-0">
-                                        <a href="job-details.html" class="job-title-link">Technical Lead</a>
-                                    </h4>
-
-                                    <div class="d-flex flex-wrap align-items-center">
-                                        <p class="job-location mb-0">
-                                            <i class="custom-icon bi-geo-alt me-1"></i>
-                                            Kuala, Malaysia
-                                        </p>
-
-                                        <p class="job-date mb-0">
-                                            <i class="custom-icon bi-clock me-1"></i>
-                                            10 hours ago
-                                        </p>
-
-                                        <p class="job-price mb-0">
-                                            <i class="custom-icon bi-cash me-1"></i>
-                                            $20k
-                                        </p>
-
-                                        <div class="d-flex">
-                                            <p class="mb-0">
-                                                <a href="job-listings.html" class="badge badge-level">Internship</a>
-                                            </p>
-
-                                            <p class="mb-0">
-                                                <a href="job-listings.html" class="badge">Freelance</a>
-                                            </p>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="job-section-btn-wrap">
-                                    <a href="job-details.html" class="custom-btn btn">Apply now</a>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="job-thumb d-flex">
-                            <div class="job-image-wrap bg-white shadow-lg">
-                                <img src="images/logos/apple.png" class="job-image img-fluid" alt="">
-                            </div>
-
-                            <div class="job-body d-flex flex-wrap flex-auto align-items-center ms-4">
-                                <div class="mb-3">
-                                    <h4 class="job-title mb-lg-0">
-                                        <a href="job-details.html" class="job-title-link">Business Director</a>
-                                    </h4>
-
-                                    <div class="d-flex flex-wrap align-items-center">
-                                        <p class="job-location mb-0">
-                                            <i class="custom-icon bi-geo-alt me-1"></i>
-                                            California, USA
-                                        </p>
-
-                                        <p class="job-date mb-0">
-                                            <i class="custom-icon bi-clock me-1"></i>
-                                            1 day ago
-                                        </p>
-
-                                        <p class="job-price mb-0">
-                                            <i class="custom-icon bi-cash me-1"></i>
-                                            $90k
-                                        </p>
-
-                                        <div class="d-flex">
-                                            <p class="mb-0">
-                                                <a href="job-listings.html" class="badge badge-level">Senior</a>
-                                            </p>
-
-                                            <p class="mb-0">
-                                                <a href="job-listings.html" class="badge">Full Time</a>
-                                            </p>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="job-section-btn-wrap">
-                                    <a href="job-details.html" class="custom-btn btn">Apply now</a>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="job-thumb d-flex">
-                            <div class="job-image-wrap bg-white shadow-lg">
-                                <img src="images/logos/meta.png" class="job-image img-fluid" alt="">
-                            </div>
-
-                            <div class="job-body d-flex flex-wrap flex-auto align-items-center ms-4">
-                                <div class="mb-3">
-                                    <h4 class="job-title mb-lg-0">
-                                        <a href="job-details.html" class="job-title-link">HR Manager</a>
-                                    </h4>
-
-                                    <div class="d-flex flex-wrap align-items-center">
-                                        <p class="job-location mb-0">
-                                            <i class="custom-icon bi-geo-alt me-1"></i>
-                                            Tower, Paris
-                                        </p>
-
-                                        <p class="job-date mb-0">
-                                            <i class="custom-icon bi-clock me-1"></i>
-                                            22 hours ago
-                                        </p>
-
-                                        <p class="job-price mb-0">
-                                            <i class="custom-icon bi-cash me-1"></i>
-                                            $50k
-                                        </p>
-
-                                        <div class="d-flex">
-                                            <p class="mb-0">
-                                                <a href="job-listings.html" class="badge badge-level">Junior</a>
-                                            </p>
-
-                                            <p class="mb-0">
-                                                <a href="job-listings.html" class="badge">Contract</a>
-                                            </p>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="job-section-btn-wrap">
-                                    <a href="job-details.html" class="custom-btn btn">Apply now</a>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="job-thumb d-flex">
-                            <div class="job-image-wrap bg-white shadow-lg">
-                                <img src="images/logos/slack.png" class="job-image img-fluid" alt="">
-                            </div>
-
-                            <div class="job-body d-flex flex-wrap flex-auto align-items-center ms-4">
-                                <div class="mb-3">
-                                    <h4 class="job-title mb-lg-0">
-                                        <a href="job-details.html" class="job-title-link">Dev Ops</a>
-                                    </h4>
-
-                                    <div class="d-flex flex-wrap align-items-center">
-                                        <p class="job-location mb-0">
-                                            <i class="custom-icon bi-geo-alt me-1"></i>
-                                            Bangkok, Thailand
-                                        </p>
-
-                                        <p class="job-date mb-0">
-                                            <i class="custom-icon bi-clock me-1"></i>
-                                            40 minutes ago
-                                        </p>
-
-                                        <p class="job-price mb-0">
-                                            <i class="custom-icon bi-cash me-1"></i>
-                                            $75k - 80k
-                                        </p>
-
-                                        <div class="d-flex">
-                                            <p class="mb-0">
-                                                <a href="job-listings.html" class="badge badge-level">Senior</a>
-                                            </p>
-
-                                            <p class="mb-0">
-                                                <a href="job-listings.html" class="badge">Part Time</a>
-                                            </p>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="job-section-btn-wrap">
-                                    <a href="job-details.html" class="custom-btn btn">Apply now</a>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="job-thumb d-flex">
-                            <div class="job-image-wrap bg-white shadow-lg">
-                                <img src="images/logos/creative-market.png" class="job-image img-fluid" alt="">
-                            </div>
-
-                            <div class="job-body d-flex flex-wrap flex-auto align-items-center ms-4">
-                                <div class="mb-3">
-                                    <h4 class="job-title mb-lg-0">
-                                        <a href="job-details.html" class="job-title-link">UX Designer</a>
-                                    </h4>
-
-                                    <div class="d-flex flex-wrap align-items-center">
-                                        <p class="job-location mb-0">
-                                            <i class="custom-icon bi-geo-alt me-1"></i>
-                                            Bangkok, Thailand
-                                        </p>
-
-                                        <p class="job-date mb-0">
-                                            <i class="custom-icon bi-clock me-1"></i>
-                                            2 hours ago
-                                        </p>
-
-                                        <p class="job-price mb-0">
-                                            <i class="custom-icon bi-cash me-1"></i>
-                                            $100k
-                                        </p>
-
-                                        <div class="d-flex">
-                                            <p class="mb-0">
-                                                <a href="job-listings.html" class="badge badge-level">Entry</a>
-                                            </p>
-
-                                            <p class="mb-0">
-                                                <a href="job-listings.html" class="badge">Remote</a>
-                                            </p>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="job-section-btn-wrap">
-                                    <a href="job-details.html" class="custom-btn btn">Apply now</a>
-                                </div>
-                            </div>
-                        </div>
-
-                        <nav aria-label="Page navigation example">
-                            <ul class="pagination justify-content-center mt-5">
-                                <li class="page-item">
-                                    <a class="page-link" href="#" aria-label="Previous">
-                                        <span aria-hidden="true">Prev</span>
-                                    </a>
-                                </li>
-
-                                <li class="page-item active" aria-current="page">
-                                    <a class="page-link" href="#">1</a>
-                                </li>
-
-                                <li class="page-item">
-                                    <a class="page-link" href="#">2</a>
-                                </li>
-
-                                <li class="page-item">
-                                    <a class="page-link" href="#">3</a>
-                                </li>
-
-                                <li class="page-item">
-                                    <a class="page-link" href="#">4</a>
-                                </li>
-
-                                <li class="page-item">
-                                    <a class="page-link" href="#">5</a>
-                                </li>
-
-                                <li class="page-item">
-                                    <a class="page-link" href="#" aria-label="Next">
-                                        <span aria-hidden="true">Next</span>
-                                    </a>
-                                </li>
-                            </ul>
-                        </nav>
-                    </div>
-
                 </div>
-            </div>
-        </section>
 
-
-        <section>
-            <div class="container">
                 <div class="row">
-
-                    <div class="col-lg-6 col-12">
-                        <div class="custom-text-block custom-border-radius-start">
-                            <h2 class="text-white mb-3">Gotto helps you an easier way to get new job</h2>
-
-                            <p class="text-white">You are not allowed to redistribute the template ZIP file on any other
-                                template collection website. Please contact us for more info. Thank you.</p>
-
-                            <div class="d-flex mt-4">
-                                <div class="counter-thumb">
-                                    <div class="d-flex">
-                                        <span class="counter-number" data-from="1" data-to="12"
-                                            data-speed="1000"></span>
-                                        <span class="counter-number-text">M</span>
-                                    </div>
-
-                                    <span class="counter-text">Daily active users</span>
-                                </div>
-
-                                <div class="counter-thumb">
-                                    <div class="d-flex">
-                                        <span class="counter-number" data-from="1" data-to="450"
-                                            data-speed="1000"></span>
-                                        <span class="counter-number-text">k</span>
-                                    </div>
-
-                                    <span class="counter-text">Opening jobs</span>
+                    <div class="col-lg-4 col-md-6 col-12 mb-4">
+                        <div class="brief-event-card custom-border-radius">
+                            <div class="brief-event-image">
+                                <img src="images/events/meditation.jpg" class="img-fluid brief-event-img"
+                                    alt="Meditasi">
+                            </div>
+                            <div class="brief-event-body p-4">
+                                <span class="brief-event-badge">Mingguan</span>
+                                <h4 class="brief-event-title mt-3">Meditasi & Diskusi Dhamma</h4>
+                                <p class="brief-event-desc">Setiap Minggu, 16:00 - 18:00 WIB</p>
+                                <div class="mt-3">
+                                    <a href="event-details.html" class="btn btn-sm custom-btn">Info Lengkap</a>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <div class="col-lg-6 col-12">
-                        <div class="video-thumb">
-                            <img src="images/people-working-as-team-company.jpg"
-                                class="about-image custom-border-radius-end img-fluid" alt="">
-
-                            <div class="video-info">
-                                <a href="https://www.youtube.com/tooplate" class="youtube-icon bi-youtube"></a>
+                    <div class="col-lg-4 col-md-6 col-12 mb-4">
+                        <div class="brief-event-card custom-border-radius">
+                            <div class="brief-event-image">
+                                <img src="images/events/dhamma-study.jpg" class="img-fluid brief-event-img"
+                                    alt="Kelas Dhamma">
+                            </div>
+                            <div class="brief-event-body p-4">
+                                <span class="brief-event-badge">Kelas</span>
+                                <h4 class="brief-event-title mt-3">Kelas Dhamma: Lima Sila</h4>
+                                <p class="brief-event-desc">15 Des 2024, 13:00 - 15:00 WIB</p>
+                                <div class="mt-3">
+                                    <a href="event-details.html" class="btn btn-sm custom-btn">Info Lengkap</a>
+                                </div>
                             </div>
                         </div>
                     </div>
 
+                    <div class="col-lg-4 col-md-6 col-12 mb-4">
+                        <div class="brief-event-card custom-border-radius">
+                            <div class="brief-event-image">
+                                <img src="images/events/community-service.jpg" class="img-fluid brief-event-img"
+                                    alt="Bakti Sosial">
+                            </div>
+                            <div class="brief-event-body p-4">
+                                <span class="brief-event-badge">Bakti Sosial</span>
+                                <h4 class="brief-event-title mt-3">Bakti Sosial Natal</h4>
+                                <p class="brief-event-desc">22 Des 2024, 09:00 - 14:00 WIB</p>
+                                <div class="mt-3">
+                                    <a href="event-details.html" class="btn btn-sm custom-btn">Info Lengkap</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row mt-5">
+                    <div class="col-lg-12 text-center">
+                        <a href="events.html" class="custom-btn btn">Lihat Semua Kegiatan</a>
+                    </div>
                 </div>
             </div>
         </section>
 
-
-        <section class="job-section recent-jobs-section section-padding">
+        <section class="categories-section section-padding" id="categories-section">
             <div class="container">
-                <div class="row align-items-center">
-
-                    <div class="col-lg-6 col-12 mb-4">
-                        <h2>Recent Jobs</h2>
-
-                        <p><strong>Over 10k opening jobs</strong> Lorem Ipsum dolor sit amet, consectetur adipsicing
-                            kengan omeg kohm tokito adipcingi elit eismuod larehai</p>
+                <div class="row justify-content-center align-items-center">
+                    <div class="col-lg-12 col-12 text-center">
+                        <h2 class="mb-5">Puja Bakti Teens</h2>
                     </div>
 
-                    <div class="clearfix"></div>
-
-                    <div class="col-lg-4 col-md-6 col-12">
-                        <div class="job-thumb job-thumb-box">
-                            <div class="job-image-box-wrap">
-                                <a href="job-details.html">
-                                    <img src="images/jobs/it-professional-works-startup-project.jpg"
-                                        class="job-image img-fluid" alt="">
-                                </a>
-
-                                <div class="job-image-box-wrap-info d-flex align-items-center">
-                                    <p class="mb-0">
-                                        <a href="job-listings.html" class="badge badge-level">Internship</a>
-                                    </p>
-
-                                    <p class="mb-0">
-                                        <a href="job-listings.html" class="badge">Freelance</a>
-                                    </p>
-                                </div>
-                            </div>
-
-                            <div class="job-body">
-                                <h4 class="job-title">
-                                    <a href="job-details.html" class="job-title-link">Technical Lead</a>
-                                </h4>
-
-                                <div class="d-flex align-items-center">
-                                    <div class="job-image-wrap d-flex align-items-center bg-white shadow-lg mt-2 mb-4">
-                                        <img src="images/logos/salesforce.png" class="job-image me-3 img-fluid" alt="">
-
-                                        <p class="mb-0">Salesforce</p>
-                                    </div>
-
-                                    <a href="#" class="bi-bookmark ms-auto me-2">
-                                    </a>
-
-                                    <a href="#" class="bi-heart">
-                                    </a>
-                                </div>
-
-                                <div class="d-flex align-items-center">
-                                    <p class="job-location">
-                                        <i class="custom-icon bi-geo-alt me-1"></i>
-                                        Kuala, Malaysia
-                                    </p>
-
-                                    <p class="job-date">
-                                        <i class="custom-icon bi-clock me-1"></i>
-                                        10 hours ago
-                                    </p>
-                                </div>
-
-                                <div class="d-flex align-items-center border-top pt-3">
-                                    <p class="job-price mb-0">
-                                        <i class="custom-icon bi-cash me-1"></i>
-                                        $50k
-                                    </p>
-
-                                    <a href="job-details.html" class="custom-btn btn ms-auto">Apply now</a>
-                                </div>
+                    <div class="col-lg-2 col-md-4 col-6">
+                        <div class="categories-block">
+                            <div class="d-flex flex-column justify-content-center align-items-center h-100">
+                                <i class="categories-icon bi-flower1"></i>
+                                <small class="categories-block-title">Namaskara</small>
                             </div>
                         </div>
                     </div>
 
-                    <div class="col-lg-4 col-md-6 col-12">
-                        <div class="job-thumb job-thumb-box">
-                            <div class="job-image-box-wrap">
-                                <a href="job-details.html">
-                                    <img src="images/jobs/marketing-assistant.jpg" class="job-image img-fluid"
-                                        alt="marketing assistant">
-                                </a>
-
-                                <div class="job-image-box-wrap-info d-flex align-items-center">
-                                    <p class="mb-0">
-                                        <a href="job-listings.html" class="badge badge-level">Senior</a>
-                                    </p>
-
-                                    <p class="mb-0">
-                                        <a href="job-listings.html" class="badge">Part Time</a>
-                                    </p>
-                                </div>
-                            </div>
-
-                            <div class="job-body">
-                                <h4 class="job-title">
-                                    <a href="job-details.html" class="job-title-link">Marketing Assistant</a>
-                                </h4>
-
-                                <div class="d-flex align-items-center">
-                                    <div class="job-image-wrap d-flex align-items-center bg-white shadow-lg mt-2 mb-4">
-                                        <img src="images/logos/spotify.png" class="job-image me-3 img-fluid" alt="">
-
-                                        <p class="mb-0">Spotify</p>
-                                    </div>
-
-                                    <a href="#" class="bi-bookmark ms-auto me-2">
-                                    </a>
-
-                                    <a href="#" class="bi-heart">
-                                    </a>
-                                </div>
-
-                                <div class="d-flex align-items-center">
-                                    <p class="job-location">
-                                        <i class="custom-icon bi-geo-alt me-1"></i>
-                                        California, USA
-                                    </p>
-
-                                    <p class="job-date">
-                                        <i class="custom-icon bi-clock me-1"></i>
-                                        8 days ago
-                                    </p>
-                                </div>
-
-                                <div class="d-flex align-items-center border-top pt-3">
-                                    <p class="job-price mb-0">
-                                        <i class="custom-icon bi-cash me-1"></i>
-                                        $20k
-                                    </p>
-
-                                    <a href="job-details.html" class="custom-btn btn ms-auto">Apply now</a>
-                                </div>
+                    <div class="col-lg-2 col-md-4 col-6">
+                        <div class="categories-block">
+                            <div class="d-flex flex-column justify-content-center align-items-center h-100">
+                                <i class="categories-icon bi-book-fill"></i>
+                                <small class="categories-block-title">Paritta</small>
                             </div>
                         </div>
                     </div>
 
-                    <div class="col-lg-4 col-md-6 col-12">
-                        <div class="job-thumb job-thumb-box">
-                            <div class="job-image-box-wrap">
-                                <a href="job-details.html">
-                                    <img src="images/jobs/coding-man.jpg" class="job-image img-fluid" alt="">
-                                </a>
-
-                                <div class="job-image-box-wrap-info d-flex align-items-center">
-                                    <p class="mb-0">
-                                        <a href="job-listings.html" class="badge badge-level">Junior</a>
-                                    </p>
-
-                                    <p class="mb-0">
-                                        <a href="job-listings.html" class="badge">Contract</a>
-                                    </p>
-                                </div>
-                            </div>
-
-                            <div class="job-body">
-                                <h4 class="job-title">
-                                    <a href="job-details.html" class="job-title-link">Programmer</a>
-                                </h4>
-
-                                <div class="d-flex align-items-center">
-                                    <div class="job-image-wrap d-flex align-items-center bg-white shadow-lg mt-2 mb-4">
-                                        <img src="images/logos/twitter.png" class="job-image me-3 img-fluid" alt="">
-
-                                        <p class="mb-0">Twiter</p>
-                                    </div>
-
-                                    <a href="#" class="bi-bookmark ms-auto me-2">
-                                    </a>
-
-                                    <a href="#" class="bi-heart">
-                                    </a>
-                                </div>
-
-                                <div class="d-flex align-items-center">
-                                    <p class="job-location">
-                                        <i class="custom-icon bi-geo-alt me-1"></i>
-                                        California, USA
-                                    </p>
-
-                                    <p class="job-date">
-                                        <i class="custom-icon bi-clock me-1"></i>
-                                        23 hours ago
-                                    </p>
-                                </div>
-
-                                <div class="d-flex align-items-center border-top pt-3">
-                                    <p class="job-price mb-0">
-                                        <i class="custom-icon bi-cash me-1"></i>
-                                        $68k
-                                    </p>
-
-                                    <a href="job-details.html" class="custom-btn btn ms-auto">Apply now</a>
-                                </div>
+                    <div class="col-lg-2 col-md-4 col-6">
+                        <div class="categories-block">
+                            <div class="d-flex flex-column justify-content-center align-items-center h-100">
+                                <i class="categories-icon bi-gift-fill"></i>
+                                <small class="categories-block-title">Berdana</small>
                             </div>
                         </div>
                     </div>
 
-                    <div class="col-lg-4 col-12 recent-jobs-bottom d-flex ms-auto my-4">
-                        <a href="job-listings.html" class="custom-btn btn ms-lg-auto">Browse Job Listings</a>
-                    </div>
-
-                </div>
-            </div>
-        </section>
-
-
-        <section class="reviews-section section-padding">
-            <div class="container">
-                <div class="row">
-
-                    <div class="col-lg-12 col-12">
-                        <h2 class="text-center mb-5">Happy customers</h2>
-                    </div>
-
-                </div>
-            </div>
-        </section>
-
-
-        <section class="cta-section">
-            <div class="section-overlay"></div>
-
-            <div class="container">
-                <div class="row">
-
-                    <div class="col-lg-6 col-10">
-                        <h2 class="text-white mb-2">Over 10k opening jobs</h2>
-
-                        <p class="text-white">If you are looking for free HTML templates, you may visit Tooplate
-                            website. If you need a collection of free templates, you can visit Too CSS website.</p>
-                    </div>
-
-                    <div class="col-lg-4 col-12 ms-auto">
-                        <div class="custom-border-btn-wrap d-flex align-items-center mt-lg-4 mt-2">
-                            <a href="#" class="custom-btn custom-border-btn btn me-4">Create an account</a>
-
-                            <a href="#" class="custom-link">Post a job</a>
+                    <div class="col-lg-2 col-md-4 col-6">
+                        <div class="categories-block">
+                            <div class="d-flex flex-column justify-content-center align-items-center h-100">
+                                <i class="categories-icon bi-heart-pulse"></i>
+                                <small class="categories-block-title">Meditasi</small>
+                            </div>
                         </div>
                     </div>
 
+                    <div class="col-lg-2 col-md-4 col-6">
+                        <div class="categories-block">
+                            <div class="d-flex flex-column justify-content-center align-items-center h-100">
+                                <i class="categories-icon bi-chat-text-fill"></i>
+                                <small class="categories-block-title">Mendengarkan Dhamma</small>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </section>
@@ -874,143 +268,87 @@
     <footer class="site-footer">
         <div class="container">
             <div class="row">
-
                 <div class="col-lg-4 col-md-6 col-12 mb-3">
                     <div class="d-flex align-items-center mb-4">
                         <img src="images/logo.png" class="img-fluid logo-image">
-
                         <div class="d-flex flex-column">
-                            <strong class="logo-text">Gotto</strong>
-                            <small class="logo-small-text">Online Job Portal</small>
+                            <strong class="logo-text">Teens</strong>
+                            <small class="logo-small-text">Puja bakti Remaja</small>
                         </div>
                     </div>
 
                     <p class="mb-2">
                         <i class="custom-icon bi-globe me-1"></i>
+                        <a href="teens-vdr.web.app" class="site-footer-link">
+                            teens-vdr.web.app
+                        </a>
+                    </p>
 
-                        <a href="#" class="site-footer-link">
-                            www.jobbportal.com
+
+                    <p class="mb-2">
+                        <i class="custom-icon bi-envelope me-1"></i>
+                        <a href="mailto:teensfordhamma@gmail.com" class="site-footer-link">
+                            teensfordhamma@gmail.com
                         </a>
                     </p>
 
                     <p class="mb-2">
-                        <i class="custom-icon bi-telephone me-1"></i>
-
-                        <a href="tel: 305-240-9671" class="site-footer-link">
-                            305-240-9671
+                        <i class="custom-icon bi-whatsapp me-1"></i>
+                        <a href="https://chat.whatsapp.com/KUdvHjj8Ipz6JfiHgXWaGQ?mode=hqrt3" class="site-footer-link">
+                            Grup WhatsApp
                         </a>
                     </p>
 
-                    <p>
-                        <i class="custom-icon bi-envelope me-1"></i>
-
-                        <a href="mailto:info@yourgmail.com" class="site-footer-link">
-                            info@jobportal.co
+                    <p class="mb-2">
+                        <i class="custom-icon bi-instagram me-1"></i>
+                        <a href="https://www.instagram.com/vdrteens/" class="site-footer-link">
+                            @vdrteens
                         </a>
                     </p>
-
                 </div>
 
-                <div class="col-lg-2 col-md-3 col-6 ms-lg-auto">
-                    <h6 class="site-footer-title">Company</h6>
-
-                    <ul class="footer-menu">
-                        <li class="footer-menu-item"><a href="#" class="footer-menu-link">About</a></li>
-
-                        <li class="footer-menu-item"><a href="#" class="footer-menu-link">Blog</a></li>
-
-                        <li class="footer-menu-item"><a href="#" class="footer-menu-link">Jobs</a></li>
-
-                        <li class="footer-menu-item"><a href="#" class="footer-menu-link">Contact</a></li>
-                    </ul>
-                </div>
-
-                <div class="col-lg-2 col-md-3 col-6">
-                    <h6 class="site-footer-title">Resources</h6>
-
-                    <ul class="footer-menu">
-                        <li class="footer-menu-item"><a href="#" class="footer-menu-link">Guide</a></li>
-
-                        <li class="footer-menu-item"><a href="#" class="footer-menu-link">How it works</a></li>
-
-                        <li class="footer-menu-item"><a href="#" class="footer-menu-link">Salary Tool</a></li>
-                    </ul>
-                </div>
-
-                <div class="col-lg-4 col-md-8 col-12 mt-3 mt-lg-0">
-                    <h6 class="site-footer-title">Newsletter</h6>
-
-                    <form class="custom-form newsletter-form" action="#" method="post" role="form">
-                        <h6 class="site-footer-title">Get notified jobs news</h6>
-
+                <div class="col-lg-4 col-md-8 col-12 mt-3 mt-lg-0 ms-auto">
+                    <h6 class="site-footer-title">Kontak Email Langsung</h6>
+                    <form class="custom-form newsletter-form"
+                        onclick="window.location.href='mailto:teensfordhamma@gmail.com'" method="post" role="form">
                         <div class="input-group">
                             <span class="input-group-text" id="basic-addon1"><i class="bi-person"></i></span>
-
                             <input type="text" name="newsletter-name" id="newsletter-name" class="form-control"
-                                placeholder="yourname@gmail.com" required>
-
+                                placeholder="emailmu@gmail.com" required>
                             <button type="submit" class="form-control">
                                 <i class="bi-send"></i>
                             </button>
                         </div>
                     </form>
                 </div>
-
             </div>
         </div>
 
         <div class="site-footer-bottom">
             <div class="container">
-                <div class="row">
+                <div class="row align-items-center">
 
-                    <div class="col-lg-4 col-12 d-flex align-items-center">
-                        <p class="copyright-text">Copyright © Gotto Job 2048</p>
 
-                        <ul class="footer-menu d-flex">
-                            <li class="footer-menu-item"><a href="#" class="footer-menu-link">Privacy Policy</a></li>
+                    <div class="col-lg-4 col-12 d-flex justify-content-start mb-3 mb-lg-0">
+    <p class="mb-0">
+        Design & Script:
+        <a class="sponsored-link" rel="sponsored" target="_blank">
+            Richie Leonardo Cendana
+        </a>
+    </p>
+</div>
 
-                            <li class="footer-menu-item"><a href="#" class="footer-menu-link">Terms</a></li>
-                        </ul>
+
+                    <div class="col-lg-3 col-12 d-flex justify-content-lg-end justify-content-center">
+                        <a href="#top"
+                            class="back-top-icon bi-arrow-up smoothscroll d-flex justify-content-center align-items-center">
+                        </a>
                     </div>
-
-                    <div class="col-lg-5 col-12 mt-2 mt-lg-0">
-                        <ul class="social-icon">
-                            <li class="social-icon-item">
-                                <a href="#" class="social-icon-link bi-twitter"></a>
-                            </li>
-
-                            <li class="social-icon-item">
-                                <a href="#" class="social-icon-link bi-facebook"></a>
-                            </li>
-
-                            <li class="social-icon-item">
-                                <a href="#" class="social-icon-link bi-linkedin"></a>
-                            </li>
-
-                            <li class="social-icon-item">
-                                <a href="#" class="social-icon-link bi-instagram"></a>
-                            </li>
-
-                            <li class="social-icon-item">
-                                <a href="#" class="social-icon-link bi-youtube"></a>
-                            </li>
-                        </ul>
-                    </div>
-
-                    <div class="col-lg-3 col-12 mt-2 d-flex align-items-center mt-lg-0">
-                        <p>Design: <a class="sponsored-link" rel="sponsored" href="https://www.tooplate.com"
-                                target="_blank">Tooplate</a></p>
-                    </div>
-
-                    <a class="back-top-icon bi-arrow-up smoothscroll d-flex justify-content-center align-items-center"
-                        href="#top"></a>
-
                 </div>
             </div>
         </div>
     </footer>
 
-    <!-- JAVASCRIPT FILES -->
     <script src="js/jquery.min.js"></script>
     <script src="js/bootstrap.min.js"></script>
     <script src="js/owl.carousel.min.js"></script>
