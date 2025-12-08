@@ -16,8 +16,6 @@
         rel="stylesheet">
     <link href="css/bootstrap.min.css" rel="stylesheet">
     <link href="css/bootstrap-icons.css" rel="stylesheet">
-    <link href="css/owl.carousel.min.css" rel="stylesheet">
-    <link href="css/owl.theme.default.min.css" rel="stylesheet">
     <link href="css/tooplate-gotto-job.css" rel="stylesheet">
 </head>
 
@@ -66,7 +64,7 @@
                         </li>
                     </ul>
 
-                    <div class="mt-auto mb-4 d-lg-none w-100 mobile-auth-section">
+                    <div class="mt-auto mb-4 d-lg-none w-100 mobile-auth-section" id="mobileAuthSection">
                         <div class="d-grid gap-2">
                             <span class="mobile-auth-label">AKUN</span>
                             <a class="btn custom-btn" href="login.html">Login</a>
@@ -75,17 +73,19 @@
                 </div>
             </div>
 
-            <div class="d-none d-lg-flex align-items-center ms-lg-auto desktop-auth-container">
+            <div class="d-none d-lg-flex align-items-center ms-lg-auto desktop-auth-container"
+                id="desktopAuthContainer">
                 <a class="custom-btn btn mt-2 mt-lg-0" href="login.html">Login</a>
             </div>
         </div>
     </nav>
 
     <button
-        class="btn rounded-circle shadow position-fixed bottom-0 end-0 m-4 d-lg-none d-flex justify-content-center align-items-center toggle-button"
+        class="btn rounded-circle shadow position-fixed bottom-0 end-0 mb-6 me-4 d-lg-none d-flex justify-content-center align-items-center toggle-button"
         type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasNavbar" aria-controls="offcanvasNavbar">
         <i class="bi bi-list fs-2 d-flex" id="fabIcon"></i>
     </button>
+
 
     <main>
         <section class="section-hero d-flex justify-content-center align-items-center">
@@ -330,13 +330,13 @@
 
 
                     <div class="col-lg-4 col-12 d-flex justify-content-start mb-3 mb-lg-0">
-    <p class="mb-0">
-        Design & Script:
-        <a class="sponsored-link" rel="sponsored" target="_blank">
-            Richie Leonardo Cendana
-        </a>
-    </p>
-</div>
+                        <p class="mb-0">
+                            Design & Script:
+                            <a class="sponsored-link" rel="sponsored" target="_blank">
+                                Richie Leonardo Cendana
+                            </a>
+                        </p>
+                    </div>
 
 
                     <div class="col-lg-3 col-12 d-flex justify-content-lg-end justify-content-center">
@@ -355,6 +355,9 @@
     <script src="js/counter.js"></script>
     <script src="js/custom.js"></script>
     <script src="js/sidebar.js"></script>
+
+    <!-- Navbar Auth State -->
+    <script type="module" src="js/navbar-auth.js"></script>
 
 </body>
 

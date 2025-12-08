@@ -888,11 +888,11 @@ nav[aria-label="breadcrumb"] {
   .brief-event-image {
     height: 150px;
   }
-  
+
   .brief-event-body {
     padding: 1rem;
   }
-  
+
   .brief-event-title {
     font-size: 1rem;
   }
@@ -931,7 +931,7 @@ nav[aria-label="breadcrumb"] {
 .benefit-block:hover {
   transform: translateY(-8px);
   border-color: var(--custom-btn-bg-color);
-  box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
 }
 
 .benefit-icon {
@@ -971,17 +971,17 @@ nav[aria-label="breadcrumb"] {
   .benefit-block {
     padding: 1.5rem 1rem;
   }
-  
+
   .benefit-icon {
     width: 60px;
     height: 60px;
     font-size: 1.5rem;
   }
-  
+
   .benefit-title {
     font-size: 1.1rem;
   }
-  
+
   .benefit-desc {
     font-size: 0.9rem;
   }
@@ -1504,19 +1504,235 @@ nav[aria-label="breadcrumb"] {
   margin-right: 20px
 }
 
-.social-icon-item a{
+.social-icon-item a {
   color: var(--second-white-color);
 }
 
-.social-icon-item a:hover{
+.social-icon-item a:hover {
   color: var(--pure-white-color);
 }
 
-.sponsored-link{
+.sponsored-link {
   color: var(--second-white-color);
 }
 
-.sponsored-link:hover{
+.sponsored-link:hover {
   color: var(--pure-white-color);
 }
 
+
+/*---------------------------------------
+  LOGIN PAGE STYLES               
+-----------------------------------------*/
+.hero-form {
+  background-color: var(--social-icon-link-bg-color);
+  border-radius: var(--border-radius-medium);
+}
+
+.hero-form h3,
+.hero-form .form-check-label,
+.hero-form a,
+.hero-form p {
+  color: var(--pure-white-color) !important;
+}
+
+.hero-form .form-control {
+  background-color: var(--white-color);
+  color: var(--p-color);
+  border: none;
+}
+
+.hero-form .form-control:focus {
+  background-color: var(--pure-white-color);
+  color: var(--primary-color);
+}
+
+.hero-form .input-group-text {
+  background-color: var(--white-color);
+  border: none;
+  color: var(--p-color);
+}
+
+.hero-form .form-check-label {
+  font-weight: var(--font-weight-light);
+}
+
+.hero-form a {
+  text-decoration: underline;
+}
+
+.hero-form p a {
+  font-weight: var(--font-weight-bold);
+  text-decoration: none;
+}
+
+.back-btn {
+  position: absolute;
+  top: 30px;
+  left: 30px;
+  z-index: 100;
+  color: var(--pure-white-color);
+  background-color: var(--custom-btn-bg-color);
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: var(--font-weight-normal);
+  transition: all 0.3s;
+  padding: 10px 20px;
+  border-radius: var(--border-radius-large);
+}
+
+.back-btn:hover {
+  background-color: var(--secondary-color);
+  color: var(--primary-color);
+  transform: translateX(-5px);
+}
+
+@media screen and (max-width: 767px) {
+  .back-btn {
+    top: 20px;
+    left: 20px;
+    padding: 8px 15px;
+    font-size: 14px;
+  }
+
+  .container {
+    padding-left: 25px;
+    padding-right: 25px;
+  }
+
+  .hero-form {
+    margin-top: 80px;
+  }
+
+  .hero-form img {
+    width: 50px !important;
+    margin-bottom: 0.5rem !important;
+  }
+
+  .hero-form h4 {
+    font-size: 1.25rem;
+    margin-bottom: 1rem !important;
+  }
+
+  .hero-form .form-control,
+  .hero-form .input-group-text {
+    height: 45px;
+  }
+
+  .hero-form .form-check-label,
+  .hero-form a.small {
+    font-size: 0.9rem;
+  }
+
+  .hero-form p {
+    font-size: 0.9rem;
+  }
+}
+
+/*---------------------------------------
+  DASHBOARD STYLES               
+-----------------------------------------*/
+.dashboard-card {
+  background: var(--white-color);
+  border-radius: var(--border-radius-medium);
+  padding: 30px;
+  height: 100%;
+  transition: transform 0.3s ease;
+}
+
+.dashboard-card:hover {
+  transform: translateY(-5px);
+}
+
+.dashboard-stat-title {
+  color: var(--p-color);
+  font-size: 1.1rem;
+  margin-bottom: 15px;
+  text-align: center;
+}
+
+.dashboard-stat-value {
+  color: var(--primary-color);
+  font-size: 2.5rem;
+  font-weight: var(--font-weight-bold);
+}
+
+.history-table th {
+  border-bottom: 2px solid var(--secondary-color);
+  color: var(--primary-color);
+}
+
+.history-table td {
+  color: var(--p-color);
+  vertical-align: middle;
+}
+
+.qr-section {
+  background: var(--primary-color);
+  color: var(--white-color);
+  border-radius: var(--border-radius-medium);
+  padding: 40px;
+  text-align: center;
+}
+
+.qr-icon {
+  font-size: 4rem;
+  color: var(--secondary-color);
+  margin-bottom: 20px;
+}
+
+/* Token Overlay */
+.token-overlay {
+  z-index: 99999;
+  background-color: var(--pure-white-color);
+}
+
+/* Bootstrap Overrides for Theme Consistency */
+.text-primary {
+  color: var(--primary-color) !important;
+}
+
+.text-secondary {
+  color: var(--secondary-color) !important;
+}
+
+.bg-primary {
+  background-color: var(--primary-color) !important;
+}
+
+.bg-dark {
+  background-color: var(--dark-color) !important;
+}
+
+.text-dark {
+  color: var(--dark-color) !important;
+}
+
+.text-white {
+  color: var(--pure-white-color) !important;
+}
+
+.text-white-50 {
+  color: var(--white-color) !important;
+}
+
+/* Monochrome Mapping for Contextual Classes */
+.bg-success {
+  background-color: var(--secondary-color) !important;
+  color: var(--primary-color) !important;
+}
+
+.text-success {
+  color: var(--primary-color) !important;
+}
+
+.text-warning {
+  color: var(--p-color) !important;
+}
+
+.text-danger {
+  color: var(--primary-color) !important;
+  text-decoration: underline;
+}

@@ -8,7 +8,7 @@
     <meta name="author" content="">
     <link rel="icon" type="image/png" href="images/web-logo.png">
 
-    <title>Login - VDR Teens</title>
+    <title>Login / Ganti Password - VDR Teens</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -16,105 +16,8 @@
         rel="stylesheet">
     <link href="css/bootstrap.min.css" rel="stylesheet">
     <link href="css/bootstrap-icons.css" rel="stylesheet">
-    <link href="css/owl.carousel.min.css" rel="stylesheet">
-    <link href="css/owl.theme.default.min.css" rel="stylesheet">
     <link href="css/tooplate-gotto-job.css" rel="stylesheet">
 
-    <style>
-        .hero-form {
-            background-color: var(--social-icon-link-bg-color);
-            border-radius: var(--border-radius-medium);
-        }
-
-        .hero-form h3,
-        .hero-form .form-check-label,
-        .hero-form a,
-        .hero-form p {
-            color: var(--pure-white-color) !important;
-        }
-
-        .hero-form .form-control {
-            background-color: var(--white-color);
-            color: var(--p-color);
-            border: none;
-        }
-
-        .hero-form .form-control:focus {
-            background-color: var(--pure-white-color);
-            color: var(--primary-color);
-        }
-
-        .hero-form .input-group-text {
-            background-color: var(--white-color);
-            border: none;
-            color: var(--p-color);
-        }
-
-        .back-btn {
-            position: absolute;
-            top: 30px;
-            left: 30px;
-            z-index: 100;
-            color: var(--pure-white-color);
-            background-color: var(--custom-btn-bg-color);
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-weight: var(--font-weight-normal);
-            transition: all 0.3s;
-            padding: 10px 20px;
-            border-radius: var(--border-radius-large);
-        }
-
-        .back-btn:hover {
-            background-color: var(--secondary-color);
-            color: var(--primary-color);
-            transform: translateX(-5px);
-        }
-
-        @media screen and (max-width: 767px) {
-            .back-btn {
-                top: 20px;
-                left: 20px;
-                padding: 8px 15px;
-                font-size: 14px;
-            }
-
-            .container {
-                padding-left: 25px;
-                padding-right: 25px;
-            }
-
-            .hero-form {
-                margin-top: 80px;
-            }
-
-            .hero-form img {
-                width: 50px !important;
-                margin-bottom: 0.5rem !important;
-            }
-
-            .hero-form h4 {
-                font-size: 1.25rem;
-                margin-bottom: 1rem !important;
-            }
-
-            .hero-form .form-control,
-            .hero-form .input-group-text {
-                height: 45px;
-            }
-
-            .hero-form .form-check-label,
-            .hero-form a.small {
-                font-size: 0.9rem;
-            }
-
-            .hero-form p {
-                font-size: 0.9rem;
-            }
-        }
-    </style>
 </head>
 
 <body id="top">
@@ -132,7 +35,8 @@
             <div class="container position-relative">
                 <div class="row justify-content-center">
                     <div class="col-lg-4 col-md-8 col-12">
-                        <form class="custom-form hero-form p-4 p-md-5" action="#" method="post" role="form">
+                        <!-- Login Form -->
+                        <form class="custom-form hero-form p-4 p-md-5" id="loginForm" role="form">
                             <div class="text-center mb-3">
                                 <img src="images/logo.png" class="img-fluid mb-2" alt="Logo" style="width: 60px;">
                                 <h4 class="mb-3 text-white">Login Teens</h4>
@@ -140,31 +44,85 @@
 
                             <div class="input-group mb-3">
                                 <span class="input-group-text"><i class="bi-person custom-icon"></i></span>
-                                <input type="text" name="username" class="form-control" placeholder="Username / Email"
-                                    required>
+                                <input type="text" name="username" id="usernameInput" class="form-control"
+                                    placeholder="Username / Email" autocomplete="username" required>
                             </div>
 
                             <div class="input-group mb-3">
                                 <span class="input-group-text"><i class="bi-lock custom-icon"></i></span>
-                                <input type="password" name="password" class="form-control" placeholder="Password"
-                                    required>
+                                <input type="password" name="password" id="passwordInput" class="form-control"
+                                    placeholder="Password" autocomplete="current-password" required>
+                                <button class="btn btn-outline-secondary" type="button"
+                                    onclick="togglePasswordVisibility('passwordInput', this)">
+                                    <i class="bi-eye"></i>
+                                </button>
                             </div>
 
                             <div class="d-flex justify-content-between align-items-center mb-3">
                                 <div class="form-check">
                                     <input class="form-check-input" type="checkbox" id="rememberMe">
-                                    <label class="form-check-label" for="rememberMe"
-                                        style="font-weight: var(--font-weight-light);">Ingat Saya</label>
+                                    <label class="form-check-label" for="rememberMe">Ingat Saya</label>
                                 </div>
-                                <a href="#" class="small" style="text-decoration: underline;">Lupa Password?</a>
+                                <a href="reset-password.html" class="small">Lupa Password?</a>
                             </div>
 
                             <button type="submit" class="form-control">Masuk</button>
 
-                            <p class="text-center mt-3 mb-0">
-                                Belum punya akun? <a href="register.html"
-                                    style="font-weight: var(--font-weight-bold);">Daftar disini</a>
-                            </p>
+                            <div id="loginError" class="alert alert-danger mt-3 d-none" role="alert"></div>
+                            <div id="loginSpinner" class="text-center mt-3 d-none">
+                                <div class="spinner-border text-light" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                            </div>
+                        </form>
+
+                        <!-- Change Password Form (Hidden by default) -->
+                        <form class="custom-form hero-form p-4 p-md-5 d-none" id="changePasswordForm" role="form">
+                            <div class="text-center mb-4">
+                                <img src="images/logo.png" class="img-fluid mb-3" alt="Logo" style="width: 60px;">
+                                <h4 class="mb-2 text-white">Ganti Password</h4>
+                                <p class="text-white-50 small">Ini adalah login pertama Anda. Silakan buat password baru
+                                    untuk keamanan akun Anda.</p>
+                            </div>
+
+                            <!-- Hidden username field for accessibility -->
+                            <input type="text" name="username" id="hiddenUsername" autocomplete="username"
+                                style="display: none;" aria-hidden="true">
+
+                            <div class="input-group mb-3">
+                                <span class="input-group-text"><i class="bi-lock custom-icon"></i></span>
+                                <input type="password" name="newPassword" id="newPasswordInput" class="form-control"
+                                    placeholder="Password Baru" autocomplete="new-password" required minlength="6">
+                                <button class="btn btn-outline-secondary" type="button"
+                                    onclick="togglePasswordVisibility('newPasswordInput', this)">
+                                    <i class="bi-eye"></i>
+                                </button>
+                            </div>
+
+                            <div class="input-group mb-3">
+                                <span class="input-group-text"><i class="bi-lock-fill custom-icon"></i></span>
+                                <input type="password" name="confirmPassword" id="confirmPasswordInput"
+                                    class="form-control" placeholder="Konfirmasi Password Baru"
+                                    autocomplete="new-password" required minlength="6">
+                                <button class="btn btn-outline-secondary" type="button"
+                                    onclick="togglePasswordVisibility('confirmPasswordInput', this)">
+                                    <i class="bi-eye"></i>
+                                </button>
+                            </div>
+
+                            <div class="alert alert-info small" role="alert">
+                                <i class="bi-info-circle me-2"></i>
+                                Password minimal 6 karakter
+                            </div>
+
+                            <button type="submit" class="form-control">Simpan Password</button>
+
+                            <div id="changePasswordError" class="alert alert-danger mt-3 d-none" role="alert"></div>
+                            <div id="changePasswordSpinner" class="text-center mt-3 d-none">
+                                <div class="spinner-border text-light" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                            </div>
                         </form>
                     </div>
                 </div>
@@ -172,10 +130,26 @@
         </section>
     </main>
 
-    <script src="js/jquery.min.js"></script>
     <script src="js/bootstrap.min.js"></script>
-    <script src="js/owl.carousel.min.js"></script>
-    <script src="js/custom.js"></script>
+    <script type="module" src="js/login.js"></script>
+
+    <script>
+        // Toggle password visibility
+        function togglePasswordVisibility(inputId, button) {
+            const input = document.getElementById(inputId);
+            const icon = button.querySelector('i');
+
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.remove('bi-eye');
+                icon.classList.add('bi-eye-slash');
+            } else {
+                input.type = 'password';
+                icon.classList.remove('bi-eye-slash');
+                icon.classList.add('bi-eye');
+            }
+        }
+    </script>
 
 </body>
 

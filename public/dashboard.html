@@ -1,0 +1,494 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link rel="icon" type="image/png" href="images/web-logo.png">
+
+    <title>Dashboard - VDR Teens</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=League+Spartan:wght@100;300;400;600;700&display=swap"
+        rel="stylesheet">
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+    <link href="css/bootstrap-icons.css" rel="stylesheet">
+    <link href="css/tooplate-gotto-job.css" rel="stylesheet">
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+
+</head>
+
+<body id="top">
+
+    <nav class="navbar navbar-expand-lg">
+        <div class="container">
+            <a class="navbar-brand d-flex align-items-center" href="index.html">
+                <img src="images/logo.png" class="img-fluid logo-image" alt="Logo">
+                <div class="d-flex flex-column">
+                    <strong class="logo-text">Teens</strong>
+                    <small class="logo-small-text">Puja bakti Remaja</small>
+                </div>
+            </a>
+
+            <div class="d-flex d-lg-none ms-auto align-items-center">
+                <a class="btn custom-btn btn-sm mobile-nav-trigger" href="#" role="button" data-bs-toggle="offcanvas"
+                    data-bs-target="#offcanvasNavbar" aria-controls="offcanvasNavbar">
+                    Menu
+                </a>
+            </div>
+
+            <div class="visible offcanvas offcanvas-end custom-offcanvas" tabindex="-1" id="offcanvasNavbar"
+                aria-labelledby="offcanvasNavbarLabel">
+
+                <div class="offcanvas-header">
+                    <div class="d-flex align-items-center">
+                        <img src="images/logo.png" class="img-fluid logo-image offcanvas-logo-img">
+                        <h5 class="offcanvas-title mb-0" id="offcanvasNavbarLabel">Menu</h5>
+                    </div>
+                </div>
+
+                <div class="offcanvas-body d-flex flex-column">
+                    <ul class="navbar-nav align-items-lg-center ms-lg-5 flex-grow-1 pe-3">
+                        <li class="nav-item">
+                            <a class="nav-link" href="index.html">Beranda</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="events.html">Kegiatan Teens</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="about.html">Tentang Teens</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="contact.html">Kontak</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="d-none d-lg-flex align-items-center ms-lg-auto desktop-auth-container">
+                <div class="dropdown">
+                    <a class="custom-btn btn mt-2 mt-lg-0 dropdown-toggle" href="#" role="button" id="userDropdown"
+                        data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi-person me-2"></i> Akun Saya
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                        <li><a class="dropdown-item" href="#">Profil</a></li>
+                        <li>
+                            <hr class="dropdown-divider">
+                        </li>
+                        <li><a class="dropdown-item" href="#" onclick="logoutUser()">Logout</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </nav>
+    <button
+        class="btn rounded-circle shadow position-fixed bottom-0 end-0 mb-6 me-4 d-lg-none d-flex justify-content-center align-items-center toggle-button"
+        type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasNavbar" aria-controls="offcanvasNavbar">
+        <i class="bi bi-list fs-2 d-flex" id="fabIcon"></i>
+    </button>
+
+    <main>
+        <section class="section-padding" style="background-color: #ffffff;">
+            <div class="container">
+                <!-- User Dashboard -->
+                <div id="user-dashboard">
+                    <div class="row">
+                        <div class="col-12 mb-4">
+                            <h2>Halo, <span class="text-primary">Teens Member</span>!</h2>
+                            <p>Selamat datang kembali di dashboard point kamu.</p>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <!-- Point Balance -->
+                        <div class="col-lg-4 col-md-6 col-12 mb-4">
+                            <div class="dashboard-card text-center d-flex flex-column justify-content-center">
+                                <h3 class="dashboard-stat-title">Point Balance</h3>
+                                <div class="dashboard-stat-value" id="userPointBalance">0</div>
+                                <small class="text-muted mt-2">Points Available</small>
+                            </div>
+                        </div>
+
+                        <!-- My QR & Code -->
+                        <div class="col-lg-4 col-md-6 col-12 mb-4">
+                            <div class="qr-section h-100 d-flex flex-column justify-content-center">
+                                <i class="bi-qr-code qr-icon"></i>
+                                <button class="btn custom-btn btn-lg mb-3">Tampilkan QR Saya</button>
+                                <div class="input-group mt-3">
+                                    <input type="text" class="form-control" id="codeInput" placeholder="Masukkan CODE"
+                                        aria-label="My Code">
+                                    <button class="btn btn-secondary" type="button" id="submitCodeBtn">Submit</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Graph -->
+                        <div class="col-lg-4 col-12 mb-4">
+                            <div class="dashboard-card">
+                                <div class="d-flex justify-content-between align-items-center mb-4">
+                                    <h5 class="mb-0">Pertumbuhan Point</h5>
+                                    <select class="form-select form-select-sm w-auto" id="chartFilter">
+                                        <option value="1y">1 Tahun Terakhir</option>
+                                        <option value="6m">6 Bulan Terakhir</option>
+                                        <option value="3m">3 Bulan Terakhir</option>
+                                        <option value="1m">1 Bulan Terakhir</option>
+                                    </select>
+                                </div>
+                                <canvas id="userPointsChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row mt-4">
+                        <div class="col-12">
+                            <div class="dashboard-card">
+                                <h4 class="mb-4">Riwayat Point</h4>
+                                <div class="table-responsive">
+                                    <table class="table history-table table-hover">
+                                        <thead>
+                                            <tr>
+                                                <th>Tanggal</th>
+                                                <th>Kegiatan</th>
+                                                <th>Tipe</th>
+                                                <th>Point</th>
+                                                <th>Status</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="pointHistoryTable">
+                                            <!-- Will be populated by JavaScript -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Admin Dashboard (Hidden by default) -->
+                <div id="admin-dashboard" style="display: none;">
+                    <div class="row">
+                        <div class="col-12 mb-4 d-flex justify-content-between align-items-center">
+                            <div>
+                                <h2>Admin <span class="text-secondary">Dashboard</span></h2>
+                                <p>Manage users, events, and points system.</p>
+                            </div>
+                            <span class="badge bg-danger fs-6 px-3 py-2">Administrator Mode</span>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <!-- Admin Actions -->
+                        <div class="col-lg-8 col-12">
+                            <div class="row">
+                                <div class="col-md-6 mb-4">
+                                    <div class="dashboard-card">
+                                        <div class="d-flex align-items-center mb-3">
+                                            <i class="bi-people fs-1 text-primary me-3"></i>
+                                            <h5 class="mb-0">Kelola Akun</h5>
+                                        </div>
+                                        <p class="text-muted small">Buat, edit, atau hapus akun member.</p>
+                                        <div class="d-flex gap-2 mt-auto">
+                                            <button class="btn btn-outline-primary btn-sm flex-grow-1"
+                                                data-bs-toggle="modal" data-bs-target="#manageAccountsModal">Lihat
+                                                Semua</button>
+                                            <button class="btn custom-btn btn-sm flex-grow-1"
+                                                onclick="addNewAccount()">Buat Akun</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-4">
+                                    <div class="dashboard-card">
+                                        <div class="d-flex align-items-center mb-3">
+                                            <i class="bi-upc-scan fs-1 text-primary me-3"></i>
+                                            <h5 class="mb-0">Scan & Beri Point</h5>
+                                        </div>
+                                        <p class="text-muted small">Scan QR Code member untuk memberikan point
+                                            kehadiran.</p>
+                                        <button class="btn custom-btn w-100 mt-auto" data-bs-toggle="modal"
+                                            data-bs-target="#scanModal"><i class="bi-camera me-2"></i> Buka
+                                            Scanner</button>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-4">
+                                    <div class="dashboard-card bg-primary text-white">
+                                        <div class="d-flex align-items-center mb-3">
+                                            <i class="bi-clock-history fs-1 text-white me-3"></i>
+                                            <h5 class="mb-0 text-white">Token Mingguan</h5>
+                                        </div>
+                                        <p class="text-white small">Tampilkan kode token mingguan layar penuh.</p>
+                                        <button type="button" class="btn btn-light text-primary w-100 mt-auto"
+                                            onclick="generateAndShowToken()">Munculkan Token Mingguan</button>
+                                    </div>
+                                </div>
+                                <div class="col-md-12 mb-4">
+                                    <div class="dashboard-card">
+                                        <h5 class="mb-3">Buat Kode Unik</h5>
+                                        <form class="row g-3">
+                                            <div class="col-md-6">
+                                                <input type="text" class="form-control" placeholder="Nama Event / Kode"
+                                                    id="eventNameInput">
+                                            </div>
+                                            <div class="col-md-4">
+                                                <input type="number" class="form-control" placeholder="Jumlah Point"
+                                                    id="pointsInput" min="1">
+                                            </div>
+                                            <div class="col-md-2">
+                                                <button type="button" class="btn custom-btn w-100"
+                                                    onclick="generateCustomCode()">Generate</button>
+                                            </div>
+                                        </form>
+                                        <div class="mt-4">
+                                            <h6 class="mb-3">Daftar Kode Aktif</h6>
+                                            <div class="table-responsive">
+                                                <table class="table table-sm table-hover" id="activeCodesTable">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>Kode</th>
+                                                            <th>Point</th>
+                                                            <th>Aksi</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Admin Stats -->
+                        <div class="col-lg-4 col-12 mb-4">
+                            <div class="dashboard-card">
+                                <h5 class="mb-4">Statistik Kehadiran</h5>
+                                <canvas id="adminStatsChart"></canvas>
+                                <div class="mt-4">
+                                    <h6 class="border-bottom pb-2">Top Members</h6>
+                                    <ul class="list-group list-group-flush">
+                                        <li
+                                            class="list-group-item d-flex justify-content-between align-items-center ps-0 bg-transparent">
+                                            1. Richie Leonardo
+                                            <span class="badge bg-primary rounded-pill">1,250</span>
+                                        </li>
+                                        <li
+                                            class="list-group-item d-flex justify-content-between align-items-center ps-0 bg-transparent">
+                                            2. Jason
+                                            <span class="badge bg-primary rounded-pill">1,100</span>
+                                        </li>
+                                        <li
+                                            class="list-group-item d-flex justify-content-between align-items-center ps-0 bg-transparent">
+                                            3. Michelle
+                                            <span class="badge bg-primary rounded-pill">980</span>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="site-footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-4 col-md-6 col-12 mb-3">
+                    <div class="d-flex align-items-center mb-4">
+                        <img src="images/logo.png" class="img-fluid logo-image">
+                        <div class="d-flex flex-column">
+                            <strong class="logo-text">Teens</strong>
+                            <small class="logo-small-text">Puja bakti Remaja</small>
+                        </div>
+                    </div>
+
+                    <p class="mb-2">
+                        <i class="custom-icon bi-globe me-1"></i>
+                        <a href="teens-vdr.web.app" class="site-footer-link">
+                            teens-vdr.web.app
+                        </a>
+                    </p>
+
+                    <p class="mb-2">
+                        <i class="custom-icon bi-envelope me-1"></i>
+                        <a href="mailto:teensfordhamma@gmail.com" class="site-footer-link">
+                            teensfordhamma@gmail.com
+                        </a>
+                    </p>
+
+                    <p class="mb-2">
+                        <i class="custom-icon bi-whatsapp me-1"></i>
+                        <a href="https://chat.whatsapp.com/KUdvHjj8Ipz6JfiHgXWaGQ?mode=hqrt3" class="site-footer-link">
+                            Grup WhatsApp
+                        </a>
+                    </p>
+
+                    <p class="mb-2">
+                        <i class="custom-icon bi-instagram me-1"></i>
+                        <a href="https://www.instagram.com/vdrteens/" class="site-footer-link">
+                            @vdrteens
+                        </a>
+                    </p>
+                </div>
+
+                <div class="col-lg-4 col-md-8 col-12 mt-3 mt-lg-0 ms-auto">
+                    <h6 class="site-footer-title">Kontak Email Langsung</h6>
+                    <form class="custom-form newsletter-form"
+                        onclick="window.location.href='mailto:teensfordhamma@gmail.com'" method="post" role="form">
+                        <div class="input-group">
+                            <span class="input-group-text" id="basic-addon1"><i class="bi-person"></i></span>
+                            <input type="text" name="newsletter-name" id="newsletter-name" class="form-control"
+                                placeholder="emailmu@gmail.com" required>
+                            <button type="submit" class="form-control">
+                                <i class="bi-send"></i>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="site-footer-bottom">
+            <div class="container">
+                <div class="row align-items-center">
+
+
+                    <div class="col-lg-4 col-12 d-flex justify-content-start mb-3 mb-lg-0">
+                        <p class="mb-0">
+                            Design & Script:
+                            <a class="sponsored-link" rel="sponsored" target="_blank">
+                                Richie Leonardo Cendana
+                            </a>
+                        </p>
+                    </div>
+
+
+                    <div class="col-lg-3 col-12 d-flex justify-content-lg-end justify-content-center">
+                        <a href="#top"
+                            class="back-top-icon bi-arrow-up smoothscroll d-flex justify-content-center align-items-center">
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Qr Modal -->
+    <div class="modal fade" id="qrModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content text-center p-4">
+                <div class="modal-header border-0">
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <h4 class="mb-4">QR Code Saya</h4>
+                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=User123"
+                        class="img-fluid mb-3" alt="QR Code">
+                    <p class="text-muted">Tunjukkan QR ini kepada Admin untuk discan.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Manage Accounts Modal -->
+    <div class="modal fade" id="manageAccountsModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Kelola Akun</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="d-flex justify-content-end mb-3">
+                        <button class="btn custom-btn btn-sm" onclick="addNewAccount()"><i
+                                class="bi-plus-circle me-2"></i>Tambah Akun</button>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead>
+                                <tr>
+                                    <th>Nama</th>
+                                    <th>Email</th>
+                                    <th>Point</th>
+                                    <th>Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="accountsTableBody">
+                                <!-- Populated by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scan Modal -->
+    <div class="modal fade" id="scanModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content bg-dark text-white">
+                <div class="modal-header border-bottom-0">
+                    <h5 class="modal-title">Scanner</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                        aria-label="Close"></button>
+                </div>
+                <div class="modal-body text-center p-5">
+                    <div class="spinner-border text-light mb-4" role="status" style="width: 3rem; height: 3rem;">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p>Mencari QR Code...</p>
+                    <div class="mt-4 p-3 border border-secondary rounded">
+                        <small class="text-muted">Simulasi Kamera</small>
+                    </div>
+
+                    <div class="mt-4 text-start">
+                        <div class="mb-3">
+                            <label for="scanPoints" class="form-label text-white-50 small">Jumlah Point (+/-)</label>
+                            <input type="number" class="form-control bg-dark text-white border-secondary"
+                                id="scanPoints" value="50">
+                        </div>
+                        <div class="mb-3">
+                            <label for="scanDesc" class="form-label text-white-50 small">Deskripsi</label>
+                            <input type="text" class="form-control bg-dark text-white border-secondary" id="scanDesc"
+                                value="Absensi Mingguan">
+                        </div>
+                    </div>
+
+                    <button class="btn custom-btn mt-3 w-100" onclick="simulateScanSuccess()">Simulasi Scan
+                        Berhasil</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Fullscreen Token Overlay (MUST BE OUTSIDE ALL MODALS) -->
+    <div id="tokenOverlay"
+        class="d-none position-fixed top-0 start-0 w-100 h-100 flex-column justify-content-center align-items-center"
+        style="z-index: 9999;">
+        <button class="btn btn-outline-dark position-absolute top-0 start-0 m-4" onclick="closeTokenOverlay()">
+            <i class="bi-arrow-left me-2"></i>Kembali
+        </button>
+        <h2 class="mb-4 text-dark">Kode Mingguan:</h2>
+        <h1 class="display-1 fw-bold mb-5 text-dark" id="tokenDisplayValue">CODE</h1>
+        <div class="text-center">
+            <h3 class="mb-3 text-dark">Token Valid Untuk:</h3>
+            <div class="display-4 fw-bold text-warning" id="tokenTimer">60</div>
+            <small class="text-dark">Detik</small>
+        </div>
+    </div>
+
+    <script src="js/jquery.min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+    <script src="js/sidebar.js"></script>
+    <script type="module" src="js/dashboard.js"></script>
+</body>
+
+</html>
