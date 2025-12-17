@@ -19,6 +19,7 @@
     <link href="css/tooplate-gotto-job.css" rel="stylesheet">
     <!-- Chart.js CDN -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
 
 
 </head>
@@ -100,7 +101,7 @@
                 <div id="user-dashboard">
                     <div class="row">
                         <div class="col-12 mb-4">
-                            <h2>Halo, <span class="text-primary">Teens Member</span>!</h2>
+                            <h2>Halo, <span class="text-primary user-name">User</span>!</h2>
                             <p>Selamat datang kembali di dashboard point kamu.</p>
                         </div>
                     </div>
@@ -112,6 +113,51 @@
                                 <h3 class="dashboard-stat-title">Point Balance</h3>
                                 <div class="dashboard-stat-value" id="userPointBalance">0</div>
                                 <small class="text-muted mt-2">Points Available</small>
+                            </div>
+                        </div>
+                        <!-- Email Status Card -->
+                        <div class="col-lg-4 col-md-6 col-12 mb-4">
+                            <div class="dashboard-card h-100">
+                                <div class="d-flex align-items-center mb-3">
+                                    <i class="bi-envelope-at fs-3 text-primary me-3"></i>
+                                    <div>
+                                        <h5 class="mb-0">Status Email</h5>
+                                        <small class="text-muted">Koneksi akun</small>
+                                    </div>
+                                </div>
+
+                                <div id="emailStatusContent">
+                                    <div id="emailNotLinked" style="display: none;">
+                                        <div class="alert alert-warning mb-3">
+                                            <i class="bi-exclamation-triangle me-2"></i>
+                                            Email belum terhubung
+                                        </div>
+                                        <p class="text-muted small mb-3">Hubungkan email untuk:</p>
+                                        <ul class="small text-muted mb-3">
+                                            <li>Reset password</li>
+                                            <li>Notifikasi point</li>
+                                            <li>Keamanan tambahan</li>
+                                        </ul>
+                                        <button class="btn btn-primary w-100" data-bs-toggle="modal"
+                                            data-bs-target="#linkEmailModal">
+                                            <i class="bi-envelope-plus me-2"></i>Hubungkan Email
+                                        </button>
+                                    </div>
+
+                                    <div id="emailLinked" style="display: none;">
+                                        <div class="alert alert-success mb-3">
+                                            <i class="bi-check-circle me-2"></i>
+                                            Email terhubung
+                                        </div>
+                                        <div class="mb-2">
+                                            <small class="text-muted">Email:</small>
+                                            <p class="mb-0 fw-bold" id="linkedEmailDisplay">-</p>
+                                        </div>
+                                        <button class="btn btn-outline-secondary btn-sm w-100 mt-2" id="unlinkEmailBtn">
+                                            <i class="bi-x-circle me-2"></i>Putuskan Koneksi
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
@@ -128,11 +174,11 @@
                             </div>
                         </div>
 
-                        <!-- Graph -->
+                        <!-- Attendance Chart -->
                         <div class="col-lg-4 col-12 mb-4">
                             <div class="dashboard-card">
                                 <div class="d-flex justify-content-between align-items-center mb-4">
-                                    <h5 class="mb-0">Pertumbuhan Point</h5>
+                                    <h5 class="mb-0">Statistik Kehadiran</h5>
                                     <select class="form-select form-select-sm w-auto" id="chartFilter">
                                         <option value="1y">1 Tahun Terakhir</option>
                                         <option value="6m">6 Bulan Terakhir</option>
@@ -178,16 +224,15 @@
                                 <h2>Admin <span class="text-secondary">Dashboard</span></h2>
                                 <p>Manage users, events, and points system.</p>
                             </div>
-                            <span class="badge bg-danger fs-6 px-3 py-2">Administrator Mode</span>
                         </div>
                     </div>
 
                     <div class="row">
                         <!-- Admin Actions -->
-                        <div class="col-lg-8 col-12">
-                            <div class="row">
-                                <div class="col-md-6 mb-4">
-                                    <div class="dashboard-card">
+                        <div class="col-12">
+                            <div class="row justify-content-center">
+                                <div class="col-md-6 col-lg-4 mb-4">
+                                    <div class="dashboard-card h-100">
                                         <div class="d-flex align-items-center mb-3">
                                             <i class="bi-people fs-1 text-primary me-3"></i>
                                             <h5 class="mb-0">Kelola Akun</h5>
@@ -202,28 +247,51 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div class="col-md-6 mb-4">
-                                    <div class="dashboard-card">
+
+                                <!-- Scan User QR Action -->
+                                <div class="col-md-6 col-lg-4 mb-4">
+                                    <div class="dashboard-card h-100">
                                         <div class="d-flex align-items-center mb-3">
-                                            <i class="bi-upc-scan fs-1 text-primary me-3"></i>
+                                            <i class="bi-qr-code-scan fs-1 text-success me-3"></i>
                                             <h5 class="mb-0">Scan & Beri Point</h5>
                                         </div>
-                                        <p class="text-muted small">Scan QR Code member untuk memberikan point
-                                            kehadiran.</p>
-                                        <button class="btn custom-btn w-100 mt-auto" data-bs-toggle="modal"
-                                            data-bs-target="#scanModal"><i class="bi-camera me-2"></i> Buka
-                                            Scanner</button>
+                                        <p class="text-muted small">Scan QR Code member untuk memberikan poin langsung.
+                                        </p>
+                                        <button class="btn btn-outline-success btn-sm w-100 mt-auto"
+                                            onclick="startAdminScanner()">
+                                            <i class="bi-camera-fill me-2"></i>Mulai Scan
+                                        </button>
                                     </div>
                                 </div>
-                                <div class="col-md-6 mb-4">
-                                    <div class="dashboard-card bg-primary text-white">
+
+
+                                <div class="col-md-6 col-lg-4 mb-4">
+                                    <div class="dashboard-card h-100 bg-primary text-white">
                                         <div class="d-flex align-items-center mb-3">
                                             <i class="bi-clock-history fs-1 text-white me-3"></i>
                                             <h5 class="mb-0 text-white">Token Mingguan</h5>
                                         </div>
                                         <p class="text-white small">Tampilkan kode token mingguan layar penuh.</p>
+
+                                        <div class="d-none"> <!-- Hidden elements for state management -->
+                                            <span id="weeklyCodeDisplay">-----</span>
+                                            <span id="weeklyCodeTimer">30s</span>
+                                        </div>
+
                                         <button type="button" class="btn btn-light text-primary w-100 mt-auto"
                                             onclick="generateAndShowToken()">Munculkan Token Mingguan</button>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 col-lg-4 mb-4">
+                                    <div class="dashboard-card h-100">
+                                        <div class="d-flex align-items-center mb-3">
+                                            <i class="bi-sliders fs-1 text-primary me-3"></i>
+                                            <h5 class="mb-0">Aturan Poin Absensi</h5>
+                                        </div>
+                                        <p class="text-muted small">Atur jadwal dan poin kehadiran berdasarkan waktu.
+                                        </p>
+                                        <button class="btn btn-outline-primary w-100 mt-auto" data-bs-toggle="modal"
+                                            data-bs-target="#attendanceConfigModal">Konfigurasi</button>
                                     </div>
                                 </div>
                                 <div class="col-md-12 mb-4">
@@ -266,32 +334,7 @@
                         </div>
 
                         <!-- Admin Stats -->
-                        <div class="col-lg-4 col-12 mb-4">
-                            <div class="dashboard-card">
-                                <h5 class="mb-4">Statistik Kehadiran</h5>
-                                <canvas id="adminStatsChart"></canvas>
-                                <div class="mt-4">
-                                    <h6 class="border-bottom pb-2">Top Members</h6>
-                                    <ul class="list-group list-group-flush">
-                                        <li
-                                            class="list-group-item d-flex justify-content-between align-items-center ps-0 bg-transparent">
-                                            1. Richie Leonardo
-                                            <span class="badge bg-primary rounded-pill">1,250</span>
-                                        </li>
-                                        <li
-                                            class="list-group-item d-flex justify-content-between align-items-center ps-0 bg-transparent">
-                                            2. Jason
-                                            <span class="badge bg-primary rounded-pill">1,100</span>
-                                        </li>
-                                        <li
-                                            class="list-group-item d-flex justify-content-between align-items-center ps-0 bg-transparent">
-                                            3. Michelle
-                                            <span class="badge bg-primary rounded-pill">980</span>
-                                        </li>
-                                    </ul>
-                                </div>
-                            </div>
-                        </div>
+
                     </div>
                 </div>
             </div>
@@ -381,7 +424,7 @@
         </div>
     </footer>
 
-    <!-- Qr Modal -->
+    <!-- Qr Modal (User Side) -->
     <div class="modal fade" id="qrModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content text-center p-4">
@@ -390,13 +433,32 @@
                 </div>
                 <div class="modal-body">
                     <h4 class="mb-4">QR Code Saya</h4>
-                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=User123"
+                    <img id="myQrImage" src="https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=Loading"
                         class="img-fluid mb-3" alt="QR Code">
                     <p class="text-muted">Tunjukkan QR ini kepada Admin untuk discan.</p>
                 </div>
             </div>
         </div>
     </div>
+
+    <!-- Admin Scan QR Modal -->
+    <div class="modal fade" id="adminScanModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Scan User QR</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"
+                        onclick="stopScannerLabel()"></button>
+                </div>
+                <div class="modal-body text-center">
+                    <div id="reader" width="100%"></div>
+                    <p class="mt-3 text-muted">Arahkan kamera ke QR Code User</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
 
     <!-- Manage Accounts Modal -->
     <div class="modal fade" id="manageAccountsModal" tabindex="-1" aria-hidden="true">
@@ -468,6 +530,100 @@
             </div>
         </div>
     </div>
+    </div>
+    </div>
+    </div>
+
+    <!-- Attendance Config Modal -->
+    <div class="modal fade" id="attendanceConfigModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Konfigurasi Poin Absensi</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <!-- 
+                     Logic:
+                     Slot 1: < Time 1 ? Points 1
+                     Slot 2: < Time 2 ? Points 2
+                     Else: Points 3
+                -->
+                <div class="modal-body">
+                    <form id="attendanceConfigForm">
+                        <div class="mb-4 p-3 bg-light rounded border">
+                            <h6 class="mb-3 text-primary"><i class="bi-1-circle-fill me-2"></i>Slot Waktu 1 (Tepat
+                                Waktu)</h6>
+                            <div class="row g-2 align-items-center">
+                                <div class="col-auto">Sampai jam:</div>
+                                <div class="col">
+                                    <input type="time" class="form-control" id="slot1Time" required value="09:05">
+                                </div>
+                                <div class="col-auto">Dapat Poin:</div>
+                                <div class="col">
+                                    <input type="number" class="form-control" id="slot1Points" required min="0"
+                                        value="3">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-4 p-3 bg-light rounded border">
+                            <h6 class="mb-3 text-warning"><i class="bi-2-circle-fill me-2"></i>Slot Waktu 2 (Terlambat)
+                            </h6>
+                            <div class="row g-2 align-items-center">
+                                <div class="col-auto">Sampai jam:</div>
+                                <div class="col">
+                                    <input type="time" class="form-control" id="slot2Time" required value="09:20">
+                                </div>
+                                <div class="col-auto">Dapat Poin:</div>
+                                <div class="col">
+                                    <input type="number" class="form-control" id="slot2Points" required min="0"
+                                        value="2">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3 p-3 bg-light rounded border">
+                            <h6 class="mb-3 text-danger"><i class="bi-3-circle-fill me-2"></i>Lewat dari itu</h6>
+                            <div class="row g-2 align-items-center">
+                                <div class="col-auto">Dapat Poin:</div>
+                                <div class="col">
+                                    <input type="number" class="form-control" id="defaultPoints" required min="0"
+                                        value="0">
+                                </div>
+                            </div>
+                        </div>
+
+
+                        <div class="mb-3 p-3 bg-light rounded border">
+                            <h6 class="mb-3 text-secondary"><i class="bi-stopwatch me-2"></i>Pengaturan Token</h6>
+                            <div class="row g-2 align-items-center">
+                                <div class="col-6">
+                                    <label class="small text-muted">Refresh Rate (detik)</label>
+                                    <input type="number" class="form-control" id="tokenInterval" required min="10"
+                                        value="30">
+                                </div>
+                                <div class="col-6">
+                                    <label class="small text-muted">Masa Aktif (menit)</label>
+                                    <input type="number" class="form-control" id="tokenValidity" required min="1"
+                                        value="5">
+                                </div>
+                                <div class="col-12 mt-1">
+                                    <small class="text-muted" style="font-size: 0.75rem;">*Token baru muncul tiap
+                                        'Refresh Rate',
+                                        tapi tetap bisa dipakai selama 'Masa Aktif'.</small>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+                    <button type="button" class="btn btn-primary" onclick="saveAttendanceConfig()">Simpan
+                        Pengaturan</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- Fullscreen Token Overlay (MUST BE OUTSIDE ALL MODALS) -->
     <div id="tokenOverlay"
@@ -485,10 +641,82 @@
         </div>
     </div>
 
+
+    <!-- Email Linking Modal -->
+    <div class="modal fade" id="linkEmailModal" tabindex="-1" aria-labelledby="linkEmailModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header"
+                    style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 15px 15px 0 0;">
+                    <h5 class="modal-title" id="linkEmailModalLabel">
+                        <i class="bi-envelope-check me-2"></i>Hubungkan Email
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                        aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-info"
+                        style="background-color: #e7f3ff; border-color: #b3d9ff; color: #004085;">
+                        <i class="bi-info-circle me-2"></i>
+                        Hubungkan email untuk fitur tambahan seperti reset password dan notifikasi.
+                    </div>
+
+                    <form id="linkEmailForm">
+                        <div class="mb-3">
+                            <label for="linkEmailInput" class="form-label">Alamat Email</label>
+                            <input type="email" class="form-control" id="linkEmailInput" placeholder="contoh@email.com"
+                                required>
+                            <div class="form-text">Masukkan email yang valid dan aktif</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="confirmPasswordInput" class="form-label">Konfirmasi Password</label>
+                            <div class="input-group">
+                                <input type="password" class="form-control" id="confirmPasswordInput"
+                                    placeholder="Masukkan password Anda" autocomplete="new-password" required>
+                                <button class="btn btn-outline-secondary" type="button" id="toggleConfirmPassword">
+                                    <i class="bi-eye"></i>
+                                </button>
+                            </div>
+                            <div class="form-text">Konfirmasi password untuk keamanan</div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="button" class="btn btn-primary" id="submitLinkEmail">
+                        <i class="bi-check-circle me-2"></i>Hubungkan Email
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Edit User Modal (Placed at end for correct Z-Index stacking) -->
+    <div class="modal fade" id="editUserModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Edit User Data (Full Document)</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- Dynamic Body Container -->
+                    <form id="editUserForm">
+                        <div id="dynamicFormFields"></div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="saveUserChanges()">Update Firebase</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="js/jquery.min.js"></script>
     <script src="js/bootstrap.min.js"></script>
     <script src="js/sidebar.js"></script>
-    <script type="module" src="js/dashboard.js"></script>
+    <script type="module" src="js/dashboard.js?v=2"></script>
 </body>
 
 </html>

@@ -1,6 +1,9 @@
 // --- Firebase Imports ---
+// Dashboard Logic Verification Complete
 import { auth, db } from './firebase-config.js';
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import {
+    getAuth,
     onAuthStateChanged,
     signOut,
     createUserWithEmailAndPassword,
@@ -21,199 +24,269 @@ import {
     updateDoc,
     increment,
     where,
-    limit
+    limit,
+    getDocs,
+    Timestamp,
+    writeBatch
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 // --- State Management ---
 let currentUser = null;
 let isAdmin = false;
 let userChartInstance = null;
-let tokenInterval = null;
+let tokenGeneratorInterval = null;
+let currentWeeklyToken = null;
 
 // --- Data State (Synced with Firestore) ---
 let accountsData = [];
 let activeCodesData = [];
 let pointHistory = [];
+let attendanceList = [];
+let attendanceConfig = null; // Stores time rules
 
-// --- Set Firebase Persistence (Remember Me) ---
-setPersistence(auth, browserLocalPersistence);
+// --- Initialize Firebase Persistence ---
+try {
+    setPersistence(auth, browserLocalPersistence);
+} catch (error) {
+    console.warn("Persistence setup warning:", error);
+}
 
 // --- Authentication Check ---
 onAuthStateChanged(auth, async (user) => {
     if (user) {
-        // User is signed in
-        const userDocRef = doc(db, 'users', user.uid);
-        const userDocSnap = await getDoc(userDocRef);
+        try {
+            const userDocRef = doc(db, 'users', user.uid);
+            const userDocSnap = await getDoc(userDocRef);
 
-        if (userDocSnap.exists()) {
-            currentUser = {
-                uid: user.uid,
-                email: user.email,
-                ...userDocSnap.data()
-            };
+            if (userDocSnap.exists()) {
+                currentUser = {
+                    uid: user.uid,
+                    email: user.email,
+                    ...userDocSnap.data()
+                };
 
-            isAdmin = currentUser.isAdmin === true;
-
-            // Initialize dashboard
-            initDashboard();
-        } else {
-            // User document doesn't exist
-            alert('Data user tidak ditemukan. Silakan hubungi admin.');
+                isAdmin = currentUser.isAdmin === true;
+                initDashboard();
+            } else {
+                console.error("User document missing. Signing out.");
+                await signOut(auth);
+                window.location.href = 'login.html';
+            }
+        } catch (error) {
+            console.error("Auth state error:", error);
             window.location.href = 'login.html';
         }
     } else {
-        // No user is signed in, redirect to login
         window.location.href = 'login.html';
     }
 });
 
 // --- Initialization ---
 function initDashboard() {
-    updateViewMode();
-    updateUserInfo();
-    initCharts();
-    setupFirestoreListeners();
-    setupEventListeners();
+    try {
+        updateViewMode();
+        updateUserInfo();
+        initCharts();
+        setupFirestoreListeners();
+        setupEventListeners();
+
+        // Initial load of attendance stats for user
+        if (!isAdmin) {
+            updateUserAttendanceDisplay();
+        }
+    } catch (error) {
+        console.error("Dashboard initialization error:", error);
+    }
 }
 
 // --- Update User Info Display ---
 function updateUserInfo() {
-    // Update point balance
-    const pointBalanceEl = document.getElementById('userPointBalance');
-    if (pointBalanceEl) {
-        pointBalanceEl.textContent = currentUser.points || 0;
-    }
+    try {
+        const pointBalanceEl = document.getElementById('userPointBalance');
+        if (pointBalanceEl) {
+            pointBalanceEl.textContent = currentUser.points || 0;
+        }
 
-    // Update user name displays
-    const userNameElements = document.querySelectorAll('.user-name');
-    userNameElements.forEach(el => {
-        el.textContent = currentUser.username || currentUser.email;
-    });
+        const userNameElements = document.querySelectorAll('.user-name');
+        userNameElements.forEach(el => {
+            el.textContent = currentUser.username || currentUser.email;
+        });
+    } catch (error) {
+        console.error("Update user info error:", error);
+    }
 }
 
 // --- Firestore Real-time Listeners ---
 function setupFirestoreListeners() {
-    // Listen to current user's data for point updates
-    const userDocRef = doc(db, 'users', currentUser.uid);
-    onSnapshot(userDocRef, (doc) => {
-        if (doc.exists()) {
-            currentUser = {
-                uid: doc.id,
-                email: currentUser.email,
+    try {
+        // 1. Current User Data Listener
+        const userDocRef = doc(db, 'users', currentUser.uid);
+        onSnapshot(userDocRef, (docSnap) => {
+            if (docSnap.exists()) {
+                currentUser = {
+                    uid: docSnap.id,
+                    email: currentUser.email,
+                    ...docSnap.data()
+                };
+                updateUserInfo();
+                updateChartWithRealData();
+                if (!isAdmin) updateUserAttendanceDisplay();
+            }
+        });
+
+        // 1b. Global Settings Listener (Attendance Rules)
+        const configRef = doc(db, 'settings', 'attendanceConfig');
+        onSnapshot(configRef, (docSnap) => {
+            if (docSnap.exists()) {
+                attendanceConfig = docSnap.data();
+                // Update UI if admin modal is open (optional but good)
+                updateAttendanceConfigUI();
+            } else {
+                // Default fallback if not set
+                attendanceConfig = {
+                    slot1Time: "09:05",
+                    slot1Points: 3,
+                    slot2Time: "09:20",
+                    slot2Points: 2,
+                    defaultPoints: 0
+                };
+            }
+        });
+
+        // 2. Point History Listener
+        const historyRef = collection(db, 'pointHistory');
+        const qHistory = query(
+            historyRef,
+            where('userId', '==', currentUser.uid),
+            limit(50)
+        );
+        onSnapshot(qHistory, (snapshot) => {
+            pointHistory = snapshot.docs.map(doc => ({
+                id: doc.id,
                 ...doc.data()
-            };
-            updateUserInfo();
+            }));
+
+            // Sort DESC in JS
+            pointHistory.sort((a, b) => {
+                const aTime = a.createdAt?.toMillis ? a.createdAt.toMillis() : 0;
+                const bTime = b.createdAt?.toMillis ? b.createdAt.toMillis() : 0;
+                return bTime - aTime;
+            });
+
+            renderPointHistory();
             updateChartWithRealData();
+        });
+
+        // 3. Admin Listeners
+        if (isAdmin) {
+            // Users List
+            const qUsers = query(collection(db, "users"), orderBy("points", "desc"));
+            onSnapshot(qUsers, (snapshot) => {
+                accountsData = snapshot.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data()
+                }));
+                renderAccountsTable();
+            });
+
+            // Codes List
+            const qCodes = query(collection(db, "codes"), orderBy("createdAt", "desc"));
+            onSnapshot(qCodes, (snapshot) => {
+                activeCodesData = snapshot.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data()
+                }));
+                renderActiveCodesTable();
+            });
+
+            // Attendance List (Current Week)
+            const currentWeek = getWeekIdentifier();
+            const attendanceRef = collection(db, 'attendanceHistory');
+            const qAttendance = query(attendanceRef, where('week', '==', currentWeek));
+
+            onSnapshot(qAttendance, (snapshot) => {
+                attendanceList = snapshot.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data()
+                }));
+            });
         }
-    });
-
-    // Listen to point history (without orderBy to avoid index requirement)
-    const historyRef = collection(db, 'pointHistory');
-    const qHistory = query(
-        historyRef,
-        where('userId', '==', currentUser.uid),
-        limit(50)
-    );
-    onSnapshot(qHistory, (snapshot) => {
-        pointHistory = snapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data()
-        }));
-        // Sort in JavaScript instead of Firestore
-        pointHistory.sort((a, b) => {
-            const aTime = a.createdAt?.toMillis ? a.createdAt.toMillis() : 0;
-            const bTime = b.createdAt?.toMillis ? b.createdAt.toMillis() : 0;
-            return bTime - aTime; // Descending order
-        });
-        renderPointHistory();
-    });
-
-    // Admin listeners
-    if (isAdmin) {
-        // Listen to 'users' collection
-        const qUsers = query(collection(db, "users"), orderBy("points", "desc"));
-        onSnapshot(qUsers, (snapshot) => {
-            accountsData = snapshot.docs.map(doc => ({
-                id: doc.id,
-                ...doc.data()
-            }));
-            renderAccountsTable();
-        });
-
-        // Listen to 'codes' collection
-        const qCodes = query(collection(db, "codes"), orderBy("createdAt", "desc"));
-        onSnapshot(qCodes, (snapshot) => {
-            activeCodesData = snapshot.docs.map(doc => ({
-                id: doc.id,
-                ...doc.data()
-            }));
-            renderActiveCodesTable();
-        });
+    } catch (error) {
+        console.error("Firestore listeners setup error:", error);
     }
 }
 
-// --- Render Point History ---
+// --- Render Functions ---
 function renderPointHistory() {
-    const tbody = document.getElementById('pointHistoryTable');
-    if (!tbody) return;
+    try {
+        const tbody = document.getElementById('pointHistoryTable');
+        if (!tbody) return;
 
-    tbody.innerHTML = '';
+        tbody.innerHTML = '';
 
-    if (pointHistory.length === 0) {
-        tbody.innerHTML = `
-            <tr>
-                <td colspan="5" class="text-center text-muted py-4">
-                    <i class="bi-info-circle me-2"></i>Belum ada riwayat point
-                </td>
-            </tr>
-        `;
-        return;
-    }
+        if (pointHistory.length === 0) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="5" class="text-center text-muted py-4">
+                        <i class="bi-info-circle me-2"></i>Belum ada riwayat point
+                    </td>
+                </tr>
+            `;
+            return;
+        }
 
-    pointHistory.forEach(history => {
-        const row = document.createElement('tr');
-        const date = history.createdAt?.toDate ? history.createdAt.toDate() : new Date();
-        const formattedDate = date.toLocaleDateString('id-ID', {
-            day: '2-digit',
-            month: 'short',
-            year: 'numeric'
+        pointHistory.forEach(history => {
+            const row = document.createElement('tr');
+            const date = history.createdAt?.toDate ? history.createdAt.toDate() : new Date();
+            const formattedDate = date.toLocaleDateString('id-ID', {
+                day: '2-digit',
+                month: 'short',
+                year: 'numeric'
+            });
+
+            const pointsClass = history.points >= 0 ? 'text-success' : 'text-danger';
+            const pointsSign = history.points >= 0 ? '+' : '';
+            const statusBadge = history.status === 'completed' ?
+                '<span class="badge bg-success">Hadir</span>' :
+                '<span class="badge bg-secondary">Pending</span>';
+            const statusIcon = history.status === 'completed' ?
+                '<i class="bi-check-circle-fill text-success"></i>' :
+                '<i class="bi-clock-fill text-secondary"></i>';
+
+            row.innerHTML = `
+                <td>${formattedDate}</td>
+                <td>${history.description || 'N/A'}</td>
+                <td>${statusBadge}</td>
+                <td class="${pointsClass}">${pointsSign}${history.points}</td>
+                <td>${statusIcon}</td>
+            `;
+            tbody.appendChild(row);
         });
-
-        const pointsClass = history.points >= 0 ? 'text-success' : 'text-danger';
-        const pointsSign = history.points >= 0 ? '+' : '';
-        const statusBadge = history.status === 'completed' ?
-            '<span class="badge bg-success">Hadir</span>' :
-            '<span class="badge bg-secondary">Pending</span>';
-        const statusIcon = history.status === 'completed' ?
-            '<i class="bi-check-circle-fill text-success"></i>' :
-            '<i class="bi-clock-fill text-secondary"></i>';
-
-        row.innerHTML = `
-            <td>${formattedDate}</td>
-            <td>${history.description || 'N/A'}</td>
-            <td>${statusBadge}</td>
-            <td class="${pointsClass}">${pointsSign}${history.points}</td>
-            <td>${statusIcon}</td>
-        `;
-        tbody.appendChild(row);
-    });
-}
-
-// --- Core View Logic ---
-function updateViewMode() {
-    const userDashboard = document.getElementById('user-dashboard');
-    const adminDashboard = document.getElementById('admin-dashboard');
-
-    if (isAdmin) {
-        userDashboard.style.display = 'none';
-        adminDashboard.style.display = 'block';
-    } else {
-        userDashboard.style.display = 'block';
-        adminDashboard.style.display = 'none';
+    } catch (error) {
+        console.error("Render point history error:", error);
     }
 }
 
-// --- Logout Function ---
+function updateViewMode() {
+    try {
+        const userDashboard = document.getElementById('user-dashboard');
+        const adminDashboard = document.getElementById('admin-dashboard');
+
+        if (!userDashboard || !adminDashboard) return;
+
+        if (isAdmin) {
+            userDashboard.style.display = 'none';
+            adminDashboard.style.display = 'block';
+        } else {
+            userDashboard.style.display = 'block';
+            adminDashboard.style.display = 'none';
+        }
+    } catch (error) {
+        console.error("Update view mode error:", error);
+    }
+}
+
+// --- User Actions ---
 window.logoutUser = async function () {
     if (confirm('Apakah Anda yakin ingin logout?')) {
         try {
@@ -226,9 +299,10 @@ window.logoutUser = async function () {
     }
 }
 
-// --- Submit Code Function ---
 async function submitCode() {
     const codeInput = document.getElementById('codeInput');
+    if (!codeInput) return;
+
     const code = codeInput.value.trim();
 
     if (!code) {
@@ -237,7 +311,6 @@ async function submitCode() {
     }
 
     try {
-        // Find the code in activeCodesData
         const codeData = activeCodesData.find(c => c.code === code);
 
         if (!codeData) {
@@ -245,13 +318,11 @@ async function submitCode() {
             return;
         }
 
-        // Add points to user
         const userDocRef = doc(db, 'users', currentUser.uid);
         await updateDoc(userDocRef, {
             points: increment(codeData.points)
         });
 
-        // Add to point history
         await addDoc(collection(db, 'pointHistory'), {
             userId: currentUser.uid,
             description: `Kode: ${code}`,
@@ -260,9 +331,7 @@ async function submitCode() {
             createdAt: serverTimestamp()
         });
 
-        // Clear input
         codeInput.value = '';
-
         alert(`✅ Kode "${code}" berhasil disubmit!\nAnda mendapatkan ${codeData.points} point.`);
 
     } catch (error) {
@@ -271,108 +340,136 @@ async function submitCode() {
     }
 }
 
-// --- Chart Configuration ---
+// --- Charts ---
 function initCharts() {
-    // User Growth Chart
-    const userCtx = document.getElementById('userPointsChart')?.getContext('2d');
-    if (userCtx) {
-        userChartInstance = new Chart(userCtx, {
-            type: 'line',
-            data: getChartData('1y'),
-            options: {
-                responsive: true,
-                maintainAspectRatio: true,
-                plugins: {
-                    legend: { display: false }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        grid: {
-                            drawBorder: false
-                        }
-                    },
-                    x: {
-                        grid: {
-                            drawBorder: false
-                        }
+    try {
+        const userCtx = document.getElementById('userPointsChart')?.getContext('2d');
+        if (userCtx) {
+            userChartInstance = new Chart(userCtx, {
+                type: 'line',
+                data: getChartData('1y'),
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { beginAtZero: true, grid: { drawBorder: false } },
+                        x: { grid: { drawBorder: false } }
                     }
                 }
-            }
-        });
-    }
-
-    // Admin Statistics Chart
-    const adminCtx = document.getElementById('adminStatsChart')?.getContext('2d');
-    if (adminCtx) {
-        new Chart(adminCtx, {
-            type: 'doughnut',
-            data: {
-                labels: ['Hadir', 'Izin', 'Alpha'],
-                datasets: [{
-                    data: [300, 50, 100],
-                    backgroundColor: ['#000000', '#808080', '#D9D9D9'],
-                    borderWidth: 0
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: true,
-                plugins: {
-                    legend: {
-                        position: 'bottom',
-                        labels: {
-                            padding: 20,
-                            usePointStyle: true
-                        }
-                    }
-                }
-            }
-        });
+            });
+        }
+        // Admin Chart Removed
+    } catch (error) {
+        console.error("Init charts error:", error);
     }
 }
 
 function getChartData(period) {
-    // This will be updated with real data from pointHistory
-    let labels = [], data = [];
+    let labels = [];
+    let data = [];
+    const now = new Date();
 
-    if (period === '1y') {
-        labels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-        data = Array(12).fill(0);
-    } else if (period === '6m') {
-        labels = ['Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-        data = Array(6).fill(0);
-    } else if (period === '3m') {
-        labels = ['Oct', 'Nov', 'Dec'];
-        data = Array(3).fill(0);
-    } else if (period === '1m') {
-        labels = ['Week 1', 'Week 2', 'Week 3', 'Week 4'];
-        data = Array(4).fill(0);
-    }
-
-    // Calculate cumulative points from history
-    if (pointHistory.length > 0) {
-        const now = new Date();
-        let cumulativePoints = 0;
-
-        pointHistory.slice().reverse().forEach(history => {
-            const historyDate = history.createdAt?.toDate ? history.createdAt.toDate() : new Date();
-            const monthIndex = historyDate.getMonth();
-
-            if (period === '1y') {
-                if (data[monthIndex] !== undefined) {
-                    cumulativePoints += history.points;
-                    data[monthIndex] = cumulativePoints;
-                }
+    try {
+        // 1. Determine Labels and Time Range
+        if (period === '1y') {
+            for (let i = 11; i >= 0; i--) {
+                const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+                labels.push(d.toLocaleString('default', { month: 'short' }));
             }
-        });
-
-        // Fill forward
-        for (let i = 1; i < data.length; i++) {
-            if (data[i] === 0 && data[i - 1] > 0) {
-                data[i] = data[i - 1];
+        } else if (period === '6m') {
+            for (let i = 5; i >= 0; i--) {
+                const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+                labels.push(d.toLocaleString('default', { month: 'short' }));
+            }
+        } else if (period === '3m') {
+            for (let i = 2; i >= 0; i--) {
+                const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+                labels.push(d.toLocaleString('default', { month: 'short' }));
+            }
+        } else if (period === '1m') {
+            // Last 4 weeks
+            for (let i = 3; i >= 0; i--) {
+                labels.push(`Week ${4 - i}`);
             }
         }
+
+        // 2. Process Data
+        // Initialize data array with 0s
+        data = new Array(labels.length).fill(0);
+
+        if (pointHistory.length > 0) {
+            // Sort history by date ASC for cumulative calculation
+            const sortedHistory = [...pointHistory].sort((a, b) => {
+                const ta = a.createdAt?.toDate ? a.createdAt.toDate() : new Date(0);
+                const tb = b.createdAt?.toDate ? b.createdAt.toDate() : new Date(0);
+                return ta - tb;
+            });
+
+            // Calculate running total up to the start of the chart period
+            let runningTotal = 0;
+            const startDate = new Date();
+            if (period === '1y') startDate.setMonth(startDate.getMonth() - 11);
+            else if (period === '6m') startDate.setMonth(startDate.getMonth() - 5);
+            else if (period === '3m') startDate.setMonth(startDate.getMonth() - 2);
+            else if (period === '1m') startDate.setDate(startDate.getDate() - 28);
+            startDate.setDate(1); // Start of that month/period
+            startDate.setHours(0, 0, 0, 0);
+
+            // Calculate base points before this period
+            sortedHistory.forEach(h => {
+                const hDate = h.createdAt?.toDate ? h.createdAt.toDate() : new Date();
+                if (hDate < startDate) {
+                    runningTotal += (h.points || 0);
+                }
+            });
+
+            // Now fill the chart buckets
+            // We need to carry over the runningTotal to the first bucket
+            // And then for each subsequent bucket, add new points
+
+            // Initialize data with running total
+            data = data.map(() => 0);
+            for (let k = 0; k < data.length; k++) data[k] = runningTotal;
+
+            sortedHistory.forEach(h => {
+                const hDate = h.createdAt?.toDate ? h.createdAt.toDate() : new Date();
+                if (hDate >= startDate) {
+                    // Find which bucket this belongs to
+                    let bucketIndex = -1;
+
+                    if (period === '1m') {
+                        const diffTime = now.getTime() - hDate.getTime();
+                        const diffDays = diffTime / (1000 * 3600 * 24);
+                        // Week 4 (Latest): 0-7 days
+                        // Week 3: 7-14
+                        // Week 2: 14-21
+                        // Week 1: 21-28
+                        if (diffDays <= 7) bucketIndex = 3;
+                        else if (diffDays <= 14) bucketIndex = 2;
+                        else if (diffDays <= 21) bucketIndex = 1;
+                        else if (diffDays <= 28) bucketIndex = 0;
+                    } else {
+                        // Month based
+                        // Find difference in months
+                        // labels is e.g. [Jan, Feb, Mar]. Mar is current (index 2).
+                        // diffInMonths between Now and hDate. 
+                        // If Now=Mar(2), hDate=Jan(0). Diff = 2. Index = 2 - 2 = 0.
+                        const monthDiff = (now.getFullYear() - hDate.getFullYear()) * 12 + (now.getMonth() - hDate.getMonth());
+                        bucketIndex = (labels.length - 1) - monthDiff;
+                    }
+
+                    if (bucketIndex >= 0 && bucketIndex < data.length) {
+                        // Add points to this bucket AND ALL SUBSEQUENT BUCKETS (Cumulative)
+                        for (let j = bucketIndex; j < data.length; j++) {
+                            data[j] += (h.points || 0);
+                        }
+                    }
+                }
+            });
+        }
+    } catch (error) {
+        console.error("Get chart data error:", error);
     }
 
     return {
@@ -393,83 +490,587 @@ function getChartData(period) {
 }
 
 function updateChartWithRealData() {
-    if (userChartInstance) {
-        const currentPeriod = document.getElementById('chartFilter')?.value || '1y';
-        userChartInstance.data = getChartData(currentPeriod);
-        userChartInstance.update();
+    try {
+        if (userChartInstance) {
+            const currentPeriod = document.getElementById('chartFilter')?.value || '1y';
+            userChartInstance.data = getChartData(currentPeriod);
+            userChartInstance.update();
+        }
+    } catch (error) {
+        console.error("Update chart error:", error);
     }
 }
 
-// --- Event Listeners Setup ---
+// --- Event Listeners ---
 function setupEventListeners() {
-    // Chart Filter
-    const chartFilter = document.getElementById('chartFilter');
-    if (chartFilter) {
-        chartFilter.addEventListener('change', function () {
-            if (userChartInstance) {
-                userChartInstance.data = getChartData(this.value);
-                userChartInstance.update();
-            }
-        });
-    }
+    try {
+        const chartFilter = document.getElementById('chartFilter');
+        if (chartFilter) {
+            chartFilter.addEventListener('change', function () {
+                if (userChartInstance) {
+                    userChartInstance.data = getChartData(this.value);
+                    userChartInstance.update();
+                }
+            });
+        }
 
-    // Show QR Button
-    const showQrBtn = document.querySelector('.qr-section button');
-    if (showQrBtn) {
-        showQrBtn.addEventListener('click', function () {
-            new bootstrap.Modal(document.getElementById('qrModal')).show();
-        });
-    }
+        const showQrBtn = document.querySelector('.qr-section button');
+        if (showQrBtn) {
+            showQrBtn.addEventListener('click', function () {
+                const qrModal = document.getElementById('qrModal');
+                if (qrModal) {
+                    new bootstrap.Modal(qrModal).show();
+                }
+            });
+        }
 
-    // Submit Code Button
-    const submitCodeBtn = document.getElementById('submitCodeBtn');
-    if (submitCodeBtn) {
-        submitCodeBtn.addEventListener('click', submitCode);
-    }
+        const submitCodeBtn = document.getElementById('submitCodeBtn');
+        if (submitCodeBtn) {
+            // Remove old listener if any (to prevent duplicates if re-run)
+            const newBtn = submitCodeBtn.cloneNode(true);
+            submitCodeBtn.parentNode.replaceChild(newBtn, submitCodeBtn);
+            newBtn.addEventListener('click', () => {
+                console.log("Submit button clicked (Listener)");
+                window.submitCode();
+            });
 
-    // Also allow Enter key on code input
+        }
+
+        const codeInput = document.getElementById('codeInput');
+        if (codeInput) {
+            codeInput.addEventListener('keypress', function (e) {
+                if (e.key === 'Enter') submitCode();
+            });
+        }
+    } catch (error) {
+        console.error("Setup event listeners error:", error);
+    }
+}
+
+// --- User Features: Submit Code (Universal) ---
+// --- User Features: Submit Code (Universal) ---
+// --- User Features: Submit Code (Universal) ---
+window.submitCode = async function () {
     const codeInput = document.getElementById('codeInput');
-    if (codeInput) {
-        codeInput.addEventListener('keypress', function (e) {
-            if (e.key === 'Enter') {
-                submitCode();
-            }
+    if (!codeInput) return;
+
+    const rawCode = codeInput.value.trim();
+    if (!rawCode) {
+        alert('Masukkan kode terlebih dahulu!');
+        return;
+    }
+
+    // Attempt to match Weekly Token first
+    try {
+        const now = new Date();
+
+        // --- CHECK 1: WEEKLY TOKEN ---
+        const weeklyRef = collection(db, 'weeklyTokens');
+        const qWeekly = query(weeklyRef, where('code', '==', rawCode));
+        const weeklySnap = await getDocs(qWeekly);
+
+        const validWeeklyDocs = weeklySnap.docs.filter(doc => {
+            const data = doc.data();
+            const expiresAt = data.expiresAt?.toDate();
+            // Check expiry
+            return expiresAt && expiresAt > now;
         });
+
+        if (validWeeklyDocs.length > 0) {
+            const tokenData = validWeeklyDocs[0].data();
+
+            // A. Check Frequency (Week ID)
+            if (tokenData.week) {
+                const historyRef = collection(db, 'attendanceHistory');
+                const qCheck = query(
+                    historyRef,
+                    where('userId', '==', currentUser.uid),
+                    where('week', '==', tokenData.week)
+                );
+                const historySnap = await getDocs(qCheck);
+
+                if (!historySnap.empty) {
+                    alert(`Anda sudah absen untuk minggu ini (${tokenData.week})!`);
+                    codeInput.value = '';
+                    return;
+                }
+            }
+
+            // B. Calculate Points (Time-based)
+            let earnedPoints = tokenData.points || 10;
+            if (attendanceConfig) {
+                const currentTimeStr = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
+                const slot1End = attendanceConfig.slot1Time || "09:05";
+                const slot2End = attendanceConfig.slot2Time || "09:20";
+
+                if (currentTimeStr <= slot1End) {
+                    earnedPoints = attendanceConfig.slot1Points ?? 3;
+                } else if (currentTimeStr <= slot2End) {
+                    earnedPoints = attendanceConfig.slot2Points ?? 2;
+                } else {
+                    earnedPoints = attendanceConfig.defaultPoints ?? 0;
+                }
+            }
+
+            // C. Execute Transaction/Batch
+            const batch = writeBatch(db);
+
+            // 1. Add to Attendance History
+            const newAttRef = doc(collection(db, 'attendanceHistory'));
+            batch.set(newAttRef, {
+                userId: currentUser.uid,
+                username: currentUser.username || currentUser.email,
+                code: rawCode,
+                claimedAt: serverTimestamp(),
+                week: tokenData.week,
+                points: earnedPoints,
+                status: 'hadir'
+            });
+
+            // 2. Update User Points
+            const userRef = doc(db, 'users', currentUser.uid);
+            batch.update(userRef, {
+                lastAttendance: serverTimestamp(),
+                totalAttendance: increment(1),
+                points: increment(earnedPoints)
+            });
+
+            // 3. Add to Point History
+            const newHistRef = doc(collection(db, 'pointHistory'));
+            batch.set(newHistRef, {
+                userId: currentUser.uid,
+                description: `Kehadiran Mingguan (${tokenData.week})`,
+                points: earnedPoints,
+                status: 'completed',
+                createdAt: serverTimestamp()
+            });
+
+            await batch.commit();
+            codeInput.value = '';
+            alert(`✅ Absensi Berhasil!\npoint: +${earnedPoints}`);
+            return;
+        }
+
+        // --- CHECK 2: CUSTOM EVENT CODE ---
+        const codesRef = collection(db, "codes");
+        const qCode = query(codesRef, where("code", "==", rawCode));
+        const codeSnap = await getDocs(qCode);
+
+        if (!codeSnap.empty) {
+            const codeData = codeSnap.docs[0].data();
+
+            // A. Check if already redeemed
+            const historyRef = collection(db, 'pointHistory');
+            const qHistory = query(
+                historyRef,
+                where('userId', '==', currentUser.uid),
+                where('description', '==', `Kode: ${rawCode}`)
+            );
+            const historySnap = await getDocs(qHistory);
+
+            if (!historySnap.empty) {
+                alert('Anda sudah menukarkan kode ini!');
+                codeInput.value = '';
+                return;
+            }
+
+            // B. Execute Transaction/Batch
+            const batch = writeBatch(db);
+            const userRef = doc(db, 'users', currentUser.uid);
+
+            batch.update(userRef, {
+                points: increment(codeData.points)
+            });
+
+            const newHistRef = doc(collection(db, 'pointHistory'));
+            batch.set(newHistRef, {
+                userId: currentUser.uid,
+                description: `Kode: ${rawCode}`,
+                points: codeData.points,
+                status: 'completed',
+                createdAt: serverTimestamp()
+            });
+
+            await batch.commit();
+            codeInput.value = '';
+            alert(`✅ Kode "${rawCode}" berhasil disubmit!\nPoint: +${codeData.points}`);
+            return;
+        }
+
+        // --- IF NEITHER ---
+        alert('Kode tidak valid atau sudah expired!');
+    } catch (error) {
+        console.error('Error submitting code:', error);
+        alert('Terjadi kesalahan: ' + error.message);
+    }
+}
+function renderAccountsTable() {
+    try {
+        const tbody = document.getElementById('accountsTableBody');
+        if (!tbody) return;
+
+        tbody.innerHTML = '';
+
+        accountsData.forEach(acc => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${acc.username || acc.email}</td>
+                <td>${acc.email}</td>
+                <td><span class="badge bg-primary rounded-pill">${acc.points || 0}</span></td>
+                <td>
+                    <button class="btn btn-sm btn-outline-primary me-2" onclick="editAccount('${acc.id}')">
+                        <i class="bi-pencil"></i>
+                    </button>
+                    <button class="btn btn-sm btn-outline-danger" onclick="deleteAccount('${acc.id}')">
+                        <i class="bi-trash"></i>
+                    </button>
+                </td>
+            `;
+            tbody.appendChild(row);
+        });
+    } catch (error) {
+        console.error("Render accounts table error:", error);
     }
 }
 
-// --- Admin Features: Accounts Management ---
-function renderAccountsTable() {
-    const tbody = document.getElementById('accountsTableBody');
-    if (!tbody) return;
+// --- Edit Account Logic ---
+// --- Edit Account Logic (Detailed & Statistical) ---
+// --- Edit Account Logic (Detailed & Statistical) ---
+// --- Edit Account Logic (Detailed & Statistical) ---
+window.editAccount = async function (id) {
+    try {
+        // 1. Fetch User Data
+        const docRef = doc(db, "users", id);
+        const docSnap = await getDoc(docRef);
 
-    tbody.innerHTML = '';
+        if (!docSnap.exists()) {
+            alert("Data user tidak ditemukan di Firebase.");
+            return;
+        }
 
-    accountsData.forEach(acc => {
-        const row = document.createElement('tr');
-        row.innerHTML = `
-            <td>${acc.username || acc.email}</td>
-            <td>${acc.email}</td>
-            <td><span class="badge bg-primary rounded-pill">${acc.points || 0}</span></td>
-            <td>
-                <button class="btn btn-sm btn-outline-primary me-2" onclick="editAccount('${acc.id}')">
-                    <i class="bi-pencil"></i>
-                </button>
-                <button class="btn btn-sm btn-outline-danger" onclick="deleteAccount('${acc.id}')">
-                    <i class="bi-trash"></i>
-                </button>
-            </td>
-        `;
-        tbody.appendChild(row);
-    });
+        const data = docSnap.data();
+        const container = document.getElementById('dynamicFormFields');
+        if (!container) return;
+
+        container.innerHTML = '<div class="text-center py-3"><div class="spinner-border text-primary" role="status"></div><p>Loading History & Stats...</p></div>';
+
+        // Show Modal
+        const modalEl = document.getElementById('editUserModal');
+        const modal = new bootstrap.Modal(modalEl);
+        const manageModalEl = document.getElementById('manageAccountsModal');
+        if (manageModalEl) {
+            const manageModal = bootstrap.Modal.getInstance(manageModalEl);
+            if (manageModal) manageModal.hide();
+        }
+        modal.show();
+
+        // 2. Fetch Attendance History (For Stats & Charts)
+        const attHistoryRef = collection(db, 'attendanceHistory');
+        const qAtt = query(attHistoryRef, where('userId', '==', id));
+        const attSnap = await getDocs(qAtt);
+
+        const now = new Date();
+        const currentMonth = now.getMonth();
+        const currentYear = now.getFullYear();
+
+        let totalMonthCount = 0;
+        let totalYearCount = 0;
+
+        // Data Buckets
+        const yearlyData = new Array(12).fill(0); // Jan - Dec
+        const monthlyData = new Array(5).fill(0); // Week 1 - 5 (approx)
+        const monthLabels = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+        const weekLabels = ["Week 1", "Week 2", "Week 3", "Week 4", "Week 5"];
+
+        attSnap.docs.forEach(d => {
+            const attData = d.data();
+            if (attData.claimedAt) {
+                const date = attData.claimedAt.toDate();
+
+                // Yearly Check
+                if (date.getFullYear() === currentYear) {
+                    totalYearCount++;
+                    yearlyData[date.getMonth()]++; // Add to specific month bucket
+
+                    // Monthly Check
+                    if (date.getMonth() === currentMonth) {
+                        totalMonthCount++;
+                        // Determine Week (1-5) based on date
+                        const day = date.getDate();
+                        const weekIndex = Math.ceil(day / 7) - 1;
+                        if (weekIndex >= 0 && weekIndex < 5) {
+                            monthlyData[weekIndex]++;
+                        }
+                    }
+                }
+            }
+        });
+
+        // 3. Fetch Point History (Limit 20 for editing)
+        const pointHistoryRef = collection(db, 'pointHistory');
+        const qPoints = query(pointHistoryRef, where('userId', '==', id), orderBy('createdAt', 'desc'), limit(20));
+        const pointSnap = await getDocs(qPoints);
+
+        // --- BUILD UI ---
+        let html = '';
+
+        // SECTION 1: IDENTITY
+        html += `<h6 class="text-primary fw-bold mb-3 border-bottom pb-2">Identity</h6>`;
+        html += createFieldHTML('UID', id, 'text', true);
+        html += createFieldHTML('Username', data.username || '', 'text', false, 'editUsername');
+        html += createFieldHTML('Email', data.email || '', 'email', true);
+
+        // SECTION 2: ACCESS & ROLES
+        html += `<h6 class="text-primary fw-bold mt-4 mb-3 border-bottom pb-2">Access & Roles</h6>`;
+        html += `<div class="row">
+                    <div class="col-6">${createCheckboxHTML('Is Admin', data.isAdmin, 'editIsAdmin')}</div>
+                    <div class="col-6">${createCheckboxHTML('First Login (Reset)', data.firstLogin, 'editFirstLogin')}</div>
+                 </div>`;
+
+        // SECTION 3: ATTENDANCE STATISTICS
+        html += `<h6 class="text-primary fw-bold mt-4 mb-3 border-bottom pb-2">Attendance Statistics</h6>`;
+
+        // Key Counters
+        html += `<div class="row mb-3">
+                    <div class="col-6">
+                        <div class="p-3 border rounded bg-white text-center shadow-sm">
+                            <small class="text-muted d-block text-uppercase">This Month</small>
+                            <span class="h2 fw-bold text-success display-6">${totalMonthCount}</span>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="p-3 border rounded bg-white text-center shadow-sm">
+                            <small class="text-muted d-block text-uppercase">This Year</small>
+                            <span class="h2 fw-bold text-primary display-6">${totalYearCount}</span>
+                        </div>
+                    </div>
+                 </div>`;
+
+        // Charts Container
+        html += `<div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <div class="card h-100 shadow-sm">
+                            <div class="card-header bg-transparent small fw-bold text-secondary text-center">This Month (Weekly)</div>
+                            <div class="card-body">
+                                <canvas id="chartMonthly" height="200"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card h-100 shadow-sm">
+                             <div class="card-header bg-transparent small fw-bold text-secondary text-center">This Year (Monthly)</div>
+                            <div class="card-body">
+                                <canvas id="chartYearly" height="200"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                 </div>`;
+
+        // SECTION 4: DATA POINTS
+        html += `<h6 class="text-primary fw-bold mt-4 mb-3 border-bottom pb-2">Data Points</h6>`;
+        html += createFieldHTML('Current Points', data.points || 0, 'number', false, 'editPoints');
+        html += createFieldHTML('Total Attendance (Record)', data.totalAttendance || 0, 'number', false, 'editTotalAttendance');
+
+        // SECTION 5: EDITABLE POINT HISTORY
+        html += `<h6 class="text-primary fw-bold mt-4 mb-3 border-bottom pb-2">Edit Point History <small class="text-muted fw-normal">(Recent 20)</small></h6>`;
+
+        if (pointSnap.empty) {
+            html += '<p class="text-muted small">No history found.</p>';
+        } else {
+            html += '<div class="table-responsive" style="max-height: 250px; overflow-y:auto;">';
+            html += '<table class="table table-sm table-hover font-monospace" style="font-size: 0.8rem;">';
+            html += '<thead class="table-light sticky-top"><tr><th>Date</th><th>Desc</th><th>Pt</th><th>Action</th></tr></thead><tbody>';
+
+            pointSnap.forEach(pH => {
+                const p = pH.data();
+                const pid = pH.id;
+                const pDate = p.createdAt?.toDate ? p.createdAt.toDate().toLocaleDateString() : '-';
+                const pColor = (p.points >= 0) ? 'text-success' : 'text-danger';
+
+                html += `<tr>
+                            <td class="align-middle">${pDate}</td>
+                            <td class="align-middle">
+                                <input type="text" class="form-control form-control-sm border-0 bg-transparent p-0" 
+                                    value="${p.description}" onchange="updatePointHistoryItem('${pid}', 'description', this.value)">
+                            </td>
+                            <td class="align-middle">
+                                <input type="number" class="form-control form-control-sm border-0 bg-transparent p-0 ${pColor} fw-bold" 
+                                    style="width: 50px;" value="${p.points}" onchange="updatePointHistoryItem('${pid}', 'points', this.value)">
+                            </td>
+                            <td class="align-middle">
+                                <button class="btn btn-outline-danger btn-sm py-0 px-1" onclick="deletePointHistoryItem('${pid}', '${id}', ${p.points})">
+                                    <i class="bi-trash"></i>
+                                </button>
+                            </td>
+                          </tr>`;
+            });
+            html += '</tbody></table></div>';
+            html += '<small class="text-muted fst-italic">*Changes to history items save automatically. Delete adjusts user total points.</small>';
+        }
+
+        // HIDDEN ID & RENDER
+        container.dataset.targetId = id;
+        container.innerHTML = html;
+
+        // RENDER CHARTS
+
+        // 1. Monthly (Weekly breakdown)
+        new Chart(document.getElementById('chartMonthly'), {
+            type: 'bar',
+            data: {
+                labels: weekLabels,
+                datasets: [{
+                    label: 'Visits',
+                    data: monthlyData,
+                    backgroundColor: '#1cc88a',
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { beginAtZero: true, ticks: { precision: 0 } },
+                    x: { grid: { display: false } }
+                }
+            }
+        });
+
+        // 2. Yearly (Monthly breakdown)
+        new Chart(document.getElementById('chartYearly'), {
+            type: 'bar', // or line
+            data: {
+                labels: monthLabels,
+                datasets: [{
+                    label: 'Visits',
+                    data: yearlyData,
+                    backgroundColor: '#4e73df',
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { beginAtZero: true, ticks: { precision: 0 } },
+                    x: { grid: { display: false } }
+                }
+            }
+        });
+
+    } catch (error) {
+        console.error("Edit account fetch error:", error);
+        alert("Gagal mengambil data user: " + error.message);
+    }
 }
 
-// Global functions for account management
-window.editAccount = function (id) {
-    const account = accountsData.find(acc => acc.id === id);
-    if (account) {
-        alert("Fitur edit akan segera tersedia!");
-        // TODO: Implement edit functionality
+// --- Point History Helper Functions ---
+
+window.updatePointHistoryItem = async function (docId, field, value) {
+    try {
+        const ref = doc(db, 'pointHistory', docId);
+        const updateData = {};
+        updateData[field] = (field === 'points') ? parseInt(value) : value;
+        await updateDoc(ref, updateData);
+        // Note: Changing points here DOES NOT automatically update user total points balance 
+        // because that would require complex recalculation. 
+        // Admin should manually adjust "Current Points" if they change history numbers significantly.
+    } catch (e) {
+        console.error("Update history failed", e);
+        alert("Gagal update history item");
+    }
+}
+
+window.deletePointHistoryItem = async function (docId, userId, pointsValue) {
+    if (!confirm("Hapus item history ini? Poin user akan otomatis dikurangi/dikembalikan.")) return;
+
+    try {
+        // 1. Delete History Doc
+        await deleteDoc(doc(db, 'pointHistory', docId));
+
+        // 2. Adjust User Balance (Reverse the transaction)
+        // If history was +10, deleting it means -10 from user.
+        // If history was -5, deleting it means +5 to user.
+        const userRef = doc(db, 'users', userId);
+        await updateDoc(userRef, {
+            points: increment(-pointsValue)
+        });
+
+        // 3. Refresh UI
+        editAccount(userId);
+
+    } catch (e) {
+        console.error("Delete history failed", e);
+        alert("Gagal menghapus item: " + e.message);
+    }
+}
+
+// Helper to create cleaner HTML
+function createFieldHTML(label, value, type = 'text', readOnly = false, idOverride = null) {
+    const isReadOnlyAttr = readOnly ? 'readonly disabled' : '';
+    const bgClass = readOnly ? 'bg-light' : '';
+    // Use idOverride if fetching data back, otherwise just display
+    const dataKeyAttr = idOverride ? `id="${idOverride}"` : '';
+    const safeValue = String(value).replace(/"/g, '&quot;');
+
+    return `
+        <div class="mb-2">
+            <label class="form-label small text-secondary fw-bold mb-1">${label}</label>
+            <input type="${type}" class="form-control ${bgClass} form-control-sm" 
+                ${dataKeyAttr}
+                value="${safeValue}" 
+                ${isReadOnlyAttr}>
+        </div>
+    `;
+}
+
+function createCheckboxHTML(label, checked, idOverride) {
+    const isChecked = checked ? 'checked' : '';
+    return `
+        <div class="form-check p-2 border rounded">
+            <input class="form-check-input" type="checkbox" id="${idOverride}" ${isChecked}>
+            <label class="form-check-label small fw-bold" for="${idOverride}">
+                ${label}
+            </label>
+        </div>
+    `;
+}
+
+window.saveUserChanges = async function () {
+    const container = document.getElementById('dynamicFormFields');
+    if (!container) return;
+
+    const id = container.dataset.targetId;
+    if (!id) return;
+
+    try {
+        // Collect specific editable fields
+        const username = document.getElementById('editUsername').value;
+        const points = parseInt(document.getElementById('editPoints').value) || 0;
+        const totalAttendance = parseInt(document.getElementById('editTotalAttendance').value) || 0;
+        const isAdmin = document.getElementById('editIsAdmin').checked;
+        const firstLogin = document.getElementById('editFirstLogin').checked;
+
+        const updates = {
+            username: username,
+            points: points,
+            totalAttendance: totalAttendance,
+            isAdmin: isAdmin,
+            firstLogin: firstLogin
+        };
+
+        await updateDoc(doc(db, "users", id), updates);
+        alert("✅ Data user berhasil diupdate!");
+
+        const modalEl = document.getElementById('editUserModal');
+        const modal = bootstrap.Modal.getInstance(modalEl);
+        if (modal) modal.hide();
+
+    } catch (error) {
+        console.error("Update user error:", error);
+        alert("Gagal update user: " + error.message);
     }
 }
 
@@ -489,90 +1090,77 @@ window.addNewAccount = async function () {
     const username = prompt("Masukkan username:");
     if (!username) return;
 
-    const email = prompt("Masukkan email:");
-    if (!email) return;
-
     const temporaryPassword = prompt("Masukkan password sementara (min 6 karakter):");
     if (!temporaryPassword || temporaryPassword.length < 6) {
         alert("Password minimal 6 karakter!");
         return;
     }
 
+    const cleanUsername = username.replace(/\s+/g, '').toLowerCase();
+    const dummyEmail = `${cleanUsername}@temp.vdrteens.local`;
+
     try {
-        // Create auth user
+        const secondaryAppName = "TempApp_" + Date.now();
+        const secondaryApp = initializeApp(auth.app.options, secondaryAppName);
+        const secondaryAuth = getAuth(secondaryApp);
+
         const userCredential = await createUserWithEmailAndPassword(
-            auth,
-            email,
+            secondaryAuth,
+            dummyEmail,
             temporaryPassword
         );
 
-        const user = userCredential.user;
+        const newUser = userCredential.user;
 
-        // Create Firestore document
-        await setDoc(doc(db, 'users', user.uid), {
+        await setDoc(doc(db, 'users', newUser.uid), {
             username: username,
-            email: email,
+            email: dummyEmail,
+            emailLinked: false,
             firstLogin: true,
             isAdmin: false,
             points: 0,
+            totalAttendance: 0,
             createdAt: serverTimestamp()
         });
 
-        alert(`✅ User "${username}" berhasil dibuat!\n\nEmail: ${email}\nPassword: ${temporaryPassword}\n\nBerikan kredensial ini kepada user.`);
+        await signOut(secondaryAuth);
+        alert(`✅ User "${username}" berhasil dibuat!\n\nUsername: ${cleanUsername}\nPassword: ${temporaryPassword}`);
 
     } catch (error) {
         console.error('Error creating user:', error);
-        let errorMsg = 'Gagal membuat user: ';
-
         if (error.code === 'auth/email-already-in-use') {
-            errorMsg += 'Email sudah digunakan';
-        } else if (error.code === 'auth/invalid-email') {
-            errorMsg += 'Format email tidak valid';
-        } else if (error.code === 'auth/weak-password') {
-            errorMsg += 'Password terlalu lemah';
+            alert('Gagal: Username ini sudah digunakan. Silakan gunakan username lain.');
         } else {
-            errorMsg += error.message;
+            alert('Gagal membuat user: ' + error.message);
         }
-
-        alert(errorMsg);
     }
 }
 
-// --- Admin Features: Active Codes Management ---
+// --- Admin Features: Active Codes ---
 function renderActiveCodesTable() {
-    const tbody = document.querySelector('#activeCodesTable tbody');
-    if (!tbody) return;
+    try {
+        const tbody = document.querySelector('#activeCodesTable tbody');
+        if (!tbody) return;
 
-    tbody.innerHTML = '';
+        tbody.innerHTML = '';
 
-    if (activeCodesData.length === 0) {
-        tbody.innerHTML = `
-            <tr>
-                <td colspan="3" class="text-center text-muted py-4">
-                    <i class="bi-info-circle me-2"></i>Belum ada kode aktif
-                </td>
-            </tr>
-        `;
-        return;
+        if (activeCodesData.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="3" class="text-center text-muted py-4"><i class="bi-info-circle me-2"></i>Belum ada kode aktif</td></tr>`;
+            return;
+        }
+
+        activeCodesData.forEach(code => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td><span class="badge bg-light text-dark border border-secondary px-3 py-2"><code class="fs-6">${code.code}</code></span></td>
+                <td><strong>${code.points}</strong> point</td>
+                <td><button class="btn btn-sm text-danger p-0" onclick="deleteCode('${code.id}')"><i class="bi-x-circle-fill fs-5"></i></button></td>
+            `;
+            tbody.appendChild(row);
+        });
+    } catch (error) {
+        console.error("Render active codes table error:", error);
     }
-
-    activeCodesData.forEach(code => {
-        const row = document.createElement('tr');
-        row.innerHTML = `
-            <td>
-                <span class="badge bg-light text-dark border border-secondary px-3 py-2">
-                    <code class="fs-6">${code.code}</code>
-                </span>
-            </td>
-            <td><strong>${code.points}</strong> point</td>
-            <td>
-                <button class="btn btn-sm text-danger p-0" onclick="deleteCode('${code.id}')" title="Hapus kode">
-                    <i class="bi-x-circle-fill fs-5"></i>
-                </button>
-            </td>
-        `;
-        tbody.appendChild(row);
-    });
 }
 
 window.deleteCode = async function (id) {
@@ -590,164 +1178,713 @@ window.generateCustomCode = async function () {
     const eventNameInput = document.getElementById('eventNameInput');
     const pointsInput = document.getElementById('pointsInput');
 
-    const eventName = eventNameInput?.value.trim();
-    const points = parseInt(pointsInput?.value);
-
-    if (!eventName || !points || points <= 0) {
-        alert("Mohon lengkapi nama event dan masukkan jumlah point yang valid (lebih dari 0).");
+    if (!eventNameInput || !pointsInput) {
+        alert("Form input tidak ditemukan!");
         return;
     }
 
+    const eventName = eventNameInput.value.trim();
+    const points = parseInt(pointsInput.value);
 
-    // Use the event name directly as the code
-    const codeStr = eventName;
+    if (!eventName || !points || points <= 0) {
+        alert("Mohon lengkapi nama event dan masukkan jumlah point yang valid.");
+        return;
+    }
 
     try {
         await addDoc(collection(db, "codes"), {
-            code: codeStr,
+            code: eventName,
             points: points,
             createdAt: serverTimestamp()
         });
 
-        if (eventNameInput) eventNameInput.value = '';
-        if (pointsInput) pointsInput.value = '';
-
-        alert(`✅ Kode Berhasil Dibuat:\n${codeStr}\nNilai: ${points} point`);
+        eventNameInput.value = '';
+        pointsInput.value = '';
+        alert(`✅ Kode Berhasil Dibuat:\n${eventName}\nNilai: ${points} point`);
     } catch (error) {
         console.error("Error adding code:", error);
         alert("Gagal membuat kode: " + error.message);
     }
 }
 
-// --- Admin Features: Scanner Simulation ---
-window.simulateScanSuccess = function () {
-    const pointsInput = document.getElementById('scanPoints');
-    const descInput = document.getElementById('scanDesc');
+// --- Admin Features: Attendance Config ---
+window.saveAttendanceConfig = async function () {
+    const slot1Time = document.getElementById('slot1Time').value;
+    const slot1Points = parseInt(document.getElementById('slot1Points').value);
+    const slot2Time = document.getElementById('slot2Time').value;
+    const slot2Points = parseInt(document.getElementById('slot2Points').value);
+    const defaultPoints = parseInt(document.getElementById('defaultPoints').value);
 
-    const points = pointsInput ? parseInt(pointsInput.value) : 50;
-    const desc = descInput ? descInput.value : "Absensi Mingguan";
+    // New Settings
+    const tokenInterval = parseInt(document.getElementById('tokenInterval').value);
+    const tokenValidity = parseInt(document.getElementById('tokenValidity').value);
 
-    if (isNaN(points) || points === 0) {
-        alert("Mohon masukkan jumlah point yang valid.");
+    // Validate
+    if (!slot1Time || !slot2Time || isNaN(slot1Points) || isNaN(slot2Points) || isNaN(defaultPoints) || isNaN(tokenInterval) || isNaN(tokenValidity)) {
+        alert("Mohon lengkapi semua field dengan benar.");
         return;
     }
 
-    const scanModalEl = document.getElementById('scanModal');
-    const scanModal = bootstrap.Modal.getInstance(scanModalEl);
+    try {
+        await setDoc(doc(db, 'settings', 'attendanceConfig'), {
+            slot1Time,
+            slot1Points,
+            slot2Time,
+            slot2Points,
+            defaultPoints,
+            tokenInterval, // Seconds
+            tokenValidity, // Minutes
+            updatedAt: serverTimestamp(),
+            updatedBy: currentUser.uid
+        });
 
-    if (scanModal) {
-        scanModal.hide();
+        alert("✅ Pengaturan berhasil disimpan!");
+        const modalEl = document.getElementById('attendanceConfigModal');
+        const modal = bootstrap.Modal.getInstance(modalEl);
+        if (modal) modal.hide();
+    } catch (error) {
+        console.error("Save config error:", error);
+        alert("Gagal menyimpan pengaturan: " + error.message);
     }
-
-    setTimeout(() => {
-        alert(`✅ Scan Berhasil!\n\n📊 Point: ${points > 0 ? '+' : ''}${points}\n📝 Deskripsi: ${desc}\n\nPoint berhasil ditambahkan ke akun member.`);
-
-        if (pointsInput) pointsInput.value = "50";
-        if (descInput) descInput.value = "Absensi Mingguan";
-    }, 300);
 }
 
-// --- Admin Features: Weekly Token (Fullscreen Display) ---
-window.generateAndShowToken = function () {
-    const randomNum = Math.floor(1000 + Math.random() * 9000);
-    const token = "VDR-WEEKLY-" + randomNum;
+function updateAttendanceConfigUI() {
+    if (!attendanceConfig) return;
+    const s1t = document.getElementById('slot1Time');
+    const s1p = document.getElementById('slot1Points');
+    const s2t = document.getElementById('slot2Time');
+    const s2p = document.getElementById('slot2Points');
+    const dp = document.getElementById('defaultPoints');
+    const ti = document.getElementById('tokenInterval');
+    const tv = document.getElementById('tokenValidity');
 
-    const overlay = document.getElementById('tokenOverlay');
-    const codeDisplay = document.getElementById('tokenDisplayValue');
-    const timerDisplay = document.getElementById('tokenTimer');
+    if (s1t) s1t.value = attendanceConfig.slot1Time || "09:05";
+    if (s1p) s1p.value = attendanceConfig.slot1Points ?? 3;
+    if (s2t) s2t.value = attendanceConfig.slot2Time || "09:20";
+    if (s2p) s2p.value = attendanceConfig.slot2Points ?? 2;
+    if (dp) dp.value = attendanceConfig.defaultPoints ?? 0;
 
-    codeDisplay.textContent = token;
-    timerDisplay.textContent = "60";
-
-    overlay.style.backgroundColor = '#ffffff';
-    overlay.style.color = '#000000';
-
-    const textElements = overlay.querySelectorAll('h1, h2, h3, small, #tokenDisplayValue, #tokenTimer');
-    textElements.forEach(el => {
-        el.style.color = '#000000';
-    });
-
-    overlay.classList.remove('d-none');
-    overlay.classList.add('d-flex');
-    overlay.style.display = 'flex';
-
-    setTimeout(() => {
-        if (overlay.requestFullscreen) {
-            overlay.requestFullscreen();
-        } else if (overlay.webkitRequestFullscreen) {
-            overlay.webkitRequestFullscreen();
-        } else if (overlay.msRequestFullscreen) {
-            overlay.msRequestFullscreen();
-        }
-
-        startTokenTimer();
-    }, 50);
+    // Default Fallbacks
+    if (ti) ti.value = attendanceConfig.tokenInterval || 30;
+    if (tv) tv.value = attendanceConfig.tokenValidity || 5;
 }
 
-function startTokenTimer() {
-    const timerDisplay = document.getElementById('tokenTimer');
-    let timeLeft = 60;
+// ==========================================
+// ATTENDANCE SYSTEM FUNCTIONS
+// ==========================================
 
-    clearInterval(tokenInterval);
+function getWeekNumber(date) {
+    try {
+        const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+        const dayNum = d.getUTCDay() || 7;
+        d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+        const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+        return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+    } catch (error) {
+        console.error("Get week number error:", error);
+        return 0;
+    }
+}
 
-    tokenInterval = setInterval(() => {
-        timeLeft--;
-        timerDisplay.textContent = timeLeft;
+function getWeekIdentifier(date = new Date()) {
+    try {
+        const year = date.getFullYear();
+        const week = getWeekNumber(date);
+        return `${year}-W${String(week).padStart(2, '0')}`;
+    } catch (error) {
+        console.error("Get week identifier error:", error);
+        return "unknown-week";
+    }
+}
 
-        if (timeLeft <= 10) {
-            timerDisplay.style.color = '#dc3545';
-        } else if (timeLeft <= 30) {
-            timerDisplay.style.color = '#ffc107';
-        } else {
-            timerDisplay.style.color = '#000000';
-        }
+function generateWeeklyCode() {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    let code = '';
+    for (let i = 0; i < 5; i++) {
+        code += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return code;
+}
 
-        if (timeLeft <= 0) {
-            clearInterval(tokenInterval);
-            setTimeout(() => {
-                if (document.getElementById('tokenOverlay').classList.contains('d-flex')) {
-                    alert("⏰ Token Expired!");
-                    closeTokenOverlay();
+// --- Token Generator (Admin) ---
+window.startTokenGenerator = async function () {
+    try {
+        // Cleanup old tokens first
+        await cleanupOldTokens();
+
+        // Generate first token immediately
+        await generateAndSaveToken();
+
+        // Get Interval from Config or Default 30s
+        const intervalSeconds = (attendanceConfig?.tokenInterval || 30) * 1000;
+
+        // Then generate periodically
+        if (tokenGeneratorInterval) clearInterval(tokenGeneratorInterval);
+
+        tokenGeneratorInterval = setInterval(async () => {
+            await generateAndSaveToken();
+        }, intervalSeconds);
+
+        console.log(`Token generator started. Interval: ${intervalSeconds}ms`);
+    } catch (error) {
+        console.error("Start token generator error:", error);
+    }
+}
+
+window.stopTokenGenerator = function () {
+    if (tokenGeneratorInterval) {
+        clearInterval(tokenGeneratorInterval);
+        tokenGeneratorInterval = null;
+        console.log('Token generator stopped');
+    }
+}
+
+async function generateAndSaveToken() {
+    try {
+        const code = generateWeeklyCode();
+        const now = new Date();
+
+        // Get Validity from Config or Default 5 minutes
+        const validityMinutes = attendanceConfig?.tokenValidity || 5;
+        const expiresAt = new Date(now.getTime() + (validityMinutes * 60 * 1000));
+
+        const tokenRef = await addDoc(collection(db, 'weeklyTokens'), {
+            code: code,
+            generatedAt: serverTimestamp(),
+            expiresAt: Timestamp.fromDate(expiresAt),
+            points: 10,
+            week: getWeekIdentifier()
+        });
+
+        currentWeeklyToken = {
+            id: tokenRef.id,
+            code: code,
+            expiresAt: expiresAt
+        };
+
+        // UI still shows refresh countdown for "freshness"
+        const intervalSeconds = attendanceConfig?.tokenInterval || 30;
+        updateTokenDisplay(code, intervalSeconds);
+    } catch (error) {
+        console.error('Error generating token:', error);
+        alert('Gagal generate token: ' + error.message);
+    }
+}
+
+function updateTokenDisplay(code, seconds) {
+    try {
+        const codeDisplay = document.getElementById('weeklyCodeDisplay');
+        const timerDisplay = document.getElementById('weeklyCodeTimer');
+
+        if (codeDisplay) codeDisplay.textContent = code;
+
+        if (timerDisplay) {
+            // Clear existing interval if any
+            if (window.tokenCountdownInterval) {
+                clearInterval(window.tokenCountdownInterval);
+            }
+
+            let timeLeft = seconds;
+            timerDisplay.textContent = `${timeLeft}s`;
+
+            window.tokenCountdownInterval = setInterval(() => {
+                timeLeft--;
+                if (timerDisplay) timerDisplay.textContent = `${timeLeft}s`;
+                if (timeLeft <= 0) {
+                    clearInterval(window.tokenCountdownInterval);
                 }
-            }, 100);
+            }, 1000);
         }
-    }, 1000);
+    } catch (error) {
+        console.error("Update token display error:", error);
+    }
 }
 
-window.closeTokenOverlay = function () {
-    const overlay = document.getElementById('tokenOverlay');
+// --- Cleanup Old Tokens ---
+async function cleanupOldTokens() {
+    try {
+        const tokensRef = collection(db, 'weeklyTokens');
+        const now = new Date();
+        // Delete tokens older than now (expired)
+        const q = query(tokensRef, where('expiresAt', '<', Timestamp.fromDate(now)));
+        const snapshot = await getDocs(q);
 
-    if (document.fullscreenElement) {
-        if (document.exitFullscreen) {
-            document.exitFullscreen();
-        } else if (document.webkitExitFullscreen) {
-            document.webkitExitFullscreen();
-        } else if (document.msExitFullscreen) {
-            document.msExitFullscreen();
+        if (!snapshot.empty) {
+            const deletePromises = snapshot.docs.map(doc => deleteDoc(doc.ref));
+            await Promise.all(deletePromises);
+            console.log(`Cleaned up ${snapshot.size} expired tokens.`);
         }
+    } catch (error) {
+        console.error("Cleanup tokens error:", error);
+    }
+}
+
+// --- Claim Attendance (User) ---
+window.claimAttendance = async function () {
+    const codeInput = document.getElementById('attendanceCodeInput');
+    if (!codeInput) {
+        alert('Input kode tidak ditemukan!');
+        return;
     }
 
-    overlay.classList.remove('d-flex');
-    overlay.classList.add('d-none');
-    overlay.style.display = 'none';
+    const code = codeInput.value.trim().toUpperCase();
 
-    clearInterval(tokenInterval);
+    if (!code || code.length !== 5) {
+        alert('Kode harus 5 huruf!');
+        return;
+    }
+
+    try {
+        // 1. Check if code is valid
+        const tokensRef = collection(db, 'weeklyTokens');
+        const q = query(tokensRef, where('code', '==', code));
+
+        const snapshot = await getDocs(q);
+        if (snapshot.empty) {
+            alert('Kode tidak valid!');
+            return;
+        }
+
+        // Find the valid token (not expired)
+        const now = new Date();
+        const validDocs = snapshot.docs.filter(doc => {
+            const data = doc.data();
+            return data.expiresAt && data.expiresAt.toDate() > now;
+        });
+
+        if (validDocs.length === 0) {
+            alert('Kode sudah expired! Minta kode baru dari admin.');
+            return;
+        }
+
+        // Sort by generatedAt desc to get latest
+        validDocs.sort((a, b) => {
+            const timeA = a.data().generatedAt?.toMillis ? a.data().generatedAt.toMillis() : 0;
+            const timeB = b.data().generatedAt?.toMillis ? b.data().generatedAt.toMillis() : 0;
+            return timeB - timeA;
+        });
+
+        const tokenData = validDocs[0].data();
+
+        // 2. Check frequency (Check if already claimed THIS week code)
+        const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
+        const userData = userDoc.data();
+
+        if (tokenData.week) {
+            const attendanceRef = collection(db, 'attendanceHistory');
+            const qCheck = query(
+                attendanceRef,
+                where('userId', '==', currentUser.uid),
+                where('week', '==', tokenData.week)
+            );
+            const historySnap = await getDocs(qCheck);
+
+            if (!historySnap.empty) {
+                alert(`Anda sudah absen untuk minggu ini (${tokenData.week})!`);
+                return;
+            }
+        }
+
+        // 3. Calculate Points based on Time Rules (if config exists)
+        let earnedPoints = tokenData.points || 10; // Default fallback
+        if (attendanceConfig) {
+            const currentTimeStr = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
+            const slot1End = attendanceConfig.slot1Time || "09:05";
+            const slot2End = attendanceConfig.slot2Time || "09:20";
+
+            if (currentTimeStr <= slot1End) {
+                earnedPoints = attendanceConfig.slot1Points ?? 3;
+            } else if (currentTimeStr <= slot2End) {
+                earnedPoints = attendanceConfig.slot2Points ?? 2;
+            } else {
+                earnedPoints = attendanceConfig.defaultPoints ?? 0;
+            }
+        }
+
+        // 4. Save attendance
+        await addDoc(collection(db, 'attendanceHistory'), {
+            userId: currentUser.uid,
+            username: userData.username || currentUser.email,
+            code: code,
+            claimedAt: serverTimestamp(),
+            week: tokenData.week,
+            points: earnedPoints,
+            status: 'hadir'
+        });
+
+        // 5. Update user stats
+        const newTotal = (userData.totalAttendance || 0) + 1;
+        await updateDoc(doc(db, 'users', currentUser.uid), {
+            lastAttendance: serverTimestamp(),
+            totalAttendance: newTotal,
+            points: increment(earnedPoints)
+        });
+
+        // 6. Add to point history
+        await addDoc(collection(db, 'pointHistory'), {
+            userId: currentUser.uid,
+            description: `Kehadiran Mingguan (${tokenData.week})`,
+            points: earnedPoints,
+            status: 'completed',
+            createdAt: serverTimestamp()
+        });
+
+        codeInput.value = '';
+
+        const modalEl = document.getElementById('attendanceModal');
+        if (modalEl) {
+            const modal = bootstrap.Modal.getInstance(modalEl);
+            if (modal) modal.hide();
+        }
+
+        alert(`Kehadiran berhasil diclaim!\n+${earnedPoints} point`);
+
+    } catch (error) {
+        console.error('Error claiming attendance:', error);
+        if (error.message.includes("index")) {
+            alert("System Error: Missing Index. Admin, please check console.");
+        } else {
+            alert('Gagal claim kehadiran: ' + error.message);
+        }
+    }
 }
 
-// Handle fullscreen change events
-document.addEventListener('fullscreenchange', handleFullscreenChange);
-document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
-document.addEventListener('mozfullscreenchange', handleFullscreenChange);
-document.addEventListener('MSFullscreenChange', handleFullscreenChange);
+// function updateAttendanceStatsDisplay REMOVED
+// function renderAttendanceTable REMOVED
+
+// --- Statistics Display (User) ---
+async function updateUserAttendanceDisplay() {
+    try {
+        const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
+        if (!userDoc.exists()) return;
+
+        const userData = userDoc.data();
+
+        const totalEl = document.getElementById('userTotalAttendance');
+        if (totalEl) totalEl.textContent = userData.totalAttendance || 0;
+
+        const lastEl = document.getElementById('userLastAttendance');
+        if (lastEl) {
+            if (userData.lastAttendance) {
+                lastEl.textContent = userData.lastAttendance.toDate().toLocaleString('id-ID');
+            } else {
+                lastEl.textContent = 'Belum pernah hadir';
+            }
+        }
+
+        // Get History
+        const attendanceRef = collection(db, 'attendanceHistory');
+        const q = query(
+            attendanceRef,
+            where('userId', '==', currentUser.uid),
+            orderBy('claimedAt', 'desc'),
+            limit(10)
+        );
+        const snapshot = await getDocs(q);
+        const history = snapshot.docs.map(d => d.data());
+
+        const container = document.getElementById('userAttendanceHistory');
+        if (!container) return;
+
+        container.innerHTML = '';
+
+        if (history.length === 0) {
+            container.innerHTML = '<p class="text-muted">Belum ada riwayat kehadiran</p>';
+            return;
+        }
+
+        history.forEach(item => {
+            let date = '-';
+            if (item.claimedAt?.toDate) {
+                date = item.claimedAt.toDate().toLocaleDateString('id-ID');
+            }
+
+            const div = document.createElement('div');
+            div.className = 'attendance-history-item mb-2 p-2 border rounded';
+            div.innerHTML = `
+                <div class="d-flex justify-content-between">
+                    <span><i class="bi-check-circle text-success me-2"></i>${item.week || 'Unknown'}</span>
+                    <span class="text-muted">${date}</span>
+                </div>
+            `;
+            container.appendChild(div);
+        });
+    } catch (error) {
+        console.error("Update user attendance display error:", error);
+    }
+}
+
+// --- Fullscreen Token Display ---
+window.generateAndShowToken = function () {
+    try {
+        if (!tokenGeneratorInterval) {
+            startTokenGenerator();
+        }
+        showTokenFullscreen();
+    } catch (error) {
+        console.error("Generate and show token error:", error);
+    }
+}
+
+function showTokenFullscreen() {
+    try {
+        let overlay = document.getElementById('tokenFullscreenOverlay');
+
+        if (!overlay) {
+            overlay = document.createElement('div');
+            overlay.id = 'tokenFullscreenOverlay';
+            overlay.className = 'position-fixed top-0 start-0 w-100 h-100 bg-white d-none flex-column justify-content-center align-items-center';
+            overlay.style.zIndex = '9999';
+
+            overlay.innerHTML = `
+                <button onclick="closeTokenFullscreen()" class="btn btn-outline-dark position-absolute" style="top: 20px; left: 20px;">
+                    <i class="bi-arrow-left me-2"></i>Kembali
+                </button>
+                <h2 class="text-dark mb-4">Kode Mingguan Kehadiran</h2>
+                <h1 id="fullscreenCodeDisplay" class="display-1 fw-bold text-dark mb-5" style="font-size: 120px; letter-spacing: 0.3em; font-family: 'Courier New', monospace;">-----</h1>
+                <div class="text-center">
+                    <h3 class="text-dark mb-3">Kode Valid Untuk:</h3>
+                    <div id="fullscreenTimer" class="fw-bold text-warning" style="font-size: 80px;">30</div>
+                    <small class="text-dark fs-4">Detik</small>
+                </div>
+            `;
+            document.body.appendChild(overlay);
+        }
+
+        overlay.classList.remove('d-none');
+        overlay.classList.add('d-flex');
+
+        setTimeout(() => {
+            if (overlay.requestFullscreen) {
+                overlay.requestFullscreen();
+            } else if (overlay.webkitRequestFullscreen) {
+                overlay.webkitRequestFullscreen();
+            } else if (overlay.msRequestFullscreen) {
+                overlay.msRequestFullscreen();
+            }
+            syncFullscreenWithToken();
+        }, 100);
+    } catch (error) {
+        console.error("Show token fullscreen error:", error);
+    }
+}
+
+function syncFullscreenWithToken() {
+    try {
+        const fullscreenCode = document.getElementById('fullscreenCodeDisplay');
+        const fullscreenTimer = document.getElementById('fullscreenTimer');
+        const weeklyCode = document.getElementById('weeklyCodeDisplay');
+        const weeklyTimer = document.getElementById('weeklyCodeTimer');
+
+        const syncInterval = setInterval(() => {
+            const overlay = document.getElementById('tokenFullscreenOverlay');
+            if (!overlay || !overlay.classList.contains('d-flex')) {
+                clearInterval(syncInterval);
+                return;
+            }
+
+            if (fullscreenCode && weeklyCode) {
+                fullscreenCode.textContent = weeklyCode.textContent;
+            }
+
+            if (fullscreenTimer && weeklyTimer) {
+                const timerText = weeklyTimer.textContent.replace('s', '');
+                const timeLeft = parseInt(timerText) || 30;
+                fullscreenTimer.textContent = timerText;
+                fullscreenTimer.classList.remove('text-success', 'text-warning', 'text-danger');
+
+                if (timeLeft <= 10) {
+                    fullscreenTimer.classList.add('text-danger');
+                } else if (timeLeft <= 20) {
+                    fullscreenTimer.classList.add('text-warning');
+                } else {
+                    fullscreenTimer.classList.add('text-success');
+                }
+            }
+        }, 100);
+    } catch (error) {
+        console.error("Sync fullscreen error:", error);
+    }
+}
+
+window.closeTokenFullscreen = function () {
+    try {
+        const overlay = document.getElementById('tokenFullscreenOverlay');
+
+        if (document.fullscreenElement) {
+            if (document.exitFullscreen) document.exitFullscreen();
+            else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+            else if (document.msExitFullscreen) document.msExitFullscreen();
+        }
+
+        if (overlay) {
+            overlay.classList.remove('d-flex');
+            overlay.classList.add('d-none');
+        }
+    } catch (error) {
+        console.error("Close token fullscreen error:", error);
+    }
+}
 
 function handleFullscreenChange() {
-    if (!document.fullscreenElement &&
-        !document.webkitFullscreenElement &&
-        !document.mozFullScreenElement &&
-        !document.msFullscreenElement) {
-        const overlay = document.getElementById('tokenOverlay');
-        if (overlay && overlay.classList.contains('d-flex')) {
-            closeTokenOverlay();
+    try {
+        if (!document.fullscreenElement &&
+            !document.webkitFullscreenElement &&
+            !document.mozFullScreenElement &&
+            !document.msFullscreenElement) {
+
+            const overlay = document.getElementById('tokenFullscreenOverlay');
+            if (overlay && overlay.classList.contains('d-flex')) {
+                closeTokenFullscreen();
+            }
         }
+    } catch (error) {
+        console.error("Handle fullscreen change error:", error);
     }
+}
+
+// --- Admin QR Scanner Logic ---
+let html5QrcodeScanner = null;
+
+window.startAdminScanner = function () {
+    const modalEl = document.getElementById('adminScanModal');
+    // Ensure modal exists
+    if (!modalEl) {
+        alert("Scan Modal not found in DOM");
+        return;
+    }
+    const modal = new bootstrap.Modal(modalEl);
+    modal.show();
+
+    // Check if library is loaded
+    if (typeof Html5QrcodeScanner === 'undefined') {
+        document.getElementById('reader').innerHTML = '<div class="alert alert-danger">Library Scanner belum termuat. Periksa koneksi internet atau reload halaman.</div>';
+        return;
+    }
+
+    // Small delay to ensure modal is visible
+    setTimeout(() => {
+        // If scanner already instance exists, clear it first
+        if (html5QrcodeScanner) {
+            html5QrcodeScanner.clear().then(() => {
+                html5QrcodeScanner = null;
+                initScanner();
+            }).catch(err => {
+                console.error("Failed to clear scanner", err);
+                initScanner(); // Try anyway
+            });
+        } else {
+            initScanner();
+        }
+    }, 500);
+}
+
+function initScanner() {
+    // Check if element exists
+    if (!document.getElementById('reader')) return;
+
+    html5QrcodeScanner = new Html5QrcodeScanner(
+        "reader",
+        { fps: 10, qrbox: { width: 250, height: 250 } },
+        /* verbose= */ false
+    );
+    html5QrcodeScanner.render(onScanSuccess, onScanError);
+}
+
+async function onScanSuccess(decodedText, decodedResult) {
+    console.log(`Code matched = ${decodedText}`, decodedResult);
+
+    // Stop scanning immediately
+    if (html5QrcodeScanner) {
+        await html5QrcodeScanner.clear();
+        html5QrcodeScanner = null;
+    }
+
+    // Process the scanned text (UID)
+    await processScannedUser(decodedText);
+}
+
+function onScanError(errorMessage) {
+    // parse error, ignore it.
+}
+
+window.stopScannerLabel = async function () {
+    if (html5QrcodeScanner) {
+        try {
+            await html5QrcodeScanner.clear();
+            html5QrcodeScanner = null;
+        } catch (e) { console.log(e); }
+    }
+}
+
+// Process the Scanned User ID
+async function processScannedUser(uid) {
+    // Hide Scan Modal
+    const scanModalEl = document.getElementById('adminScanModal');
+    const scanModal = bootstrap.Modal.getInstance(scanModalEl);
+    if (scanModal) scanModal.hide();
+
+    try {
+        const userRef = doc(db, "users", uid);
+        const userSnap = await getDoc(userRef);
+
+        if (!userSnap.exists()) {
+            alert("QR Code tidak valid! User tidak ditemukan.");
+            return;
+        }
+
+        const userData = userSnap.data();
+        const username = userData.username || userData.email || "Unknown User";
+
+        let points = prompt(`User ditemukan: ${username}\n\nMasukkan jumlah point yang ingin diberikan:`, "10");
+
+        if (points === null) return; // Cancelled
+        points = parseInt(points);
+
+        if (isNaN(points) || points <= 0) {
+            alert("Jumlah point tidak valid.");
+            return;
+        }
+
+        // Execute Transaction
+        const batch = writeBatch(db);
+
+        // 1. Update User Points
+        batch.update(userRef, {
+            points: increment(points)
+        });
+
+        // 2. Add History
+        const newHistRef = doc(collection(db, 'pointHistory'));
+        batch.set(newHistRef, {
+            userId: uid, // The scanned user
+            description: `Diberikan oleh Admin (Scan QR)`,
+            points: points,
+            status: 'completed',
+            createdAt: serverTimestamp()
+        });
+
+        await batch.commit();
+        alert(`Berhasil! ${points} point telah ditambahkan ke ${username}.`);
+
+    } catch (error) {
+        console.error("Scan processing error:", error);
+        alert("Terjadi kesalahan: " + error.message);
+    }
+}
+
+
+// --- User QR Code Updater ---
+// Listen for QR Modal Open to generate QR on the fly
+const qrModalEl = document.getElementById('qrModal');
+if (qrModalEl) {
+    qrModalEl.addEventListener('show.bs.modal', function (event) {
+        if (currentUser && currentUser.uid) {
+            const qrImg = document.getElementById('myQrImage');
+            if (qrImg) {
+                // Using API to generate QR
+                qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${currentUser.uid}`;
+            }
+        }
+    });
 }
