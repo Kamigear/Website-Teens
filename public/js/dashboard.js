@@ -1849,15 +1849,20 @@ async function processScannedUser(uid) {
         const userData = userSnap.data();
         const username = userData.username || userData.email || "Unknown User";
 
-        let points = prompt(`User ditemukan: ${username}\n\nMasukkan jumlah point yang ingin diberikan:`, "10");
+        // 1. Input Points (Allow negative)
+        let pointsStr = prompt(`User ditemukan: ${username}\n\nMasukkan jumlah point:\n(Contoh: 10 untuk tambah, -5 untuk kurangi)`, "10");
+        if (pointsStr === null) return; // Cancelled
 
-        if (points === null) return; // Cancelled
-        points = parseInt(points);
-
-        if (isNaN(points) || points <= 0) {
-            alert("Jumlah point tidak valid.");
+        let points = parseInt(pointsStr);
+        if (isNaN(points) || points === 0) {
+            alert("Jumlah point tidak valid. Masukkan angka positif atau negatif (bukan nol).");
             return;
         }
+
+        // 2. Input Description
+        let defaultDesc = points > 0 ? "Diberikan oleh Admin (Scan QR)" : "Dipotong oleh Admin (Scan QR)";
+        let description = prompt(`Masukkan Keterangan (Alasan):`, defaultDesc);
+        if (!description) description = defaultDesc;
 
         // Execute Transaction
         const batch = writeBatch(db);
@@ -1871,14 +1876,16 @@ async function processScannedUser(uid) {
         const newHistRef = doc(collection(db, 'pointHistory'));
         batch.set(newHistRef, {
             userId: uid, // The scanned user
-            description: `Diberikan oleh Admin (Scan QR)`,
+            description: description,
             points: points,
             status: 'completed',
             createdAt: serverTimestamp()
         });
 
         await batch.commit();
-        alert(`Berhasil! ${points} point telah ditambahkan ke ${username}.`);
+
+        let msgAction = points > 0 ? "ditambahkan ke" : "dikurangi dari";
+        alert(`Berhasil! ${Math.abs(points)} point telah ${msgAction} ${username}.\nKeterangan: ${description}`);
 
     } catch (error) {
         console.error("Scan processing error:", error);
