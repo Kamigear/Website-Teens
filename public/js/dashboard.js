@@ -52,6 +52,7 @@ try {
 }
 
 // --- Authentication Check ---
+// --- Authentication Check ---
 onAuthStateChanged(auth, async (user) => {
     if (user) {
         try {
@@ -81,6 +82,7 @@ onAuthStateChanged(auth, async (user) => {
     }
 });
 
+// --- Initialization ---
 // --- Initialization ---
 function initDashboard() {
     try {
@@ -1780,15 +1782,26 @@ window.startAdminScanner = function () {
 }
 
 function initScanner() {
+    console.log("Initializing QR Scanner...");
     // Check if element exists
-    if (!document.getElementById('reader')) return;
+    const readerEl = document.getElementById('reader');
+    if (!readerEl) {
+        console.error("Reader element not found!");
+        return;
+    }
 
-    html5QrcodeScanner = new Html5QrcodeScanner(
-        "reader",
-        { fps: 10, qrbox: { width: 250, height: 250 } },
-        /* verbose= */ false
-    );
-    html5QrcodeScanner.render(onScanSuccess, onScanError);
+    try {
+        html5QrcodeScanner = new Html5QrcodeScanner(
+            "reader",
+            { fps: 10, qrbox: { width: 250, height: 250 } },
+            /* verbose= */ false
+        );
+        html5QrcodeScanner.render(onScanSuccess, onScanError);
+        console.log("Scanner rendered successfully");
+    } catch (e) {
+        console.error("Scanner init error:", e);
+        readerEl.innerHTML = `<div class="alert alert-danger">Gagal memulai kamera: ${e.message}</div>`;
+    }
 }
 
 async function onScanSuccess(decodedText, decodedResult) {

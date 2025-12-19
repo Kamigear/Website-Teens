@@ -1,7 +1,19 @@
-// --- Login Page Logic (with Password Change) ---
-import { loginUser, changePassword } from './auth.js';
-import { auth } from './firebase-config.js';
-import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+// --- Login Page Logic (Merged with Auth) ---
+import { auth, db } from './firebase-config.js';
+import {
+    signInWithEmailAndPassword,
+    updatePassword,
+    onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import {
+    doc,
+    getDoc,
+    updateDoc,
+    collection,
+    query,
+    where,
+    getDocs
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 // Check if user is already logged in
 onAuthStateChanged(auth, (user) => {
@@ -10,6 +22,86 @@ onAuthStateChanged(auth, (user) => {
         window.location.href = 'dashboard.html';
     }
 });
+
+/**
+ * Login function (Previously in auth.js)
+ */
+async function loginUser(identifier, password) {
+    try {
+        // Step 1: Check if identifier is email or username
+        let email = identifier;
+
+        // If not an email format, search for username in Firestore
+        if (!identifier.includes('@')) {
+            try {
+                const usersRef = collection(db, 'users');
+                const q = query(usersRef, where('username', '==', identifier));
+                const querySnapshot = await getDocs(q);
+
+                if (!querySnapshot.empty) {
+                    email = querySnapshot.docs[0].data().email;
+                } else {
+                    // Not found in DB, throw specific error to trigger fallback
+                    throw new Error("Username not found via lookup");
+                }
+            } catch (err) {
+                console.warn("Username lookup failed (permission or not found). Using fallback email pattern.");
+                // Fallback: Construct the default dummy email pattern
+                // Format: username@temp.vdrteens.local
+                email = `${identifier}@temp.vdrteens.local`;
+            }
+        }
+
+        // Step 2: Sign in with Firebase Auth
+        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
+
+        // Step 3: Get user data from Firestore
+        const userDocRef = doc(db, 'users', user.uid);
+        const userDocSnap = await getDoc(userDocRef);
+
+        if (!userDocSnap.exists()) {
+            throw new Error('Data user tidak ditemukan');
+        }
+
+        const userData = userDocSnap.data();
+
+        return {
+            uid: user.uid,
+            email: user.email,
+            ...userData
+        };
+
+    } catch (error) {
+        console.error('Login error:', error);
+        throw error;
+    }
+}
+
+/**
+ * Change Password function (Previously in auth.js)
+ */
+async function changePasswordFn(newPassword) {
+    try {
+        const user = auth.currentUser;
+        if (!user) {
+            throw new Error('User tidak terautentikasi');
+        }
+
+        // Update password in Firebase Auth
+        await updatePassword(user, newPassword);
+
+        // Update firstLogin flag in Firestore
+        const userDocRef = doc(db, 'users', user.uid);
+        await updateDoc(userDocRef, {
+            firstLogin: false,
+            passwordChangedAt: new Date().toISOString()
+        });
+    } catch (error) {
+        console.error('Password change error:', error);
+        throw error;
+    }
+}
 
 document.addEventListener('DOMContentLoaded', function () {
     // --- Login Form Elements ---
@@ -48,7 +140,7 @@ document.addEventListener('DOMContentLoaded', function () {
         loginSpinner.classList.remove('d-none');
 
         try {
-            // Attempt login
+            // Attempt login using internal function
             const userData = await loginUser(identifier, password);
 
             // Login successful
@@ -114,8 +206,8 @@ document.addEventListener('DOMContentLoaded', function () {
         changePasswordSpinner.classList.remove('d-none');
 
         try {
-            // Change password
-            await changePassword(newPassword);
+            // Change password using internal function
+            await changePasswordFn(newPassword);
 
             // Success! Show message and redirect
             alert('✅ Password berhasil diubah! Anda akan diarahkan ke dashboard.');
