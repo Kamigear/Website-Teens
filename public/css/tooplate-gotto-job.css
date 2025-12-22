@@ -1736,3 +1736,728 @@ nav[aria-label="breadcrumb"] {
   color: var(--primary-color) !important;
   text-decoration: underline;
 }
+
+/*---------------------------------------
+  RESPONSIVE DASHBOARD & UI "SPACING" TWEAKS 
+-----------------------------------------*/
+@media (max-width: 767px) {
+
+  /* 1. Global Spacing Increase for "Breathability" */
+  .section-padding {
+    padding-top: 100px;
+    /* Increased from 60px */
+    padding-bottom: 100px;
+  }
+
+  /* Prevent content from sticking to edges */
+  .container {
+    padding-left: 24px;
+    padding-right: 24px;
+  }
+
+  /* 2. Dashboard Card Spacing */
+  .dashboard-card {
+    padding: 30px 25px;
+    /* More internal breathing room */
+    margin-bottom: 30px;
+    /* Space between cards */
+    border-radius: 20px;
+    /* Softer corners */
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+    /* Subtle depth */
+  }
+
+  /* Force space between grid stats columns */
+  #user-dashboard .col-12,
+  #user-dashboard .col-md-6,
+  #user-dashboard .col-lg-4,
+  #admin-dashboard .col-md-6,
+  #admin-dashboard .col-lg-4 {
+    margin-bottom: 20px;
+  }
+
+  /* Give gap between dashboard title and cards */
+  #user-dashboard h2 {
+    margin-bottom: 40px !important;
+    line-height: 1.3;
+  }
+
+  /* 3. Typography Spacing */
+  h1 {
+    font-size: 3rem !important;
+    margin-bottom: 20px;
+  }
+
+  h2 {
+    font-size: 2.2rem !important;
+    margin-bottom: 15px;
+  }
+
+  h3 {
+    font-size: 1.8rem !important;
+  }
+
+  p {
+    line-height: 1.6;
+    font-size: 1rem;
+    margin-bottom: 20px;
+  }
+
+  /* 4. Login / Hero Form Spacing */
+  .hero-form {
+    padding: 30px 25px;
+    margin-top: 20px;
+    border-radius: 20px;
+  }
+
+  .hero-form .form-control {
+    margin-bottom: 15px;
+    /* Space out inputs */
+    padding: 15px;
+    /* Taller inputs for easier tapping */
+  }
+
+  .hero-form .input-group {
+    margin-bottom: 25px;
+    /* Space between groups */
+  }
+
+  /* 5. Event Lists & Custom Blocks */
+  .custom-block {
+    padding: 30px 25px;
+    margin-bottom: 30px;
+  }
+
+  .brief-event-card {
+    margin-bottom: 30px;
+  }
+
+  /* 6. Navbar/Header Breathing Room */
+  .site-header {
+    padding-top: 120px;
+    padding-bottom: 100px;
+  }
+
+  .navbar-brand {
+    margin-bottom: 0;
+  }
+
+  /* Chart Area */
+  #userPointsChart {
+    max-height: 300px;
+    margin-top: 20px;
+    margin-bottom: 20px;
+  }
+
+  /* Token Overlay Mobile Support */
+  #tokenOverlay h1#tokenDisplayValue {
+    font-size: 3.5rem !important;
+    word-break: break-all;
+    line-height: 1.2;
+    margin-bottom: 40px;
+  }
+
+  #tokenOverlay .display-4 {
+    font-size: 2.5rem !important;
+  }
+
+  /* Navbar Brand adjustments */
+  .navbar-brand .logo-image {
+    width: 45px;
+  }
+
+  .navbar-brand .logo-text {
+    font-size: 18px;
+  }
+
+  /* Admin Dashboard Mobile Tweaks */
+  #admin-dashboard .dashboard-card {
+    min-height: auto !important;
+  }
+
+  /* Form controls in cards - Make inputs verify full width */
+  .dashboard-card .input-group {
+    flex-wrap: wrap;
+    gap: 10px;
+    /* Add gap between elements */
+  }
+
+  .dashboard-card .input-group>* {
+    width: 100% !important;
+    border-radius: var(--border-radius-medium) !important;
+    margin-bottom: 5px;
+  }
+
+  /* Modal Mobile Margins */
+  .modal-dialog {
+    margin: 20px;
+    /* More bezel space */
+  }
+
+  .modal-content {
+    padding: 15px;
+  }
+
+  /* Footer Mobile Alignment */
+  .site-footer {
+    padding-top: 80px;
+    text-align: center;
+  }
+
+  .site-footer .col-lg-4,
+  .site-footer .col-lg-3 {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 40px;
+    /* Space between footer columns */
+  }
+
+  .site-footer-bottom .row {
+    flex-direction: column-reverse;
+    padding-top: 20px;
+  }
+
+  .text-warning {
+    color: var(--p-color) !important;
+  }
+
+  .text-danger {
+    color: var(--primary-color) !important;
+    text-decoration: underline;
+  }
+
+  /* 1. Global Spacing Increase for "Breathability" */
+  .section-padding {
+    padding-top: 100px;
+    /* Increased from 60px */
+    padding-bottom: 100px;
+  }
+
+  /* Prevent content from sticking to edges */
+  .container {
+    padding-left: 24px;
+    padding-right: 24px;
+  }
+
+  /* 2. Dashboard Card Spacing */
+  .dashboard-card {
+    padding: 30px 25px;
+    /* More internal breathing room */
+    margin-bottom: 30px;
+    /* Space between cards */
+    border-radius: 20px;
+    /* Softer corners */
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+    /* Subtle depth */
+  }
+
+  /* Force space between grid stats columns */
+  #user-dashboard .col-12,
+  #user-dashboard .col-md-6,
+  #user-dashboard .col-lg-4,
+  #admin-dashboard .col-md-6,
+  #admin-dashboard .col-lg-4 {
+    margin-bottom: 20px;
+  }
+
+  /* Give gap between dashboard title and cards */
+  #user-dashboard h2 {
+    margin-bottom: 40px !important;
+    line-height: 1.3;
+  }
+
+  /* 3. Typography Spacing */
+  h1 {
+    font-size: 3rem !important;
+    margin-bottom: 20px;
+  }
+
+  h2 {
+    font-size: 2.2rem !important;
+    margin-bottom: 15px;
+  }
+
+  h3 {
+    font-size: 1.8rem !important;
+  }
+
+  p {
+    line-height: 1.6;
+    font-size: 1rem;
+    margin-bottom: 20px;
+  }
+
+  /* 4. Login / Hero Form Spacing */
+  .hero-form {
+    padding: 30px 25px;
+    margin-top: 20px;
+    border-radius: 20px;
+  }
+
+  .hero-form .form-control {
+    margin-bottom: 15px;
+    /* Space out inputs */
+    padding: 15px;
+    /* Taller inputs for easier tapping */
+  }
+
+  .hero-form .input-group {
+    margin-bottom: 25px;
+    /* Space between groups */
+  }
+
+  /* 5. Event Lists & Custom Blocks */
+  .custom-block {
+    padding: 30px 25px;
+    margin-bottom: 30px;
+  }
+
+  .brief-event-card {
+    margin-bottom: 30px;
+  }
+
+  /* 6. Navbar/Header Breathing Room */
+  .site-header {
+    padding-top: 120px;
+    padding-bottom: 100px;
+  }
+
+  .navbar-brand {
+    margin-bottom: 0;
+  }
+
+  /* Chart Area */
+  #userPointsChart {
+    max-height: 300px;
+    margin-top: 20px;
+    margin-bottom: 20px;
+  }
+
+  /* Token Overlay Mobile Support */
+  #tokenOverlay h1#tokenDisplayValue {
+    font-size: 3.5rem !important;
+    word-break: break-all;
+    line-height: 1.2;
+    margin-bottom: 40px;
+  }
+
+  #tokenOverlay .display-4 {
+    font-size: 2.5rem !important;
+  }
+
+  /* Navbar Brand adjustments */
+  .navbar-brand .logo-image {
+    width: 45px;
+  }
+
+  .navbar-brand .logo-text {
+    font-size: 18px;
+  }
+
+  /* Admin Dashboard Mobile Tweaks */
+  #admin-dashboard .dashboard-card {
+    min-height: auto !important;
+  }
+
+  /* Form controls in cards - Make inputs verify full width */
+  .dashboard-card .input-group {
+    flex-wrap: wrap;
+    gap: 10px;
+    /* Add gap between elements */
+  }
+
+  .dashboard-card .input-group>* {
+    width: 100% !important;
+    border-radius: var(--border-radius-medium) !important;
+    margin-bottom: 5px;
+  }
+
+  /* Modal Mobile Margins */
+  .modal-dialog {
+    margin: 20px;
+    /* More bezel space */
+  }
+
+  .modal-content {
+    padding: 15px;
+  }
+
+  /* Footer Mobile Optimization */
+  .site-footer {
+    padding-top: 50px;
+    padding-bottom: 20px;
+    text-align: center;
+  }
+
+  .site-footer .logo-image {
+    width: 50px !important;
+    margin-right: 10px;
+  }
+
+  .site-footer .logo-text {
+    font-size: 20px !important;
+  }
+
+  .site-footer .logo-small-text {
+    font-size: 10px !important;
+  }
+
+  .site-footer .col-lg-4,
+  .site-footer .col-lg-3,
+  .site-footer .col-md-6 {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 30px;
+  }
+
+  .site-footer p {
+    margin-bottom: 10px;
+    font-size: 14px !important;
+  }
+
+  .site-footer-link {
+    font-size: 14px !important;
+  }
+
+  .site-footer .custom-icon {
+    font-size: 16px !important;
+  }
+
+  .site-footer-title {
+    font-size: 16px !important;
+    margin-bottom: 15px;
+  }
+
+  /* Newsletter form in footer */
+  .newsletter-form {
+    padding: 20px !important;
+    border-radius: 15px !important;
+  }
+
+  .newsletter-form .input-group {
+    padding: 8px !important;
+  }
+
+  .newsletter-form .form-control {
+    font-size: 13px !important;
+    padding: 8px !important;
+  }
+
+  .newsletter-form button[type="submit"] {
+    width: 35px !important;
+    height: 35px !important;
+    margin: 8px !important;
+  }
+
+  /* Footer bottom section */
+  .site-footer-bottom {
+    margin-top: 20px;
+    padding-top: 15px !important;
+    padding-bottom: 15px !important;
+  }
+
+  .site-footer-bottom .row {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .site-footer-bottom p,
+  .copyright-text {
+    font-size: 12px !important;
+    margin-bottom: 10px !important;
+  }
+
+  .site-footer-bottom .col-lg-4,
+  .site-footer-bottom .col-lg-3 {
+    justify-content: center !important;
+    margin-bottom: 10px;
+  }
+
+  /* Back to top button */
+  .back-top-icon {
+    width: 50px !important;
+    font-size: 20px !important;
+    margin: 0 auto;
+  }
+
+  /* Fix section padding on mobile - much more compact */
+  .section-padding {
+    padding-top: 40px !important;
+    padding-bottom: 40px !important;
+  }
+
+  /* Complete footer redesign for mobile */
+  .site-footer {
+    padding-top: 40px;
+    padding-bottom: 0;
+    text-align: center;
+    margin-bottom: 0;
+  }
+
+  /* Rearrange footer content for mobile */
+  .site-footer .row {
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Logo section - make it first and centered */
+  .site-footer .col-lg-4:first-child {
+    order: 1;
+    margin-bottom: 25px;
+  }
+
+  /* Contact form section */
+  .site-footer .col-lg-4.ms-auto {
+    order: 2;
+    margin-bottom: 25px;
+    margin-left: 0 !important;
+  }
+
+  /* Fix footer bottom bar - full width edge to edge */
+  .site-footer-bottom {
+    margin-top: 30px;
+    margin-bottom: 0;
+    padding-top: 12px !important;
+    padding-bottom: 12px !important;
+    /* Break out of container to go full width */
+    width: 100vw;
+    position: relative;
+    left: 50%;
+    right: 50%;
+    margin-left: -50vw;
+    margin-right: -50vw;
+  }
+
+  .site-footer-bottom .container {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+
+  /* Table readability */
+  .table-responsive {
+    margin-top: 20px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.02);
+  }
+
+  .table th,
+  .table td {
+    padding: 15px;
+  }
+
+  /* Consolidated Mobile Nav at end of file */
+
+  /*---------------------------------------
+  DASHBOARD STYLES               
+-----------------------------------------*/
+
+  /* Mobile overrides for dashboard */
+  @media (max-width: 768px) {
+    h1 {
+      font-size: 26px !important;
+    }
+
+    h2 {
+      font-size: 22px !important;
+    }
+
+    h3 {
+      font-size: 18px !important;
+    }
+
+    h4 {
+      font-size: 16px !important;
+    }
+
+    h5 {
+      font-size: 15px !important;
+    }
+
+    .dashboard-stat-value {
+      font-size: 2.2rem !important;
+    }
+
+    .dashboard-stat-title {
+      font-size: 14px !important;
+    }
+
+    .dashboard-card {
+      padding: 20px !important;
+      border-radius: 15px !important;
+    }
+
+    .icon-box {
+      width: 35px !important;
+      height: 35px !important;
+      font-size: 1.1rem !important;
+    }
+
+    /* Smaller text in cards */
+    .dashboard-card p,
+    .dashboard-card small,
+    .dashboard-card .text-muted {
+      font-size: 13px !important;
+    }
+
+    /* Compact buttons */
+    .dashboard-card .btn,
+    .dashboard-card .custom-btn {
+      padding: 8px 16px !important;
+      font-size: 13px !important;
+    }
+
+    /* Smaller form inputs */
+    .dashboard-card .form-control,
+    .dashboard-card .input-group {
+      font-size: 14px !important;
+    }
+
+    /* Table text size */
+    .table th,
+    .table td {
+      font-size: 13px !important;
+      padding: 10px 8px !important;
+    }
+  }
+
+  .dashboard-card {
+    background-color: var(--white-color);
+    border-radius: var(--border-radius-medium);
+    padding: 30px;
+    height: 100%;
+    border: 1px solid var(--border-color);
+    transition: all 0.3s;
+  }
+
+  .dashboard-card:hover {
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    transform: translateY(-5px);
+  }
+
+  .dashboard-stat-title {
+    color: var(--p-color);
+    font-size: var(--p-font-size);
+    font-weight: var(--font-weight-normal);
+  }
+
+  .dashboard-stat-value {
+    font-size: 4rem;
+    font-weight: var(--font-weight-bold);
+    color: var(--primary-color);
+    line-height: 1;
+  }
+
+  .icon-box {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--secondary-color);
+    color: var(--primary-color);
+    font-size: 1.5rem;
+  }
+
+  /* Toast Styling */
+  .toast-container {
+    z-index: 1060;
+  }
+
+  .toast {
+    background-color: var(--primary-color);
+    color: var(--pure-white-color);
+    border-radius: var(--border-radius-small);
+  }
+
+  .btn-check:checked+.btn,
+  .btn.active,
+  .btn.show,
+  .btn:first-child:active,
+  :not(.btn-check)+.btn:active {
+    background-color: var(--secondary-color);
+    border-color: var(--border-color);
+  }
+
+  /* Fix Table Hover Text Color */
+  .table-hover>tbody>tr:hover>* {
+    color: var(--primary-color) !important;
+    background-color: var(--pure-white-color) !important;
+  }
+
+  /* Fix Modal Background to be Light Grey so Black Text is visible */
+  .modal-content {
+    background-color: var(--white-color);
+    color: var(--primary-color);
+    border: 1px solid var(--border-color);
+  }
+
+  /* Ensure table cells inherit the visible color */
+  .table {
+    color: var(--primary-color);
+    border-color: var(--border-color);
+  }
+}
+
+.mobile-bottom-nav {
+  display: none !important;
+}
+
+@media (max-width: 767px) {
+  .mobile-nav-trigger {
+    display: none !important;
+  }
+
+  .mobile-bottom-nav {
+    display: flex !important;
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    right: 20px;
+    height: 75px;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    border-radius: 25px;
+    justify-content: space-around;
+    align-items: center;
+    z-index: 10000;
+    box-shadow: 0 15px 45px rgba(0, 0, 0, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    transform: translateY(0);
+    transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .mobile-bottom-nav.nav-at-top {
+    transform: translateY(calc(-100vh + 115px)) !important;
+  }
+
+  .mobile-nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    color: var(--second-white-color);
+    font-size: 11px;
+    font-weight: 500;
+    width: 100%;
+    height: 100%;
+    padding: 10px 5px;
+    border-radius: 12px;
+    transition: all 0.3s ease;
+  }
+
+  .mobile-nav-item i {
+    font-size: 22px;
+    margin-bottom: 2px;
+  }
+
+  .mobile-nav-item.active {
+    color: var(--primary-color);
+  }
+}

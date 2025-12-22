@@ -16,10 +16,33 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 // Check if user is already logged in
-onAuthStateChanged(auth, (user) => {
+// Check if user is already logged in
+onAuthStateChanged(auth, async (user) => {
     if (user) {
-        // User is already logged in, redirect to dashboard
-        window.location.href = 'dashboard.html';
+        try {
+            // Check firstLogin status before redirecting
+            const userDocRef = doc(db, 'users', user.uid);
+            const userDocSnap = await getDoc(userDocRef);
+
+            if (userDocSnap.exists() && userDocSnap.data().firstLogin === true) {
+                // Stay on login page, switch to change password form
+                console.log("First login detected (Auto-Auth). Switching to password change.");
+                const loginForm = document.getElementById('loginForm');
+                const changePasswordForm = document.getElementById('changePasswordForm');
+
+                if (loginForm && changePasswordForm) {
+                    loginForm.classList.add('d-none');
+                    changePasswordForm.classList.remove('d-none');
+                }
+            } else {
+                // Normal user, redirect
+                window.location.href = 'dashboard.html';
+            }
+        } catch (error) {
+            console.error("Auth redirect check error:", error);
+            // If error (e.g. network), safe to stay or redirect? 
+            // Better to stay and let user try again or see error.
+        }
     }
 });
 

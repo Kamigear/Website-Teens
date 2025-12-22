@@ -8,7 +8,11 @@ import {
     signOut,
     createUserWithEmailAndPassword,
     setPersistence,
-    browserLocalPersistence
+    browserLocalPersistence,
+    updateEmail,
+    reauthenticateWithCredential,
+    EmailAuthProvider,
+    sendEmailVerification
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import {
     doc,
@@ -113,9 +117,216 @@ function updateUserInfo() {
         userNameElements.forEach(el => {
             el.textContent = currentUser.username || currentUser.email;
         });
+
+        checkEmailStatus();
     } catch (error) {
         console.error("Update user info error:", error);
     }
+}
+
+// --- Check Email Status ---
+function checkEmailStatus() {
+    try {
+        const notLinkedEl = document.getElementById('emailNotLinked');
+        const linkedEl = document.getElementById('emailLinked');
+        const pendingEl = document.getElementById('emailVerificationPending');
+        const linkedEmailDisplay = document.getElementById('linkedEmailDisplay');
+        const pendingEmailDisplay = document.getElementById('pendingEmailDisplay');
+
+        if (!notLinkedEl || !linkedEl || !pendingEl) return;
+
+        const isTempEmail = currentUser.email && currentUser.email.endsWith('@temp.vdrteens.local');
+
+        if (isTempEmail) {
+            // State 1: Temp Email (Not Linked)
+            notLinkedEl.style.display = 'block';
+            linkedEl.style.display = 'none';
+            pendingEl.style.display = 'none';
+        } else if (!currentUser.emailVerified) {
+            // State 2: Linked but Not Verified
+            notLinkedEl.style.display = 'none';
+            linkedEl.style.display = 'none';
+            pendingEl.style.display = 'block';
+            if (pendingEmailDisplay) pendingEmailDisplay.textContent = currentUser.email;
+        } else {
+            // State 3: Linked & Verified
+            notLinkedEl.style.display = 'none';
+            linkedEl.style.display = 'block';
+            pendingEl.style.display = 'none';
+            if (linkedEmailDisplay) linkedEmailDisplay.textContent = currentUser.email;
+        }
+    } catch (error) {
+        console.error("Check email status error:", error);
+    }
+}
+
+
+// --- Toggle Password Visibility ---
+window.togglePassword = function (inputId, iconId) {
+    const input = document.getElementById(inputId);
+    const icon = document.getElementById(iconId);
+    if (!input || !icon) return;
+
+    if (input.type === "password") {
+        input.type = "text";
+        icon.classList.remove("bi-eye");
+        icon.classList.add("bi-eye-slash");
+    } else {
+        input.type = "password";
+        icon.classList.remove("bi-eye-slash");
+        icon.classList.add("bi-eye");
+    }
+}
+// --- Resend Verification Email ---
+window.resendVerificationEmail = async function () {
+    try {
+        if (auth.currentUser) {
+            await sendEmailVerification(auth.currentUser);
+            showToast("Berhasil", "Link verifikasi telah dikirim ulang ke " + auth.currentUser.email, "success");
+        } else {
+            showToast("Gagal", "User tidak ditemukan.", "error");
+        }
+    } catch (error) {
+        console.error("Resend verification error", error);
+        if (error.code === 'auth/too-many-requests') {
+            showToast("Gagal", "Terlalu banyak permintaan. Silakan tunggu beberapa saat.", "error");
+        } else {
+            showToast("Gagal", "Gagal mengirim ulang email: " + error.message, "error");
+        }
+    }
+}
+
+// --- Setup Email Linking ---
+function setupEmailLinking() {
+    const submitBtn = document.getElementById('submitLinkEmail');
+    if (!submitBtn) return;
+
+    // Clone to remove old listeners
+    const newBtn = submitBtn.cloneNode(true);
+    submitBtn.parentNode.replaceChild(newBtn, submitBtn);
+
+    newBtn.addEventListener('click', async () => {
+        const emailInput = document.getElementById('linkEmailInput');
+        const passwordInput = document.getElementById('confirmPasswordInput');
+
+        const newEmail = emailInput.value.trim();
+        const currentPassword = passwordInput.value;
+
+        if (!newEmail || !currentPassword) {
+            showToast("Input Error", "Email dan Password harus diisi!", "error");
+            return;
+        }
+
+        try {
+            // 1. Re-authenticate
+            const credential = EmailAuthProvider.credential(currentUser.email, currentPassword);
+            await reauthenticateWithCredential(auth.currentUser, credential);
+
+            // 2. Update Email
+            await updateEmail(auth.currentUser, newEmail);
+
+            // 3. Send Verification Email
+            await sendEmailVerification(auth.currentUser);
+
+            // 4. Update Firestore
+            const userRef = doc(db, 'users', currentUser.uid);
+            await updateDoc(userRef, { email: newEmail });
+
+            // 5. Update Local State
+            currentUser.email = newEmail;
+            currentUser.emailVerified = false;
+
+            // 6. Success UI
+            showToast("Berhasil", "Link verifikasi telah dikirim ke email Anda. Silakan cek inbox/spam utk aktivasi.", "success");
+            const modalEl = document.getElementById('linkEmailModal');
+            const modal = bootstrap.Modal.getInstance(modalEl);
+            if (modal) modal.hide();
+
+            // Clear inputs
+            emailInput.value = '';
+            passwordInput.value = '';
+
+            // Update Status Display
+            updateUserInfo();
+
+        } catch (error) {
+            console.error("Link email error:", error);
+            if (error.code === 'auth/wrong-password') {
+                showToast("Gagal", "Password salah!", "error");
+            } else if (error.code === 'auth/email-already-in-use') {
+                showToast("Gagal", "Email sudah digunakan akun lain.", "error");
+            } else if (error.code === 'auth/requires-recent-login') {
+                showToast("Gagal", "Sesi kadaluarsa, silakan login ulang.", "error");
+            } else {
+                showToast("Gagal", "Gagal menghubungkan email: " + error.message, "error");
+            }
+        }
+    });
+}
+
+// --- Setup Email Unlinking (Disconnect) ---
+function setupEmailUnlinking() {
+    const submitBtn = document.getElementById('submitUnlinkEmail');
+    if (!submitBtn) return;
+
+    // Clone to remove old listeners
+    const newBtn = submitBtn.cloneNode(true);
+    submitBtn.parentNode.replaceChild(newBtn, submitBtn);
+
+    newBtn.addEventListener('click', async () => {
+        const passwordInput = document.getElementById('unlinkConfirmPasswordInput');
+        const currentPassword = passwordInput.value;
+
+        if (!currentPassword) {
+            showToast("Input Error", "Password harus diisi untuk verifikasi!", "error");
+            return;
+        }
+
+        try {
+            // 1. Re-authenticate
+            const credential = EmailAuthProvider.credential(currentUser.email, currentPassword);
+            await reauthenticateWithCredential(auth.currentUser, credential);
+
+            // 2. Generate Dummy Email
+            const cleanUsername = (currentUser.username || "user").replace(/\s+/g, '').toLowerCase();
+            const dummyEmail = `${cleanUsername}@temp.vdrteens.local`;
+
+            // 3. Update Email (Downgrade)
+            await updateEmail(auth.currentUser, dummyEmail);
+
+            // 4. Update Firestore
+            const userRef = doc(db, 'users', currentUser.uid);
+            await updateDoc(userRef, { email: dummyEmail });
+
+            // 5. Update Local State
+            currentUser.email = dummyEmail;
+
+            // 6. Success UI
+            showToast("Berhasil", "Koneksi email diputuskan. Akun kembali normal.", "success");
+            const modalEl = document.getElementById('unlinkEmailModal');
+            const modal = bootstrap.Modal.getInstance(modalEl);
+            if (modal) modal.hide();
+
+            // Clear inputs
+            passwordInput.value = '';
+
+            // Update Status Display
+            updateUserInfo();
+
+        } catch (error) {
+            console.error("Unlink email error:", error);
+            if (error.code === 'auth/wrong-password') {
+                showToast("Gagal", "Password salah!", "error");
+            } else if (error.code === 'auth/email-already-in-use') {
+                showToast("Gagal", "Gagal revert email (Username conflict). Hubungi admin.", "error");
+            } else if (error.code === 'auth/operation-not-allowed') {
+                showToast("Gagal Sistem", "Firebase memblokir update email dummy. Matikan 'Email Enumeration Protection' di Firebase Console > Authentication > Settings.", "error");
+                console.warn("DISABLE 'Email Enumeration Protection' in Firebase Console to allow this.");
+            } else {
+                showToast("Gagal", "Gagal memutuskan email: " + error.message, "error");
+            }
+        }
+    });
 }
 
 // --- Firestore Real-time Listeners ---
@@ -127,7 +338,9 @@ function setupFirestoreListeners() {
             if (docSnap.exists()) {
                 currentUser = {
                     uid: docSnap.id,
-                    email: currentUser.email,
+                    // Use Firestore data as primary source, fallback to Auth if needed
+                    email: auth.currentUser?.email,
+                    emailVerified: auth.currentUser?.emailVerified,
                     ...docSnap.data()
                 };
                 updateUserInfo();
@@ -544,6 +757,11 @@ function setupEventListeners() {
                 if (e.key === 'Enter') submitCode();
             });
         }
+
+        // Setup Email Linking Listener
+        setupEmailLinking();
+        setupEmailUnlinking();
+
     } catch (error) {
         console.error("Setup event listeners error:", error);
     }
@@ -718,7 +936,7 @@ function renderAccountsTable() {
             row.innerHTML = `
                 <td>${acc.username || acc.email}</td>
                 <td>${acc.email}</td>
-                <td><span class="badge bg-primary rounded-pill">${acc.points || 0}</span></td>
+                <td><span class="badge bg-secondary text-dark rounded-pill">${acc.points || 0}</span></td>
                 <td>
                     <button class="btn btn-sm btn-outline-primary me-2" onclick="editAccount('${acc.id}')">
                         <i class="bi-pencil"></i>
@@ -817,10 +1035,12 @@ window.editAccount = async function (id) {
         let html = '';
 
         // SECTION 1: IDENTITY
-        html += `<h6 class="text-primary fw-bold mb-3 border-bottom pb-2">Identity</h6>`;
-        html += createFieldHTML('UID', id, 'text', true);
-        html += createFieldHTML('Username', data.username || '', 'text', false, 'editUsername');
-        html += createFieldHTML('Email', data.email || '', 'email', true);
+        html += `<h6 class="text-secondary fw-bold mb-3 border-bottom pb-2">Identity</h6>`;
+        html += createFieldHTML('UID', id, 'text', true); // UID Readonly
+        html += `<div class="row g-2">
+                    <div class="col-md-6">${createFieldHTML('Username', data.username || '', 'text', false, 'editUsername')}</div>
+                    <div class="col-md-6">${createFieldHTML('Email', data.email || '', 'email', true)}</div> 
+                 </div>`;
 
         // SECTION 2: ACCESS & ROLES
         html += `<h6 class="text-primary fw-bold mt-4 mb-3 border-bottom pb-2">Access & Roles</h6>`;
@@ -1009,21 +1229,23 @@ window.deletePointHistoryItem = async function (docId, userId, pointsValue) {
     }
 }
 
-// Helper to create cleaner HTML
+// Helper to create cleaner HTML with Floating Labels
 function createFieldHTML(label, value, type = 'text', readOnly = false, idOverride = null) {
-    const isReadOnlyAttr = readOnly ? 'readonly disabled' : '';
-    const bgClass = readOnly ? 'bg-light' : '';
+    const isReadOnlyAttr = readOnly ? 'readonly disabled style="background-color: #e9ecef;"' : '';
     // Use idOverride if fetching data back, otherwise just display
     const dataKeyAttr = idOverride ? `id="${idOverride}"` : '';
     const safeValue = String(value).replace(/"/g, '&quot;');
+    const inputId = idOverride || `input_${label.replace(/\s+/g, '')}_${Math.random().toString(36).substr(2, 5)}`;
 
     return `
-        <div class="mb-2">
-            <label class="form-label small text-secondary fw-bold mb-1">${label}</label>
-            <input type="${type}" class="form-control ${bgClass} form-control-sm" 
+        <div class="form-floating mb-3">
+            <input type="${type}" class="form-control" 
                 ${dataKeyAttr}
+                id="${inputId}"
+                placeholder="${label}"
                 value="${safeValue}" 
                 ${isReadOnlyAttr}>
+            <label for="${inputId}">${label}</label>
         </div>
     `;
 }
@@ -1031,9 +1253,9 @@ function createFieldHTML(label, value, type = 'text', readOnly = false, idOverri
 function createCheckboxHTML(label, checked, idOverride) {
     const isChecked = checked ? 'checked' : '';
     return `
-        <div class="form-check p-2 border rounded">
-            <input class="form-check-input" type="checkbox" id="${idOverride}" ${isChecked}>
-            <label class="form-check-label small fw-bold" for="${idOverride}">
+        <div class="form-check form-switch p-2 ps-5 border rounded bg-white">
+            <input class="form-check-input" type="checkbox" role="switch" id="${idOverride}" ${isChecked}>
+            <label class="form-check-label fw-bold" for="${idOverride}">
                 ${label}
             </label>
         </div>
@@ -1800,7 +2022,8 @@ function initScanner() {
         console.log("Scanner rendered successfully");
     } catch (e) {
         console.error("Scanner init error:", e);
-        readerEl.innerHTML = `<div class="alert alert-danger">Gagal memulai kamera: ${e.message}</div>`;
+        // readerEl.innerHTML = `<div class="alert alert-danger">Gagal memulai kamera: ${e.message}</div>`;
+        showToast("Scanner Error", `Gagal memulai kamera: ${e.message}`, "error");
     }
 }
 
@@ -1831,6 +2054,7 @@ window.stopScannerLabel = async function () {
 }
 
 // Process the Scanned User ID
+// Process the Scanned User ID (Step 1: Validate & Show Modal)
 async function processScannedUser(uid) {
     // Hide Scan Modal
     const scanModalEl = document.getElementById('adminScanModal');
@@ -1842,29 +2066,44 @@ async function processScannedUser(uid) {
         const userSnap = await getDoc(userRef);
 
         if (!userSnap.exists()) {
-            alert("QR Code tidak valid! User tidak ditemukan.");
+            showToast("Error", "QR Code tidak valid! User tidak ditemukan.", "error");
             return;
         }
 
         const userData = userSnap.data();
         const username = userData.username || userData.email || "Unknown User";
 
-        // 1. Input Points (Allow negative)
-        let pointsStr = prompt(`User ditemukan: ${username}\n\nMasukkan jumlah point:\n(Contoh: 10 untuk tambah, -5 untuk kurangi)`, "10");
-        if (pointsStr === null) return; // Cancelled
+        // Pre-fill and Show Result Modal
+        document.getElementById('scannedUserId').value = uid;
+        document.getElementById('scannedUserName').textContent = username;
+        document.getElementById('scanPointsInput').value = 10;
+        document.getElementById('scanDescInput').value = "Diberikan oleh Admin (Scan QR)";
 
-        let points = parseInt(pointsStr);
-        if (isNaN(points) || points === 0) {
-            alert("Jumlah point tidak valid. Masukkan angka positif atau negatif (bukan nol).");
-            return;
-        }
+        const resultModal = new bootstrap.Modal(document.getElementById('scanResultModal'));
+        resultModal.show();
 
-        // 2. Input Description
-        let defaultDesc = points > 0 ? "Diberikan oleh Admin (Scan QR)" : "Dipotong oleh Admin (Scan QR)";
-        let description = prompt(`Masukkan Keterangan (Alasan):`, defaultDesc);
-        if (!description) description = defaultDesc;
+    } catch (error) {
+        console.error("Scan processing error:", error);
+        showToast("Error", "Terjadi kesalahan saat memproses QR.", "error");
+    }
+}
 
-        // Execute Transaction
+// Submit Scan Result (Step 2: Execute Transaction)
+window.submitScanResult = async function () {
+    const uid = document.getElementById('scannedUserId').value;
+    const pointsStr = document.getElementById('scanPointsInput').value;
+    const description = document.getElementById('scanDescInput').value;
+
+    if (!uid) return;
+
+    let points = parseInt(pointsStr);
+    if (isNaN(points) || points === 0) {
+        showToast("Invalid Input", "Jumlah point tidak valid. Masukkan angka positif atau negatif (bukan nol).", "error");
+        return;
+    }
+
+    try {
+        const userRef = doc(db, "users", uid);
         const batch = writeBatch(db);
 
         // 1. Update User Points
@@ -1875,8 +2114,8 @@ async function processScannedUser(uid) {
         // 2. Add History
         const newHistRef = doc(collection(db, 'pointHistory'));
         batch.set(newHistRef, {
-            userId: uid, // The scanned user
-            description: description,
+            userId: uid,
+            description: description || (points > 0 ? "Bonus Admin" : "Potongan Admin"),
             points: points,
             status: 'completed',
             createdAt: serverTimestamp()
@@ -1884,13 +2123,43 @@ async function processScannedUser(uid) {
 
         await batch.commit();
 
+        // Success
+        const resultModalEl = document.getElementById('scanResultModal');
+        const resultModal = bootstrap.Modal.getInstance(resultModalEl);
+        if (resultModal) resultModal.hide();
+
         let msgAction = points > 0 ? "ditambahkan ke" : "dikurangi dari";
-        alert(`Berhasil! ${Math.abs(points)} point telah ${msgAction} ${username}.\nKeterangan: ${description}`);
+        showToast("Berhasil", `${Math.abs(points)} point telah ${msgAction} user.`, "success");
 
     } catch (error) {
-        console.error("Scan processing error:", error);
-        alert("Terjadi kesalahan: " + error.message);
+        console.error("Transaction error:", error);
+        showToast("Gagal", "Gagal menyimpan data: " + error.message, "error");
     }
+}
+
+/**
+ * Helper: Show Toast Notification properly
+ */
+window.showToast = function (title, message, type = 'info') {
+    const toastEl = document.getElementById('liveToast');
+    if (!toastEl) return;
+
+    const toastTitle = document.getElementById('toastTitle');
+    const toastMessage = document.getElementById('toastMessage');
+
+    toastTitle.textContent = title;
+    toastMessage.textContent = message;
+
+    // Optional: Color coding based on type
+    toastEl.classList.remove('bg-danger', 'bg-success', 'text-white');
+    if (type === 'error') {
+        toastEl.classList.add('bg-danger', 'text-white'); // Override theme for errors
+    } else if (type === 'success') {
+        toastEl.classList.add('bg-success', 'text-white');
+    }
+
+    const toast = new bootstrap.Toast(toastEl);
+    toast.show();
 }
 
 
