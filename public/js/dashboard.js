@@ -34,6 +34,9 @@ import {
     writeBatch
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
+// Import events manager
+import { loadEventsTable } from './events-manager.js';
+
 // --- State Management ---
 let currentUser = null;
 let isAdmin = false;
@@ -492,6 +495,8 @@ function updateViewMode() {
         if (isAdmin) {
             userDashboard.style.display = 'none';
             adminDashboard.style.display = 'block';
+            // Load events table for admin
+            loadEventsTable();
         } else {
             userDashboard.style.display = 'block';
             adminDashboard.style.display = 'none';

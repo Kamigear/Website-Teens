@@ -266,6 +266,26 @@
                             </div>
                         </div>
 
+                        <!-- Kelola Kegiatan -->
+                        <div class="col-md-6 col-lg-4 mb-4">
+                            <div class="dashboard-card h-100">
+                                <div class="d-flex align-items-center mb-3">
+                                    <div
+                                        class="icon-box me-3 d-flex align-items-center justify-content-center rounded-circle">
+                                        <i class="bi-calendar-event"></i>
+                                    </div>
+                                    <h5 class="mb-0">Kelola Kegiatan</h5>
+                                </div>
+                                <p class="text-muted small">Buat, edit, atau hapus kegiatan Teens.</p>
+                                <div class="d-flex gap-2 mt-auto">
+                                    <button class="btn btn-outline-dark btn-sm flex-grow-1" data-bs-toggle="modal"
+                                        data-bs-target="#manageEventsModal">Lihat Semua</button>
+                                    <button class="custom-btn btn-sm flex-grow-1" data-bs-toggle="modal"
+                                        data-bs-target="#addEventModal">Buat Event</button>
+                                </div>
+                            </div>
+                        </div>
+
                         <!-- Scan User QR Action -->
                         <div class="col-md-6 col-lg-4 mb-4">
                             <div class="dashboard-card h-100">
@@ -728,6 +748,157 @@
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                     <button type="button" class="btn custom-btn" onclick="saveUserChanges()">Update Firebase</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Manage Events Modal -->
+    <div class="modal fade" id="manageEventsModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Kelola Kegiatan</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="d-flex justify-content-end mb-3">
+                        <button class="btn custom-btn btn-sm" data-bs-toggle="modal" data-bs-target="#addEventModal">
+                            <i class="bi-plus-circle me-2"></i>Tambah Kegiatan
+                        </button>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead>
+                                <tr>
+                                    <th>Judul</th>
+                                    <th>Tanggal</th>
+                                    <th>Lokasi</th>
+                                    <th>Status</th>
+                                    <th>Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="eventsTableBody">
+                                <!-- Populated by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add/Edit Event Modal -->
+    <div class="modal fade" id="addEventModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="eventModalTitle">Tambah Kegiatan Baru</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="eventForm">
+                        <input type="hidden" id="eventId">
+
+                        <!-- Event Title -->
+                        <div class="mb-3">
+                            <label for="eventTitle" class="form-label">Judul Kegiatan <span
+                                    class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="eventTitle" required>
+                        </div>
+
+                        <!-- Event Description -->
+                        <div class="mb-3">
+                            <label for="eventDescription" class="form-label">Deskripsi <span
+                                    class="text-danger">*</span></label>
+                            <textarea class="form-control" id="eventDescription" rows="3" required></textarea>
+                        </div>
+
+                        <!-- Event Type -->
+                        <div class="mb-3">
+                            <label for="eventType" class="form-label">Tipe Kegiatan <span
+                                    class="text-danger">*</span></label>
+                            <select class="form-select" id="eventType" required>
+                                <option value="">Pilih Tipe</option>
+                                <option value="featured">Event Utama</option>
+                                <option value="regular">Event Reguler</option>
+                            </select>
+                        </div>
+
+                        <!-- Date and Time -->
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="eventDate" class="form-label">Tanggal <span
+                                        class="text-danger">*</span></label>
+                                <input type="date" class="form-control" id="eventDate" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="eventTime" class="form-label">Waktu <span
+                                        class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="eventTime" placeholder="08:00 - 20:00 WIB"
+                                    required>
+                            </div>
+                        </div>
+
+                        <!-- Location -->
+                        <div class="mb-3">
+                            <label for="eventLocation" class="form-label">Lokasi <span
+                                    class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="eventLocation" required>
+                        </div>
+
+                        <!-- Image URL -->
+                        <div class="mb-3">
+                            <label for="eventImage" class="form-label">URL Gambar</label>
+
+                            <!-- Google Drive Converter -->
+                            <div class="card bg-light mb-2">
+                                <div class="card-body p-3">
+                                    <h6 class="card-title mb-2">
+                                        <i class="bi-google text-primary"></i> Google Drive Link Converter
+                                    </h6>
+                                    <div class="input-group input-group-sm mb-2">
+                                        <input type="text" class="form-control" id="gdriveInput"
+                                            placeholder="Paste Google Drive link di sini...">
+                                        <button class="btn btn-outline-primary" type="button"
+                                            onclick="convertGDriveLink()">
+                                            <i class="bi-arrow-down"></i> Convert
+                                        </button>
+                                    </div>
+                                    <small class="text-muted">
+                                        <i class="bi-info-circle"></i> Paste link Google Drive, klik Convert, lalu
+                                        otomatis terisi di bawah
+                                    </small>
+                                </div>
+                            </div>
+
+                            <input type="url" class="form-control" id="eventImage"
+                                placeholder="https://drive.google.com/uc?export=view&id=...">
+                            <small class="text-muted">Opsional. Kosongkan untuk menggunakan gambar default.</small>
+                        </div>
+
+                        <!-- Category/Badge -->
+                        <div class="mb-3">
+                            <label for="eventCategory" class="form-label">Kategori/Badge</label>
+                            <input type="text" class="form-control" id="eventCategory"
+                                placeholder="RETREAT, MEDITASI, dll">
+                        </div>
+
+                        <!-- Status -->
+                        <div class="mb-3">
+                            <label for="eventStatus" class="form-label">Status <span
+                                    class="text-danger">*</span></label>
+                            <select class="form-select" id="eventStatus" required>
+                                <option value="upcoming">Akan Datang</option>
+                                <option value="ongoing">Sedang Berlangsung</option>
+                                <option value="completed">Selesai</option>
+                            </select>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="button" class="btn custom-btn" onclick="saveEvent()">Simpan</button>
                 </div>
             </div>
         </div>

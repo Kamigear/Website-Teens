@@ -68,8 +68,10 @@
                     </ul>
 
                     <div class="mt-auto mb-4 d-lg-none w-100 mobile-auth-section" id="mobileAuthSection">
-                        <div class="d-grid gap-2">
-                            <span class="mobile-auth-label">AKUN</span>
+                        <div class="d-grid gap-3">
+                            <a class="btn btn-dark rounded-pill py-3 fw-semibold" href="dashboard.html">
+                                <i class="bi-grid me-2"></i>Dashboard
+                            </a>
                             <a class="btn custom-btn" href="login.html">Login</a>
                         </div>
                     </div>
@@ -161,7 +163,7 @@
             </div>
 
             <!-- Regular Events -->
-            <div class="row">
+            <div class="row" id="regularEventsContainer">
                 <!-- Event 1 -->
                 <div class="col-lg-4 col-md-6 col-12 mb-4">
                     <div class="full-event-card custom-border-radius shadow-sm">
@@ -417,6 +419,7 @@
     <script type="module" src="js/navbar-auth.js"></script>
     <script src="js/mobile-nav-slide.js"></script>
     <script src="js/events.js"></script>
+    <script type="module" src="js/events-display.js"></script>
 </body>
 
 </html>
