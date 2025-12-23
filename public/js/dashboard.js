@@ -1857,19 +1857,20 @@ function showTokenFullscreen() {
         if (!overlay) {
             overlay = document.createElement('div');
             overlay.id = 'tokenFullscreenOverlay';
-            overlay.className = 'position-fixed top-0 start-0 w-100 h-100 bg-white d-none flex-column justify-content-center align-items-center';
-            overlay.style.zIndex = '9999';
+            overlay.className = 'token-fullscreen-overlay';
 
             overlay.innerHTML = `
-                <button onclick="closeTokenFullscreen()" class="btn btn-outline-dark position-absolute" style="top: 20px; left: 20px;">
+                <button onclick="closeTokenFullscreen()" class="token-back-btn">
                     <i class="bi-arrow-left me-2"></i>Kembali
                 </button>
-                <h2 class="text-dark mb-4">Kode Mingguan Kehadiran</h2>
-                <h1 id="fullscreenCodeDisplay" class="display-1 fw-bold text-dark mb-5" style="font-size: 120px; letter-spacing: 0.3em; font-family: 'Courier New', monospace;">-----</h1>
-                <div class="text-center">
-                    <h3 class="text-dark mb-3">Kode Valid Untuk:</h3>
-                    <div id="fullscreenTimer" class="fw-bold text-warning" style="font-size: 80px;">30</div>
-                    <small class="text-dark fs-4">Detik</small>
+                <div class="token-content">
+                    <h2 class="token-title">Kode Mingguan Kehadiran</h2>
+                    <h1 id="fullscreenCodeDisplay" class="token-code">-----</h1>
+                    <div class="token-timer-section">
+                        <h3 class="token-timer-label">Kode Valid Untuk:</h3>
+                        <div id="fullscreenTimer" class="token-timer">30</div>
+                        <small class="token-timer-unit">Detik</small>
+                    </div>
                 </div>
             `;
             document.body.appendChild(overlay);
@@ -1913,17 +1914,7 @@ function syncFullscreenWithToken() {
 
             if (fullscreenTimer && weeklyTimer) {
                 const timerText = weeklyTimer.textContent.replace('s', '');
-                const timeLeft = parseInt(timerText) || 30;
                 fullscreenTimer.textContent = timerText;
-                fullscreenTimer.classList.remove('text-success', 'text-warning', 'text-danger');
-
-                if (timeLeft <= 10) {
-                    fullscreenTimer.classList.add('text-danger');
-                } else if (timeLeft <= 20) {
-                    fullscreenTimer.classList.add('text-warning');
-                } else {
-                    fullscreenTimer.classList.add('text-success');
-                }
             }
         }, 100);
     } catch (error) {
