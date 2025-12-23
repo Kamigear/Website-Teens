@@ -83,11 +83,31 @@
         </div>
     </nav>
 
-    <button
-        class="btn rounded-circle shadow position-fixed bottom-0 end-0 m-4 d-lg-none d-flex justify-content-center align-items-center toggle-button"
-        type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasNavbar" aria-controls="offcanvasNavbar">
-        <i class="bi bi-list fs-2 d-flex" id="fabIcon"></i>
-    </button>
+
+    <!-- MOBILE BOTTOM NAVIGATION -->
+    <nav class="mobile-bottom-nav">
+        <a href="index.html"
+            class="mobile-nav-item d-flex flex-column align-items-center justify-content-center text-decoration-none">
+            <i class="bi-house"></i>
+            <span>Home</span>
+        </a>
+        <a href="dashboard.html"
+            class="mobile-nav-item d-flex flex-column align-items-center justify-content-center text-decoration-none">
+            <i class="bi-grid"></i>
+            <span>Dashboard</span>
+        </a>
+        <a href="events.html"
+            class="mobile-nav-item active d-flex flex-column align-items-center justify-content-center text-decoration-none">
+            <i class="bi-calendar-event-fill"></i>
+            <span>Kegiatan</span>
+        </a>
+        <a href="#"
+            class="mobile-nav-item d-flex flex-column align-items-center justify-content-center text-decoration-none"
+            data-bs-toggle="offcanvas" data-bs-target="#offcanvasNavbar">
+            <i class="bi-list"></i>
+            <span>Menu</span>
+        </a>
+    </nav>
 
     <section class="full-events-section section-padding">
         <div class="container">
@@ -395,6 +415,7 @@
 
     <!-- Navbar Auth State -->
     <script type="module" src="js/navbar-auth.js"></script>
+    <script src="js/mobile-nav-slide.js"></script>
     <script src="js/events.js"></script>
 </body>
 
