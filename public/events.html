@@ -17,8 +17,6 @@
 
     <link href="css/bootstrap.min.css" rel="stylesheet">
     <link href="css/bootstrap-icons.css" rel="stylesheet">
-    <link href="css/owl.carousel.min.css" rel="stylesheet">
-    <link href="css/owl.theme.default.min.css" rel="stylesheet">
     <link href="css/tooplate-gotto-job.css" rel="stylesheet">
 </head>
 
@@ -124,39 +122,9 @@
             <!-- Featured Event -->
             <div class="row mb-5">
                 <div class="col-lg-12">
-                    <div class="featured-event-card custom-border-radius p-4 shadow">
-                        <div class="row">
-                            <div class="col-lg-8 col-12">
-                                <span class="badge custom-badge mb-3">EVENT UTAMA</span>
-                                <h3 class="mb-3">Retreat Akhir Tahun Teens 2024</h3>
-                                <p class="mb-4">"Inner Peace: Menemukan Kedamaian dalam Diri" - 2 hari penuh meditasi,
-                                    diskusi Dhamma, dan aktivitas bersama di alam terbuka.</p>
-                                <div class="event-meta d-flex flex-wrap">
-                                    <div class="me-4 mb-2">
-                                        <i class="bi bi-calendar-event me-2 text-primary"></i>
-                                        <span>28-29 Desember 2024</span>
-                                    </div>
-                                    <div class="me-4 mb-2">
-                                        <i class="bi bi-clock me-2 text-primary"></i>
-                                        <span>08:00 - 20:00 WIB</span>
-                                    </div>
-                                    <div class="mb-2">
-                                        <i class="bi bi-geo-alt me-2 text-primary"></i>
-                                        <span>Vihara Dhamma Ramsi & Alam Terbuka</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-lg-4 col-12 mt-4 mt-lg-0 text-lg-end">
-                                <div class="d-flex flex-column h-100 justify-content-center">
-                                    <p class="mb-3">
-                                        <i class="bi bi-people me-2 text-primary"></i>
-                                        <span>Tersisa: 15 kursi</span>
-                                    </p>
-                                    <div>
-                                        <a href="register-event.html" class="btn custom-btn btn-lg">Daftar Sekarang</a>
-                                    </div>
-                                </div>
-                            </div>
+                    <div class="featured-event-card custom-border-radius shadow bg-white overflow-hidden">
+                        <div class="spinner-border text-primary my-5 mx-auto d-block" role="status">
+                            <span class="visually-hidden">Loading...</span>
                         </div>
                     </div>
                 </div>
@@ -164,159 +132,11 @@
 
             <!-- Regular Events -->
             <div class="row" id="regularEventsContainer">
-                <!-- Event 1 -->
-                <div class="col-lg-4 col-md-6 col-12 mb-4">
-                    <div class="full-event-card custom-border-radius shadow-sm">
-                        <div class="full-event-image position-relative">
-                            <img src="images/events/meditation.jpg" class="img-fluid full-event-img"
-                                alt="Sesi Meditasi Mingguan">
-                            <span class="full-event-badge">GRATIS</span>
-                        </div>
-                        <div class="full-event-body p-4">
-                            <div class="full-event-date">
-                                <div class="full-date-icon">
-                                    <i class="bi bi-calendar-check"></i>
-                                </div>
-                                <div>
-                                    <h6 class="mb-0">Setiap Minggu</h6>
-                                    <small class="text-muted">16:00 - 18:00 WIB</small>
-                                </div>
-                            </div>
-                            <h4 class="mb-3">Meditasi & Diskusi Dhamma Mingguan</h4>
-                            <p class="full-event-desc">Panduan meditasi dan diskusi Dhamma untuk remaja dengan bimbingan
-                                Bhikkhu.</p>
-
-                            <div class="full-event-info">
-                                <div class="full-info-item">
-                                    <i class="bi bi-geo-alt text-primary"></i>
-                                    <span>Aula Utama Vihara</span>
-                                </div>
-                                <div class="full-info-item">
-                                    <i class="bi bi-people text-primary"></i>
-                                    <span>15-30 Peserta</span>
-                                </div>
-                            </div>
-
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div>
-                                    <i class="bi bi-person-check me-1 text-primary"></i>
-                                    <small class="text-muted">24 sudah mendaftar</small>
-                                </div>
-                                <a href="event-details.html" class="btn btn-sm custom-btn">Detail</a>
-                            </div>
-                        </div>
+                <!-- Loading Spinner -->
+                <div class="col-12 text-center py-5">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
                     </div>
-                </div>
-
-                <!-- Event 2 -->
-                <div class="col-lg-4 col-md-6 col-12 mb-4">
-                    <div class="full-event-card custom-border-radius shadow-sm">
-                        <div class="full-event-image position-relative">
-                            <img src="images/events/dhamma-study.jpg" class="img-fluid full-event-img"
-                                alt="Kelas Dhamma">
-                            <span class="full-event-badge">KELAS</span>
-                        </div>
-                        <div class="full-event-body p-4">
-                            <div class="full-event-date">
-                                <div class="full-date-icon">
-                                    <i class="bi bi-book"></i>
-                                </div>
-                                <div>
-                                    <h6 class="mb-0">15 Des 2024</h6>
-                                    <small class="text-muted">13:00 - 15:00 WIB</small>
-                                </div>
-                            </div>
-                            <h4 class="mb-3">Kelas Dhamma: Lima Sila Dasar</h4>
-                            <p class="full-event-desc">Memahami dan menerapkan Pancasila Buddhis dalam kehidupan
-                                sehari-hari.</p>
-
-                            <div class="full-event-info">
-                                <div class="full-info-item">
-                                    <i class="bi bi-geo-alt text-primary"></i>
-                                    <span>Ruang Belajar Vihara</span>
-                                </div>
-                                <div class="full-info-item">
-                                    <i class="bi bi-people text-primary"></i>
-                                    <span>Max 20 Peserta</span>
-                                </div>
-                            </div>
-
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div>
-                                    <i class="bi bi-person-check me-1 text-primary"></i>
-                                    <small class="text-muted">12 sudah mendaftar</small>
-                                </div>
-                                <a href="event-details.html" class="btn btn-sm custom-btn">Detail</a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Event 3 -->
-                <div class="col-lg-4 col-md-6 col-12 mb-4">
-                    <div class="full-event-card custom-border-radius shadow-sm">
-                        <div class="full-event-image position-relative">
-                            <img src="images/events/community-service.jpg" class="img-fluid full-event-img"
-                                alt="Bakti Sosial">
-                            <span class="full-event-badge">BAKTI SOSIAL</span>
-                        </div>
-                        <div class="full-event-body p-4">
-                            <div class="full-event-date">
-                                <div class="full-date-icon">
-                                    <i class="bi bi-heart"></i>
-                                </div>
-                                <div>
-                                    <h6 class="mb-0">22 Des 2024</h6>
-                                    <small class="text-muted">09:00 - 14:00 WIB</small>
-                                </div>
-                            </div>
-                            <h4 class="mb-3">Bakti Sosial Natal & Tahun Baru</h4>
-                            <p class="full-event-desc">Berbagi kebahagiaan dengan anak-anak panti asuhan dan masyarakat
-                                sekitar.</p>
-
-                            <div class="full-event-info">
-                                <div class="full-info-item">
-                                    <i class="bi bi-geo-alt text-primary"></i>
-                                    <span>Panti Asuhan Kasih Bunda</span>
-                                </div>
-                                <div class="full-info-item">
-                                    <i class="bi bi-people text-primary"></i>
-                                    <span>50 Peserta</span>
-                                </div>
-                            </div>
-
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div>
-                                    <i class="bi bi-person-check me-1 text-primary"></i>
-                                    <small class="text-muted">35 sudah mendaftar</small>
-                                </div>
-                                <a href="event-details.html" class="btn btn-sm custom-btn">Detail</a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Pagination -->
-            <div class="row mt-5">
-                <div class="col-lg-12 text-center">
-                    <nav aria-label="Page navigation">
-                        <ul class="pagination justify-content-center">
-                            <li class="page-item">
-                                <a class="page-link" href="#" aria-label="Previous">
-                                    <span aria-hidden="true">«</span>
-                                </a>
-                            </li>
-                            <li class="page-item active"><a class="page-link" href="#">1</a></li>
-                            <li class="page-item"><a class="page-link" href="#">2</a></li>
-                            <li class="page-item"><a class="page-link" href="#">3</a></li>
-                            <li class="page-item">
-                                <a class="page-link" href="#" aria-label="Next">
-                                    <span aria-hidden="true">»</span>
-                                </a>
-                            </li>
-                        </ul>
-                    </nav>
                 </div>
             </div>
         </div>
@@ -410,15 +230,12 @@
     <!-- JAVASCRIPT FILES -->
     <script src="js/jquery.min.js"></script>
     <script src="js/bootstrap.min.js"></script>
-    <script src="js/owl.carousel.min.js"></script>
     <script src="js/counter.js"></script>
-    <script src="js/custom.js"></script>
     <script src="js/sidebar.js"></script>
 
     <!-- Navbar Auth State -->
     <script type="module" src="js/navbar-auth.js"></script>
     <script src="js/mobile-nav-slide.js"></script>
-    <script src="js/events.js"></script>
     <script type="module" src="js/events-display.js"></script>
 </body>
 

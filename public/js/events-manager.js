@@ -56,23 +56,54 @@ export async function loadEventsTable() {
     }
 }
 
+// Toggle Action Button Fields
+window.toggleActionButtonFields = function () {
+    const isChecked = document.getElementById('enableActionButton').checked;
+    const fields = document.getElementById('actionButtonFields');
+    fields.style.display = isChecked ? 'block' : 'none';
+};
+
 // Save event (add or update)
 window.saveEvent = async function () {
     const eventId = document.getElementById('eventId').value;
-    const eventData = {
-        title: document.getElementById('eventTitle').value,
-        description: document.getElementById('eventDescription').value,
-        type: document.getElementById('eventType').value,
-        date: document.getElementById('eventDate').value,
-        time: document.getElementById('eventTime').value,
-        location: document.getElementById('eventLocation').value,
-        image: document.getElementById('eventImage').value || 'images/default-event.jpg',
-        category: document.getElementById('eventCategory').value || '',
-        status: document.getElementById('eventStatus').value,
-        updatedAt: serverTimestamp()
-    };
+    const imageFile = document.getElementById('eventImageFile')?.files[0];
+    let imageUrl = document.getElementById('eventImage').value;
 
     try {
+        // Upload image if file selected
+        if (imageFile) {
+            const uploadBtn = document.querySelector('button[onclick="saveEvent()"]');
+            const originalText = uploadBtn.innerHTML;
+            uploadBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Uploading...';
+            uploadBtn.disabled = true;
+
+            imageUrl = await uploadImageFile(imageFile);
+
+            uploadBtn.innerHTML = originalText;
+            uploadBtn.disabled = false;
+        }
+
+        // Action Button Data
+        const actionButton = {
+            enabled: document.getElementById('enableActionButton').checked,
+            text: document.getElementById('actionButtonText').value,
+            url: document.getElementById('actionButtonLink').value
+        };
+
+        const eventData = {
+            title: document.getElementById('eventTitle').value,
+            description: document.getElementById('eventDescription').value,
+            type: document.getElementById('eventType').value,
+            date: document.getElementById('eventDate').value,
+            time: document.getElementById('eventTime').value,
+            location: document.getElementById('eventLocation').value,
+            image: imageUrl || 'images/logo.png', // Use uploaded URL or existing input or default
+            category: document.getElementById('eventCategory').value || '',
+            status: document.getElementById('eventStatus').value,
+            actionButton: actionButton, // Save action button config
+            updatedAt: serverTimestamp()
+        };
+
         if (eventId) {
             // Update existing event
             await updateDoc(doc(db, 'events', eventId), eventData);
@@ -94,8 +125,61 @@ window.saveEvent = async function () {
     }
 };
 
+// ... (uploadImageFile remains same) ...
+// But I need to include editEvent update as well
+
+// ... (skipping some lines to match replace content logic if needed, but replace_file_content replaces block) ...
+// Instead I will supply the WHOLE file update for the sections or use targeted replace. 
+// Given the logic is spread across functions, I'll do a large block replace for saveEvent and then editEvent seperately if possible or just one big block if they are close. 
+// They are NOT close (lines 60 vs 145).
+// I will do 3 replacements.
+
+// Helper function to upload image to ImgBB (Free API)
+async function uploadImageFile(file) {
+    if (!file) return null;
+
+    // ⚠️ TODO: Replace with your own free API key from https://api.imgbb.com/
+    // This is a placeholder key (might not work forever)
+    const API_KEY = '930f654ad2ea9d2a7de3dac742b709e5';
+
+    const formData = new FormData();
+    formData.append('image', file);
+
+    try {
+        const response = await fetch(`https://api.imgbb.com/1/upload?key=${API_KEY}`, {
+            method: 'POST',
+            body: formData
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            return data.data.url; // Direct link to image
+        } else {
+            throw new Error(data.error?.message || 'Upload failed');
+        }
+    } catch (error) {
+        console.error('ImgBB Upload Error:', error);
+        alert('Gagal upload gambar ke ImgBB: ' + error.message);
+        throw error;
+    }
+}
+
 // Edit event
 window.editEvent = async function (eventId) {
+    // Close Manage Events Modal first to prevent double overlay
+    const manageModalEl = document.getElementById('manageEventsModal');
+    if (manageModalEl) {
+        const manageModal = bootstrap.Modal.getInstance(manageModalEl);
+        if (manageModal && manageModalEl.classList.contains('show')) {
+            manageModal.hide();
+            // Wait for the modal to be fully hidden to avoid backdrop issues
+            await new Promise(resolve => {
+                manageModalEl.addEventListener('hidden.bs.modal', resolve, { once: true });
+            });
+        }
+    }
+
     try {
         const eventDoc = await getDocs(query(collection(db, 'events')));
         const event = eventDoc.docs.find(doc => doc.id === eventId);
@@ -118,6 +202,19 @@ window.editEvent = async function (eventId) {
         document.getElementById('eventImage').value = data.image;
         document.getElementById('eventCategory').value = data.category || '';
         document.getElementById('eventStatus').value = data.status;
+
+        // Populate Action Button Fields
+        if (data.actionButton) {
+            document.getElementById('enableActionButton').checked = data.actionButton.enabled || false;
+            document.getElementById('actionButtonText').value = data.actionButton.text || '';
+            document.getElementById('actionButtonLink').value = data.actionButton.url || '';
+        } else {
+            // Default reset
+            document.getElementById('enableActionButton').checked = false;
+            document.getElementById('actionButtonText').value = '';
+            document.getElementById('actionButtonLink').value = '';
+        }
+        toggleActionButtonFields(); // Update UI
 
         // Change modal title
         document.getElementById('eventModalTitle').textContent = 'Edit Kegiatan';
@@ -149,9 +246,9 @@ window.deleteEvent = async function (eventId) {
 // Helper functions
 function getStatusBadge(status) {
     const badges = {
-        'upcoming': '<span class="badge bg-primary">Akan Datang</span>',
-        'ongoing': '<span class="badge bg-success">Berlangsung</span>',
-        'completed': '<span class="badge bg-secondary">Selesai</span>'
+        'upcoming': '<span class="badge" style="background-color: var(--white-color); color: var(--primary-color); border: 1px solid var(--border-color);">Akan Datang</span>',
+        'ongoing': '<span class="badge" style="background-color: var(--custom-btn-bg-color); color: var(--white-color);">Berlangsung</span>',
+        'completed': '<span class="badge" style="background-color: var(--border-color); color: var(--p-color);">Selesai</span>'
     };
     return badges[status] || '<span class="badge bg-secondary">Unknown</span>';
 }
@@ -171,58 +268,8 @@ document.getElementById('addEventModal')?.addEventListener('hidden.bs.modal', fu
     document.getElementById('eventForm').reset();
     document.getElementById('eventId').value = '';
     document.getElementById('eventModalTitle').textContent = 'Tambah Kegiatan Baru';
+
+    // Reset Action Button display
+    document.getElementById('enableActionButton').checked = false;
+    toggleActionButtonFields();
 });
-
-// Google Drive Link Converter
-window.convertGDriveLink = function () {
-    const input = document.getElementById('gdriveInput');
-    const output = document.getElementById('eventImage');
-    const gdriveLink = input.value.trim();
-
-    if (!gdriveLink) {
-        alert('Paste link Google Drive terlebih dahulu!');
-        return;
-    }
-
-    // Extract file ID from various Google Drive URL formats
-    let fileId = null;
-
-    // Format 1: https://drive.google.com/file/d/FILE_ID/view
-    const match1 = gdriveLink.match(/\/file\/d\/([^\/]+)/);
-    if (match1) {
-        fileId = match1[1];
-    }
-
-    // Format 2: https://drive.google.com/open?id=FILE_ID
-    const match2 = gdriveLink.match(/[?&]id=([^&]+)/);
-    if (match2) {
-        fileId = match2[1];
-    }
-
-    // Format 3: Already in direct format
-    const match3 = gdriveLink.match(/uc\?.*id=([^&]+)/);
-    if (match3) {
-        fileId = match3[1];
-    }
-
-    if (fileId) {
-        const directLink = `https://drive.google.com/uc?export=view&id=${fileId}`;
-        output.value = directLink;
-        input.value = '';
-
-        // Show success feedback
-        const btn = event.target.closest('button');
-        const originalHTML = btn.innerHTML;
-        btn.innerHTML = '<i class="bi-check-circle"></i> Berhasil!';
-        btn.classList.remove('btn-outline-primary');
-        btn.classList.add('btn-success');
-
-        setTimeout(() => {
-            btn.innerHTML = originalHTML;
-            btn.classList.remove('btn-success');
-            btn.classList.add('btn-outline-primary');
-        }, 2000);
-    } else {
-        alert('Link Google Drive tidak valid!\n\nPastikan link dalam format:\nhttps://drive.google.com/file/d/FILE_ID/view');
-    }
-};
