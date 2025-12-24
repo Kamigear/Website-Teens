@@ -138,17 +138,15 @@ async function loadRegularEvents() {
             const statusBadge = getStatusBadge(event.status);
 
             const eventCard = document.createElement('div');
-            // 4 Column Grid (Compact)
+            // 2 columns on mobile, 3 on tablets, 4 on desktop
             eventCard.className = 'col-lg-3 col-md-4 col-6 mb-4';
             eventCard.innerHTML = `
                 <div class="event-card position-relative overflow-hidden h-100 shadow-sm border" 
                      onclick='showEventDetails(${JSON.stringify(event).replace(/'/g, "&#39;")})'
                      style="background-color: var(--secondary-color); border-radius: 16px; transition: all 0.3s ease; cursor: pointer; border-color: rgba(0,0,0,0.05) !important;">
                     
-                    <!-- Hover Overlay Effect (Pseudo-element handled by CSS or inline JS) -->
-                    
-                    <!-- Image Section with 2:3 ratio (Pinterest Style) -->
-                    <div class="position-relative" style="padding-top: 100%; overflow: hidden;">
+                    <!-- Image Section with 4:3 ratio (Less tall than square) -->
+                    <div class="position-relative" style="padding-top: 75%; overflow: hidden;">
                          <img src="${processImageUrl(event.image) || 'images/logo.png'}" 
                              class="position-absolute top-0 start-0 w-100 h-100 object-fit-cover" 
                              style="transition: transform 0.5s ease;"
