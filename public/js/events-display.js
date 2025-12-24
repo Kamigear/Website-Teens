@@ -35,29 +35,22 @@ async function loadFeaturedEvent() {
         const event = events[0];
         // Horizontal Layout (Image Left, Content Right)
         featuredContainer.innerHTML = `
-                <div class="row g-0 align-items-center overflow-hidden" style="min-height: 300px; background-color: var(--white-color); border-radius: 20px; box-shadow: var(--shadow-lg);">
+                <div class="row g-0 align-items-center overflow-hidden" style="min-height: 200px; background-color: var(--secondary-color); border-radius: 20px; box-shadow: var(--shadow-lg); max-width: 850px; margin: 0 auto;">
                     <!-- Image Section (Left) - Flexible/No Stretch -->
-                    <div class="col-lg-5 d-flex align-items-center justify-content-center p-3 position-relative" style="background-color: var(--secondary-color); min-height: 300px;">
+                    <div class="col-lg-5 d-flex align-items-center justify-content-center p-2 position-relative" style="min-height: 200px;">
                         <img src="${processImageUrl(event.image) || 'images/logo.png'}" 
-                             class="img-fluid rounded shadow-sm" 
-                             style="max-height: 350px; width: auto; max-width: 100%; object-fit: contain;"
+                             class="img-fluid rounded" 
+                             style="max-height: 350px; width: 100%; object-fit: contain;"
                              alt="${event.title}">
-                        
-                        <!-- Badges Overlay (Top Left of Image) -->
-                        <div class="position-absolute top-0 start-0 p-4">
-                            <span class="badge px-3 py-2 shadow-sm" style="font-size: 0.75rem; border-radius: 6px; background-color: var(--custom-btn-bg-color); color: var(--pure-white-color);">
-                                FEATURED
-                            </span>
-                        </div>
                     </div>
                     
                     <!-- Content Section (Right) -->
                     <div class="col-lg-7">
-                        <div class="card-body p-4 p-lg-5">
-                            <h3 class="fw-bold mb-3" style="font-size: 1.8rem; color: var(--primary-color);">
+                        <div class="card-body p-3">
+                            <h3 class="fw-bold mb-2" style="font-size: 1.4rem; color: var(--primary-color);">
                                 ${event.title}
                             </h3>
-                            <p class="mb-4" style="font-size: 1rem; line-height: 1.6; color: var(--p-color);">
+                            <p class="mb-3" style="font-size: 0.9rem; line-height: 1.5; color: var(--p-color);">
                                 ${event.description}
                             </p>
                             
@@ -66,7 +59,7 @@ async function loadFeaturedEvent() {
                             <!-- Meta Info Grid -->
                             <div class="row g-3">
                                 <div class="col-sm-6">
-                                    <div class="d-flex align-items-center p-3 rounded-3 h-100" style="background-color: var(--white-color); border: 1px solid var(--border-color);">
+                                    <div class="d-flex align-items-center p-2 rounded-3 h-100" style="background-color: var(--white-color); border: 1px solid var(--border-color);">
                                         <i class="bi bi-calendar-check fs-4 me-3" style="color: var(--primary-color);"></i>
                                         <div>
                                             <small class="d-block text-uppercase fw-bold" style="font-size: 0.7rem; color: var(--second-white-color);">Tanggal</small>
@@ -75,7 +68,7 @@ async function loadFeaturedEvent() {
                                     </div>
                                 </div>
                                 <div class="col-sm-6">
-                                    <div class="d-flex align-items-center p-3 rounded-3 h-100" style="background-color: var(--white-color); border: 1px solid var(--border-color);">
+                                    <div class="d-flex align-items-center p-2 rounded-3 h-100" style="background-color: var(--white-color); border: 1px solid var(--border-color);">
                                         <i class="bi bi-clock fs-4 me-3" style="color: var(--primary-color);"></i>
                                         <div>
                                             <small class="d-block text-uppercase fw-bold" style="font-size: 0.7rem; color: var(--second-white-color);">Waktu</small>
@@ -97,7 +90,7 @@ async function loadFeaturedEvent() {
                             <!-- Action Button (Featured) -->
                             ${(event.actionButton && event.actionButton.enabled && event.actionButton.url) ?
                 `<div class="mt-4">
-                                <a href="${event.actionButton.url}" target="_blank" class="btn custom-btn shadow-sm text-uppercase fw-bold px-4 py-3 rounded-pill w-100">
+                                <a href="${formatExternalUrl(event.actionButton.url)}" target="_blank" class="btn custom-btn shadow-sm text-uppercase fw-bold px-4 py-3 rounded-pill w-100">
                                     ${event.actionButton.text || 'Lihat Detail'} <i class="bi-arrow-right ms-2"></i>
                                 </a>
                             </div>` : ''}
@@ -148,9 +141,9 @@ async function loadRegularEvents() {
             // 4 Column Grid (Compact)
             eventCard.className = 'col-lg-3 col-md-4 col-6 mb-4';
             eventCard.innerHTML = `
-                <div class="event-card position-relative overflow-hidden h-100 bg-white shadow-sm border" 
+                <div class="event-card position-relative overflow-hidden h-100 shadow-sm border" 
                      onclick='showEventDetails(${JSON.stringify(event).replace(/'/g, "&#39;")})'
-                     style="border-radius: 16px; transition: all 0.3s ease; cursor: pointer; border-color: rgba(0,0,0,0.05) !important;">
+                     style="background-color: var(--secondary-color); border-radius: 16px; transition: all 0.3s ease; cursor: pointer; border-color: rgba(0,0,0,0.05) !important;">
                     
                     <!-- Hover Overlay Effect (Pseudo-element handled by CSS or inline JS) -->
                     
@@ -169,7 +162,7 @@ async function loadRegularEvents() {
                     </div>
                     
                     <!-- Content Section -->
-                    <div class="p-3">
+                    <div class="p-3 text-center">
                         <div class="mb-2">
                              <span class="badge" style="font-size: 0.6rem; background-color: var(--white-color); color: var(--primary-color); border: 1px solid var(--border-color);">
                                 ${event.category || 'Event'}
@@ -183,11 +176,11 @@ async function loadRegularEvents() {
                             ${truncateText(event.description || '', 70)}
                         </p>
                         
-                        <div class="d-flex align-items-center mb-1" style="font-size: 0.75rem; color: var(--p-color);">
+                        <div class="d-flex align-items-center justify-content-center mb-1" style="font-size: 0.75rem; color: var(--p-color);">
                              <i class="bi bi-calendar-event me-2" style="color: var(--primary-color);"></i>
                              ${formatDateShort(event.date)}
                         </div>
-                        <div class="d-flex align-items-center" style="font-size: 0.75rem; color: var(--p-color);">
+                        <div class="d-flex align-items-center justify-content-center" style="font-size: 0.75rem; color: var(--p-color);">
                              <i class="bi bi-geo-alt me-2" style="color: var(--primary-color);"></i>
                              <span class="text-truncate">${truncateText(event.location, 18)}</span>
                         </div>
@@ -195,7 +188,7 @@ async function loadRegularEvents() {
                         <!-- Action Button -->
                         ${(event.actionButton && event.actionButton.enabled && event.actionButton.url) ?
                     `<div class="mt-3">
-                            <a href="${event.actionButton.url}" target="_blank" class="btn custom-btn btn-sm w-100" onclick="event.stopPropagation();">
+                            <a href="${formatExternalUrl(event.actionButton.url)}" target="_blank" class="btn custom-btn btn-sm w-100" onclick="event.stopPropagation();">
                                 ${event.actionButton.text || 'Lihat Detail'}
                             </a>
                         </div>` : ''}
@@ -205,16 +198,40 @@ async function loadRegularEvents() {
             eventsContainer.appendChild(eventCard);
         }
 
-        // Loop to check if modal exists, if not add it
         if (!document.getElementById('eventDetailModal')) {
-            // ... (omitting middle lines for brevity if tool allows, but replace_file_content replaces block. 
-            // I will just replace the Card Section first, then do the Modal section as they are far apart)
-            // Actually I can only do ONE contiguous block per replace_file_content if I want to be safe, or use MultiReplace.
-            // I'll use MultiReplace.
             const modalHTML = `
+                <style>
+                    .event-detail-content {
+                        border-radius: 16px !important;
+                        overflow: hidden;
+                        display: flex;
+                        flex-direction: column;
+                    }
+                    .event-detail-body {
+                        padding: 0;
+                        overflow: visible;
+                        flex-grow: 1;
+                    }
+                    .event-detail-scroll-area {
+                        overflow: visible;
+                    }
+                    @media (min-width: 992px) {
+                        .event-detail-content {
+                            height: 90vh;
+                            max-height: 90vh;
+                        }
+                        .event-detail-body {
+                            overflow: hidden;
+                        }
+                        .event-detail-scroll-area {
+                            overflow-y: auto;
+                            height: 100%;
+                        }
+                    }
+                </style>
                 <div class="modal fade" id="eventDetailModal" tabindex="-1" aria-hidden="true" style="z-index: 10000;">
                     <div class="modal-dialog modal-dialog-centered modal-lg">
-                        <div class="modal-content border-0 shadow-lg" style="border-radius: 16px; overflow: hidden; max-height: 90vh;">
+                        <div class="modal-content border-0 shadow-lg event-detail-content">
                             
                             <!-- Close Button (Custom) -->
                             <button type="button" class="position-absolute top-0 end-0 m-3 border-0 shadow-lg rounded-circle d-flex align-items-center justify-content-center" 
@@ -223,10 +240,10 @@ async function loadRegularEvents() {
                                 <i class="bi bi-x-lg"></i>
                             </button>
 
-                            <div class="modal-body p-0 overflow-hidden h-100">
+                            <div class="modal-body event-detail-body">
                                 <div class="d-flex flex-column flex-lg-row h-100 w-100">
                                     <!-- Left Column: Content (Scrollable) -->
-                                    <div class="col-lg-7 p-4 p-lg-5 overflow-auto order-2 order-lg-1 flex-grow-1" style="max-height: 100%;">
+                                    <div class="col-lg-7 p-4 p-lg-5 order-2 order-lg-1 flex-grow-1 event-detail-scroll-area">
                                         <div class="mb-3 pt-3">
                                             <span id="modalEventCategory" class="badge px-3 py-2 rounded-pill mb-2" style="background-color: var(--white-color); color: var(--primary-color); border: 1px solid var(--border-color);">Category</span>
                                             <div id="modalEventStatus" class="d-inline-block ms-2"></div>
@@ -316,7 +333,7 @@ window.showEventDetails = function (event) {
     if (btnContainer) {
         if (event.actionButton && event.actionButton.enabled && event.actionButton.url) {
             btnContainer.innerHTML = `
-                <a href="${event.actionButton.url}" target="_blank" class="custom-btn btn w-100 shadow fw-bold text-uppercase py-3 rounded-pill" style="letter-spacing: 1px;">
+                <a href="${formatExternalUrl(event.actionButton.url)}" target="_blank" class="custom-btn btn w-100 shadow fw-bold text-uppercase py-3 rounded-pill" style="letter-spacing: 1px;">
                     ${event.actionButton.text || 'Lihat Detail'} <i class="bi-arrow-right ms-2"></i>
                 </a>
             `;
@@ -360,10 +377,13 @@ export async function loadBriefEvents() {
             const eventCard = document.createElement('div');
             eventCard.className = 'col-lg-4 col-md-6 col-12 mb-4';
             eventCard.innerHTML = `
-                <div class="brief-event-card custom-border-radius shadow-sm overflow-hidden h-100">
-                    <div class="brief-event-image position-relative">
+                <div class="brief-event-card custom-border-radius shadow-sm overflow-hidden h-100" 
+                     onclick="window.location.href='events.html'" 
+                     style="cursor: pointer;">
+                    <div class="brief-event-image position-relative" style="padding-top: 56.25%; overflow: hidden;">
                         <img src="${processImageUrl(event.image) || 'images/logo.png'}" 
-                             class="w-100 h-100 object-fit-cover"
+                             class="position-absolute top-0 start-0 w-100 h-100"
+                             style="object-fit: cover;"
                              alt="${event.title}">
                         <div class="position-absolute top-0 end-0 m-2">
                             ${statusBadge}
@@ -420,6 +440,19 @@ function truncateText(text, maxLength) {
     if (!text) return '';
     if (text.length <= maxLength) return text;
     return text.substring(0, maxLength) + '...';
+}
+
+function formatExternalUrl(url) {
+    if (!url) return '#';
+    // If it already has a protocol or is protocol-relative, return as-is
+    if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('mailto:') || url.startsWith('tel:') || url.startsWith('//')) {
+        return url;
+    }
+    // If it contains a dot (e.g., google.com) and isn't a relative path, prepend https://
+    if (url.includes('.') && !url.startsWith('/') && !url.startsWith('#')) {
+        return 'https://' + url;
+    }
+    return url;
 }
 
 // Helper function to process image URLs

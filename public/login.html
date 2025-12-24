@@ -48,7 +48,7 @@
                                     placeholder="Username / Email" autocomplete="username" required>
                             </div>
 
-                            <div class="input-group mb-3">
+                            <div class="input-group mb-0">
                                 <span class="input-group-text"><i class="bi-lock custom-icon"></i></span>
                                 <input type="password" name="password" id="passwordInput" class="form-control"
                                     placeholder="Password" autocomplete="current-password" required>
@@ -58,12 +58,13 @@
                                 </button>
                             </div>
 
-                            <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div class="d-flex justify-content-between align-items-center mt-3 mb-3">
                                 <div class="form-check">
                                     <input class="form-check-input" type="checkbox" id="rememberMe">
                                     <label class="form-check-label" for="rememberMe">Ingat Saya</label>
                                 </div>
-                                <a href="reset-password.html" class="small">Lupa Password?</a>
+                                <a href="javascript:void(0)" class="small" data-bs-toggle="modal"
+                                    data-bs-target="#resetPasswordModal">Lupa Password?</a>
                             </div>
 
                             <button type="submit" class="form-control">Masuk</button>
@@ -128,6 +129,46 @@
                 </div>
             </div>
         </section>
+
+        <!-- Reset Password Modal -->
+        <div class="modal fade" id="resetPasswordModal" tabindex="-1" aria-labelledby="resetPasswordModalLabel"
+            aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content" style="border-radius: 20px; border: none; overflow: hidden;">
+                    <div class="modal-header border-0 pb-0" style="background-color: var(--secondary-color);">
+                        <h5 class="modal-title fw-bold" id="resetPasswordModalLabel">Reset Password</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <form id="resetPasswordForm" class="p-4" style="background-color: var(--secondary-color);">
+                        <div class="modal-body p-0">
+                            <p class="text-muted small mb-4">Masukkan Username atau Email Anda untuk menerima link reset
+                                password.</p>
+
+                            <div class="input-group mb-3"
+                                style="background: white; border-radius: 12px; border: 1px solid #ddd;">
+                                <span class="input-group-text border-0 bg-transparent text-primary"><i
+                                        class="bi-person"></i></span>
+                                <input type="text" id="resetEmailInput"
+                                    class="form-control border-0 bg-transparent py-2" placeholder="Username / Email"
+                                    required>
+                            </div>
+
+                            <div id="resetStatus" class="alert d-none pt-2 pb-2 small" role="alert"></div>
+                        </div>
+                        <div class="modal-footer border-0 p-0 mt-3 pt-3">
+                            <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal"
+                                id="closeResetModalBtn">Batal</button>
+                            <button type="submit" class="btn btn-dark rounded-pill px-4 fw-bold" id="resetSubmitBtn">
+                                <span>Kirim Link</span>
+                                <div id="resetSpinner" class="spinner-border spinner-border-sm ms-2 d-none"
+                                    role="status"></div>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
     </main>
 
     <script src="js/bootstrap.min.js"></script>

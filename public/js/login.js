@@ -3,7 +3,8 @@ import { auth, db } from './firebase-config.js';
 import {
     signInWithEmailAndPassword,
     updatePassword,
-    onAuthStateChanged
+    onAuthStateChanged,
+    sendPasswordResetEmail
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import {
     doc,
@@ -284,5 +285,75 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // Focus on new password input
         newPasswordInput.focus();
+    }
+
+    // --- Password Reset Handler ---
+    // --- Password Reset Handler ---
+    const resetPasswordForm = document.getElementById('resetPasswordForm');
+    const resetEmailInput = document.getElementById('resetEmailInput');
+    const resetStatus = document.getElementById('resetStatus');
+    const resetSubmitBtn = document.getElementById('resetSubmitBtn');
+    const resetSpinner = document.getElementById('resetSpinner');
+
+    if (resetPasswordForm) {
+        resetPasswordForm.addEventListener('submit', async function (e) {
+            e.preventDefault();
+            const identifier = resetEmailInput.value.trim();
+
+            if (!identifier) return;
+
+            // Loading state
+            resetSubmitBtn.disabled = true;
+            resetSpinner.classList.remove('d-none');
+            resetStatus.classList.add('d-none');
+
+            try {
+                let email = identifier;
+
+                // If input is not an email, lookup in Firestore
+                if (!identifier.includes('@')) {
+                    const usersRef = collection(db, 'users');
+                    const q = query(usersRef, where('username', '==', identifier));
+                    const querySnapshot = await getDocs(q);
+
+                    if (!querySnapshot.empty) {
+                        email = querySnapshot.docs[0].data().email;
+                    } else {
+                        throw new Error("Username tidak ditemukan.");
+                    }
+                }
+
+                await sendPasswordResetEmail(auth, email);
+
+                // Show success
+                resetStatus.textContent = "✅ Link reset terkirim ke " + email + "! Silakan cek email Anda (termasuk folder spam).";
+                resetStatus.className = "alert alert-success mt-3 small";
+                resetStatus.classList.remove('d-none');
+
+                // Reset form
+                resetEmailInput.value = '';
+
+            } catch (error) {
+                console.error("Reset password error:", error);
+                let errorText = "Gagal mengirim link reset password.";
+
+                if (error.code === 'auth/user-not-found' || error.message === "Username tidak ditemukan.") {
+                    errorText = "Username atau Email tidak terdaftar.";
+                } else if (error.code === 'auth/invalid-email') {
+                    errorText = "Format email tidak valid.";
+                } else if (error.code === 'auth/too-many-requests') {
+                    errorText = "Terlalu banyak percobaan. Silakan tunggu beberapa saat.";
+                } else if (error.message) {
+                    errorText = error.message;
+                }
+
+                resetStatus.textContent = "❌ " + errorText;
+                resetStatus.className = "alert alert-danger mt-3 small";
+                resetStatus.classList.remove('d-none');
+            } finally {
+                resetSubmitBtn.disabled = false;
+                resetSpinner.classList.add('d-none');
+            }
+        });
     }
 });

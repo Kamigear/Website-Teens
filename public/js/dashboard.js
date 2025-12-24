@@ -636,11 +636,12 @@ function getChartData(period) {
             startDate.setDate(1); // Start of that month/period
             startDate.setHours(0, 0, 0, 0);
 
-            // Calculate base points before this period
+            // Calculate base attendance count before this period
             sortedHistory.forEach(h => {
                 const hDate = h.createdAt?.toDate ? h.createdAt.toDate() : new Date();
-                if (hDate < startDate) {
-                    runningTotal += (h.points || 0);
+                // Only count positive points as attendance
+                if (hDate < startDate && (h.points || 0) >= 0) {
+                    runningTotal += 1;
                 }
             });
 
@@ -680,9 +681,12 @@ function getChartData(period) {
                     }
 
                     if (bucketIndex >= 0 && bucketIndex < data.length) {
-                        // Add points to this bucket AND ALL SUBSEQUENT BUCKETS (Cumulative)
-                        for (let j = bucketIndex; j < data.length; j++) {
-                            data[j] += (h.points || 0);
+                        // Count +1 attendance for this bucket AND ALL SUBSEQUENT BUCKETS (Cumulative)
+                        // Only count positive points as attendance
+                        if ((h.points || 0) >= 0) {
+                            for (let j = bucketIndex; j < data.length; j++) {
+                                data[j] += 1;
+                            }
                         }
                     }
                 }
@@ -695,7 +699,7 @@ function getChartData(period) {
     return {
         labels: labels,
         datasets: [{
-            label: 'Total Points',
+            label: 'Total Kehadiran',
             data: data,
             borderColor: '#000000',
             backgroundColor: 'rgba(0, 0, 0, 0.1)',
