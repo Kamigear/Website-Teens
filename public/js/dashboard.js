@@ -10,6 +10,7 @@ import {
     setPersistence,
     browserLocalPersistence,
     updateEmail,
+    updatePassword,
     reauthenticateWithCredential,
     EmailAuthProvider,
     sendEmailVerification

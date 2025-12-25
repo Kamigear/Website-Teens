@@ -8,13 +8,9 @@ function adjustMobileNav() {
     const footerRect = footer.getBoundingClientRect();
     const viewportHeight = window.innerHeight;
 
-    // Calculate precise travel distance to reach top: 20px
-    // Initial position: bottom 20px. Element height: 75px.
-    // Distance = viewportHeight - BottomMargin(20) - TargetTop(20) - Height(75) = VH - 115
     const travelDistance = viewportHeight - 115;
     mobileNav.style.setProperty('--nav-slide-distance', `-${travelDistance}px`);
 
-    // Check if footer is visible in viewport (top of footer is visible)
     if (footerRect.top < viewportHeight - 100) {
         // Footer is reached, slide nav to top
         mobileNav.classList.add('nav-at-top');

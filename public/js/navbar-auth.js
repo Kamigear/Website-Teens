@@ -1,8 +1,12 @@
-// --- Navbar Authentication State ---
-import { auth } from './firebase-config.js';
-import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { auth, db } from './firebase-config.js';
+import {
+    onAuthStateChanged,
+    signOut,
+    updatePassword,
+    reauthenticateWithCredential,
+    EmailAuthProvider
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { db } from './firebase-config.js';
 
 // Update navbar based on auth state
 onAuthStateChanged(auth, async (user) => {
@@ -35,8 +39,11 @@ onAuthStateChanged(auth, async (user) => {
                                 <div class="fw-semibold">${username}</div>
                             </li>
                             <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="dashboard.html">
+                             <li><a class="dropdown-item" href="dashboard.html">
                                 <i class="bi-grid me-2"></i>Dashboard
+                            </a></li>
+                            <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#changePasswordModal">
+                                <i class="bi-key me-2"></i>Ganti Password
                             </a></li>
                             <li><hr class="dropdown-divider"></li>
                             <li><a class="dropdown-item text-danger" href="#" id="navLogoutBtn">
@@ -68,13 +75,13 @@ onAuthStateChanged(auth, async (user) => {
             if (mobileAuthSection) {
                 mobileAuthSection.innerHTML = `
                     <div class="d-grid gap-3">
-                        <a class="btn btn-dark rounded-pill py-3 fw-semibold" href="dashboard.html">
-                            <i class="bi-grid me-2"></i>Dashboard
+                        <a class="btn btn-dark rounded-pill py-3 fw-semibold text-truncate" href="dashboard.html">
+                            <i class="bi-grid me-2"></i>Dashboard - ${username}
                         </a>
-                        <a class="btn custom-btn" href="dashboard.html">
-                            <i class="bi-person me-2"></i>${username}
-                        </a>
-                        <button class="btn btn-outline-danger rounded-pill" id="mobileLogoutBtn">
+                        <button class="btn btn-outline-dark rounded-pill py-3" data-bs-toggle="modal" data-bs-target="#changePasswordModal">
+                            <i class="bi-key me-2"></i>Ganti Password
+                        </button>
+                        <button class="btn btn-outline-danger rounded-pill py-3" id="mobileLogoutBtn">
                             <i class="bi-box-arrow-right me-2"></i>Logout
                         </button>
                     </div>
@@ -122,3 +129,131 @@ onAuthStateChanged(auth, async (user) => {
         }
     }
 });
+
+/**
+ * Global Change Password System
+ * Dynamically injects modal and handles logic for all pages
+ */
+function injectChangePasswordModal() {
+    if (document.getElementById('changePasswordModal')) return;
+
+    const modalHTML = `
+    <div class="modal fade" id="changePasswordModal" tabindex="-1" aria-hidden="true" style="z-index: 10001;">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 20px; overflow: hidden;">
+                <div class="modal-header border-0 pb-0" style="background-color: #D9D9D9;">
+                    <h5 class="modal-title fw-bold">Ganti Password</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4" style="background-color: #D9D9D9;">
+                    <form id="globalChangePasswordForm">
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">Password Saat Ini</label>
+                            <div class="input-group" style="background: white; border-radius: 12px; border: 1px solid #ddd; overflow: hidden;">
+                                <span class="input-group-text border-0 bg-transparent text-primary"><i class="bi-lock"></i></span>
+                                <input type="password" id="gCurrentPassword" class="form-control border-0 bg-transparent py-2" required>
+                                <button class="btn border-0 bg-transparent toggle-password" type="button" data-target="gCurrentPassword">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">Password Baru</label>
+                            <div class="input-group" style="background: white; border-radius: 12px; border: 1px solid #ddd; overflow: hidden;">
+                                <span class="input-group-text border-0 bg-transparent text-primary"><i class="bi-key"></i></span>
+                                <input type="password" id="gNewPassword" class="form-control border-0 bg-transparent py-2" required minlength="6">
+                                <button class="btn border-0 bg-transparent toggle-password" type="button" data-target="gNewPassword">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </div>
+                            <div class="form-text small">Minimal 6 karakter.</div>
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label small fw-bold">Konfirmasi Password Baru</label>
+                            <div class="input-group" style="background: white; border-radius: 12px; border: 1px solid #ddd; overflow: hidden;">
+                                <span class="input-group-text border-0 bg-transparent text-primary"><i class="bi-check2-circle"></i></span>
+                                <input type="password" id="gConfirmNewPassword" class="form-control border-0 bg-transparent py-2" required>
+                                <button class="btn border-0 bg-transparent toggle-password" type="button" data-target="gConfirmNewPassword">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-dark rounded-pill py-3 fw-bold" id="gConfirmChangeBtn">
+                                <span>Simpan Perubahan</span>
+                                <span id="gChangeSpinner" class="spinner-border spinner-border-sm ms-2 d-none"></span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>`;
+
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+
+    const form = document.getElementById('globalChangePasswordForm');
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const currentPwd = document.getElementById('gCurrentPassword').value;
+        const newPwd = document.getElementById('gNewPassword').value;
+        const confirmPwd = document.getElementById('gConfirmNewPassword').value;
+        const btn = document.getElementById('gConfirmChangeBtn');
+        const spinner = document.getElementById('gChangeSpinner');
+
+        if (newPwd !== confirmPwd) {
+            alert("Konfirmasi password baru tidak cocok.");
+            return;
+        }
+
+        try {
+            btn.disabled = true;
+            spinner.classList.remove('d-none');
+
+            const user = auth.currentUser;
+            if (!user) return;
+
+            // Re-authenticate
+            const credential = EmailAuthProvider.credential(user.email, currentPwd);
+            await reauthenticateWithCredential(user, credential);
+
+            // Update
+            await updatePassword(user, newPwd);
+
+            alert("Password Anda telah berhasil diperbarui.");
+
+            // Cleanup
+            form.reset();
+            const modalEl = document.getElementById('changePasswordModal');
+            const modal = bootstrap.Modal.getInstance(modalEl);
+            if (modal) modal.hide();
+
+        } catch (error) {
+            console.error("Change password error:", error);
+            let msg = "Gagal mengganti password.";
+            if (error.code === 'auth/wrong-password') msg = "Password lama salah.";
+            alert(msg);
+        } finally {
+            btn.disabled = false;
+            spinner.classList.add('d-none');
+        }
+    });
+
+    // Toggle Eye Buttons
+    document.querySelectorAll('.toggle-password').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const input = document.getElementById(btn.getAttribute('data-target'));
+            const icon = btn.querySelector('i');
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.replace('bi-eye', 'bi-eye-slash');
+            } else {
+                input.type = 'password';
+                icon.classList.replace('bi-eye-slash', 'bi-eye');
+            }
+        });
+    });
+}
+
+// Inisialisasi ganti password di semua halaman
+document.addEventListener('DOMContentLoaded', injectChangePasswordModal);

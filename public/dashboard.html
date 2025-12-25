@@ -75,6 +75,10 @@
                             <a class="btn btn-dark rounded-pill py-3 fw-semibold" href="dashboard.html">
                                 <i class="bi-grid me-2"></i>Dashboard
                             </a>
+                            <button class="btn btn-outline-dark rounded-pill py-3 fw-semibold" data-bs-toggle="modal"
+                                data-bs-target="#changePasswordModal">
+                                <i class="bi-key me-2"></i>Ganti Password
+                            </button>
                             <a class="btn custom-btn" href="#" onclick="logoutUser()">Logout</a>
                         </div>
                     </div>
@@ -88,6 +92,11 @@
                         <i class="bi-person me-2"></i> Akun Saya
                     </a>
                     <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                        <li><a class="dropdown-item" href="#" data-bs-toggle="modal"
+                                data-bs-target="#changePasswordModal">Ganti Password</a></li>
+                        <li>
+                            <hr class="dropdown-divider">
+                        </li>
                         <li><a class="dropdown-item" href="#" onclick="logoutUser()">Logout</a></li>
                     </ul>
                 </div>
@@ -956,6 +965,7 @@
 
 
     <script src="js/jquery.min.js"></script>
+
     <script src="js/bootstrap.min.js"></script>
     <script src="js/sidebar.js"></script>
 
