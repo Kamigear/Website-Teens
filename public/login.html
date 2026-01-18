@@ -23,8 +23,7 @@
 <body id="top">
 
     <main>
-        <section class="section-hero d-flex justify-content-center align-items-center"
-            style="min-height: 100vh; padding: 0;">
+        <section class="section-hero d-flex justify-content-center align-items-center min-vh-100 p-0">
             <div class="section-overlay"></div>
 
             <a href="index.html" class="back-btn d-flex align-items-center text-decoration-none">
@@ -34,11 +33,11 @@
 
             <div class="container position-relative">
                 <div class="row justify-content-center">
-                    <div class="col-lg-4 col-md-8 col-12">
+                    <div class="col-lg-4 col-12">
                         <!-- Login Form -->
-                        <form class="custom-form hero-form p-4 p-md-5" id="loginForm" role="form">
+                        <form class="custom-form hero-form p-4 p-lg-5" id="loginForm" role="form">
                             <div class="text-center mb-3">
-                                <img src="images/logo.png" class="img-fluid mb-2" alt="Logo" style="width: 60px;">
+                                <img src="images/logo.png" class="img-fluid mb-2 logo-sm" alt="Logo">
                                 <h4 class="mb-3 text-white">Login Teens</h4>
                             </div>
 
@@ -78,9 +77,9 @@
                         </form>
 
                         <!-- Change Password Form (Hidden by default) -->
-                        <form class="custom-form hero-form p-4 p-md-5 d-none" id="changePasswordForm" role="form">
+                        <form class="custom-form hero-form p-4 p-lg-5 d-none" id="changePasswordForm" role="form">
                             <div class="text-center mb-4">
-                                <img src="images/logo.png" class="img-fluid mb-3" alt="Logo" style="width: 60px;">
+                                <img src="images/logo.png" class="img-fluid mb-3 logo-sm" alt="Logo">
                                 <h4 class="mb-2 text-white">Ganti Password</h4>
                                 <p class="text-white-50 small">Ini adalah login pertama Anda. Silakan buat password baru
                                     untuk keamanan akun Anda.</p>
@@ -88,7 +87,7 @@
 
                             <!-- Hidden username field for accessibility -->
                             <input type="text" name="username" id="hiddenUsername" autocomplete="username"
-                                style="display: none;" aria-hidden="true">
+                                class="d-none" aria-hidden="true">
 
                             <div class="input-group mb-3">
                                 <span class="input-group-text"><i class="bi-lock custom-icon"></i></span>
@@ -134,18 +133,17 @@
         <div class="modal fade" id="resetPasswordModal" tabindex="-1" aria-labelledby="resetPasswordModalLabel"
             aria-hidden="true">
             <div class="modal-dialog modal-dialog-centered">
-                <div class="modal-content" style="border-radius: 20px; border: none; overflow: hidden;">
-                    <div class="modal-header border-0 pb-0" style="background-color: var(--secondary-color);">
+                <div class="modal-content modal-rounded-custom">
+                    <div class="modal-header border-0 pb-0 bg-secondary-theme">
                         <h5 class="modal-title fw-bold" id="resetPasswordModalLabel">Reset Password</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
-                    <form id="resetPasswordForm" class="p-4" style="background-color: var(--secondary-color);">
+                    <form id="resetPasswordForm" class="p-4 bg-secondary-theme">
                         <div class="modal-body p-0">
                             <p class="text-muted small mb-4">Masukkan Username atau Email Anda untuk menerima link reset
                                 password.</p>
 
-                            <div class="input-group mb-3"
-                                style="background: white; border-radius: 12px; border: 1px solid #ddd;">
+                            <div class="input-group mb-3 input-group-custom-login">
                                 <span class="input-group-text border-0 bg-transparent text-primary"><i
                                         class="bi-person"></i></span>
                                 <input type="text" id="resetEmailInput"
@@ -171,6 +169,10 @@
 
     </main>
 
+    <!-- TOAST CONTAINER for Unified Notifications -->
+    <div class="toast-container position-fixed bottom-0 end-0 p-3" id="toastContainer" style="z-index: 10000;"></div>
+
+    <script src="js/jquery.min.js"></script>
     <script src="js/bootstrap.min.js"></script>
     <script type="module" src="js/login.js"></script>
 

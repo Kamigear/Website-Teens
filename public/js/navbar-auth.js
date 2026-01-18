@@ -9,6 +9,62 @@ import {
 import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 // Update navbar based on auth state
+
+/**
+ * Centralized Toast Notification
+ * Stacks messages in #toastContainer
+ */
+window.showToast = function (title, message, type = 'info') {
+    const container = document.getElementById('toastContainer');
+    if (!container) {
+        // Fallback or create if strictly needed?
+        // User said "Do not create new". We assume it exists in dashboard.html.
+        // If not in DOM, we can't show toast. Console error?
+        console.warn('Toast container missing. Msg:', message);
+        // Fallback for critical errors?
+        if (type === 'error') console.error(message);
+        return;
+    }
+
+    // Theme Logic
+    let icon = 'bi-info-circle-fill';
+    let textColor = 'text-primary';
+
+    if (type === 'success') {
+        icon = 'bi-check-circle-fill';
+        textColor = 'text-success';
+    } else if (type === 'error') {
+        icon = 'bi-exclamation-triangle-fill';
+        textColor = 'text-danger';
+    } else if (type === 'warning') {
+        icon = 'bi-exclamation-circle-fill';
+        textColor = 'text-warning';
+    }
+
+    const toastId = 'toast-' + Math.random().toString(36).substr(2, 9);
+
+    const html = `
+        <div id="${toastId}" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="toast-header">
+                <i class="bi ${icon} ${textColor} me-2"></i>
+                <strong class="me-auto ${textColor}">${title}</strong>
+                <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+            <div class="toast-body">
+                ${message}
+            </div>
+        </div>
+    `;
+
+    container.insertAdjacentHTML('beforeend', html);
+    const toastEl = document.getElementById(toastId);
+    if (toastEl && window.bootstrap) {
+        const toast = new bootstrap.Toast(toastEl, { delay: 5000 });
+        toast.show();
+        toastEl.addEventListener('hidden.bs.toast', () => toastEl.remove());
+    }
+}
+
 onAuthStateChanged(auth, async (user) => {
     const desktopAuthContainer = document.getElementById('desktopAuthContainer');
     const mobileAuthSection = document.getElementById('mobileAuthSection');
@@ -64,7 +120,7 @@ onAuthStateChanged(auth, async (user) => {
                                 window.location.href = 'index.html';
                             } catch (error) {
                                 console.error('Logout error:', error);
-                                alert('Gagal logout: ' + error.message);
+                                window.showToast('Gagal Logout', error.message, 'error');
                             }
                         }
                     });
@@ -98,7 +154,7 @@ onAuthStateChanged(auth, async (user) => {
                                 window.location.href = 'index.html';
                             } catch (error) {
                                 console.error('Logout error:', error);
-                                alert('Gagal logout: ' + error.message);
+                                window.showToast('Gagal Logout', error.message, 'error');
                             }
                         }
                     });
@@ -202,7 +258,7 @@ function injectChangePasswordModal() {
         const spinner = document.getElementById('gChangeSpinner');
 
         if (newPwd !== confirmPwd) {
-            alert("Konfirmasi password baru tidak cocok.");
+            window.showToast('Validasi', "Konfirmasi password baru tidak cocok.", 'warning');
             return;
         }
 
@@ -220,7 +276,7 @@ function injectChangePasswordModal() {
             // Update
             await updatePassword(user, newPwd);
 
-            alert("Password Anda telah berhasil diperbarui.");
+            window.showToast('Berhasil', "Password Anda telah berhasil diperbarui.", 'success');
 
             // Cleanup
             form.reset();
@@ -232,7 +288,7 @@ function injectChangePasswordModal() {
             console.error("Change password error:", error);
             let msg = "Gagal mengganti password.";
             if (error.code === 'auth/wrong-password') msg = "Password lama salah.";
-            alert(msg);
+            window.showToast('Error', msg, 'error');
         } finally {
             btn.disabled = false;
             spinner.classList.add('d-none');

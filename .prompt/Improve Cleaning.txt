@@ -1,0 +1,1 @@
+Refactor frontend dengan prinsip Bootstrap-first. Semua layout, spacing, dan positioning wajib menggunakan class Bootstrap jika tersedia. Inline style harus dihapus. CSS custom hanya boleh berisi nilai spesifik yang tidak didukung Bootstrap. Gunakan eksklusif warna dari tooplate (tanpa warna baru). Tampilan dan behavior website harus tetap identik.

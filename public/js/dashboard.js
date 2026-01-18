@@ -32,7 +32,8 @@ import {
     limit,
     getDocs,
     Timestamp,
-    writeBatch
+    writeBatch,
+    runTransaction
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 // Import events manager
@@ -134,29 +135,33 @@ function checkEmailStatus() {
         const notLinkedEl = document.getElementById('emailNotLinked');
         const linkedEl = document.getElementById('emailLinked');
         const pendingEl = document.getElementById('emailVerificationPending');
+        const loadingEl = document.getElementById('emailLoading'); // Skeleton
         const linkedEmailDisplay = document.getElementById('linkedEmailDisplay');
         const pendingEmailDisplay = document.getElementById('pendingEmailDisplay');
 
         if (!notLinkedEl || !linkedEl || !pendingEl) return;
 
+        // Hide skeleton
+        if (loadingEl) loadingEl.style.display = 'none';
+
         const isTempEmail = currentUser.email && currentUser.email.endsWith('@temp.vdrteens.local');
 
         if (isTempEmail) {
             // State 1: Temp Email (Not Linked)
-            notLinkedEl.style.display = 'block';
-            linkedEl.style.display = 'none';
-            pendingEl.style.display = 'none';
+            notLinkedEl.classList.remove('d-none');
+            linkedEl.classList.add('d-none');
+            pendingEl.classList.add('d-none');
         } else if (!currentUser.emailVerified) {
             // State 2: Linked but Not Verified
-            notLinkedEl.style.display = 'none';
-            linkedEl.style.display = 'none';
-            pendingEl.style.display = 'block';
+            notLinkedEl.classList.add('d-none');
+            linkedEl.classList.add('d-none');
+            pendingEl.classList.remove('d-none');
             if (pendingEmailDisplay) pendingEmailDisplay.textContent = currentUser.email;
         } else {
             // State 3: Linked & Verified
-            notLinkedEl.style.display = 'none';
-            linkedEl.style.display = 'block';
-            pendingEl.style.display = 'none';
+            notLinkedEl.classList.add('d-none');
+            linkedEl.classList.remove('d-none');
+            pendingEl.classList.add('d-none');
             if (linkedEmailDisplay) linkedEmailDisplay.textContent = currentUser.email;
         }
     } catch (error) {
@@ -494,13 +499,13 @@ function updateViewMode() {
         if (!userDashboard || !adminDashboard) return;
 
         if (isAdmin) {
-            userDashboard.style.display = 'none';
-            adminDashboard.style.display = 'block';
+            userDashboard.classList.add('d-none');
+            adminDashboard.classList.remove('d-none');
             // Load events table for admin
             loadEventsTable();
         } else {
-            userDashboard.style.display = 'block';
-            adminDashboard.style.display = 'none';
+            userDashboard.classList.remove('d-none');
+            adminDashboard.classList.add('d-none');
         }
     } catch (error) {
         console.error("Update view mode error:", error);
@@ -887,44 +892,103 @@ window.submitCode = async function () {
         const codeSnap = await getDocs(qCode);
 
         if (!codeSnap.empty) {
+            const codeDocRef = codeSnap.docs[0].ref;
             const codeData = codeSnap.docs[0].data();
 
-            // A. Check if already redeemed
-            const historyRef = collection(db, 'pointHistory');
-            const qHistory = query(
-                historyRef,
-                where('userId', '==', currentUser.uid),
-                where('description', '==', `Kode: ${rawCode}`)
-            );
-            const historySnap = await getDocs(qHistory);
+            // Check claim type
+            if (codeData.claimType === 'single-global') {
+                // SINGLE-CLAIM GLOBAL: Use transaction for race condition safety
+                try {
+                    await runTransaction(db, async (transaction) => {
+                        const codeDoc = await transaction.get(codeDocRef);
 
-            if (!historySnap.empty) {
-                alert('Anda sudah menukarkan kode ini!');
+                        if (!codeDoc.exists()) {
+                            throw new Error('Kode tidak ditemukan!');
+                        }
+
+                        const currentCodeData = codeDoc.data();
+
+                        // Check if already claimed
+                        if (currentCodeData.status === 'claimed' || currentCodeData.claimedBy) {
+                            throw new Error('Kode sudah diklaim oleh user lain!');
+                        }
+
+                        // Mark as claimed
+                        transaction.update(codeDocRef, {
+                            status: 'claimed',
+                            claimedBy: currentUser.uid,
+                            claimedAt: serverTimestamp()
+                        });
+
+                        // Update user points
+                        const userRef = doc(db, 'users', currentUser.uid);
+                        transaction.update(userRef, {
+                            points: increment(currentCodeData.points)
+                        });
+
+                        // Add to point history
+                        const newHistRef = doc(collection(db, 'pointHistory'));
+                        transaction.set(newHistRef, {
+                            userId: currentUser.uid,
+                            description: `Kode: ${rawCode} (${currentCodeData.eventName || 'Event'})`,
+                            points: currentCodeData.points,
+                            status: 'completed',
+                            createdAt: serverTimestamp()
+                        });
+                    });
+
+                    codeInput.value = '';
+                    alert(`✅ Kode "${rawCode}" berhasil diklaim!\nPoint: +${codeData.points}\n\n⚠️ Kode ini hanya bisa diklaim sekali dan sekarang sudah tidak bisa digunakan lagi.`);
+                    return;
+
+                } catch (transactionError) {
+                    codeInput.value = '';
+                    if (transactionError.message.includes('diklaim')) {
+                        alert('❌ ' + transactionError.message);
+                    } else {
+                        alert('❌ Gagal mengklaim kode: ' + transactionError.message);
+                    }
+                    return;
+                }
+
+            } else {
+                // MULTI-CLAIM: Standard flow (check if user already claimed)
+                const historyRef = collection(db, 'pointHistory');
+                const qHistory = query(
+                    historyRef,
+                    where('userId', '==', currentUser.uid),
+                    where('description', '==', `Kode: ${rawCode}`)
+                );
+                const historySnap = await getDocs(qHistory);
+
+                if (!historySnap.empty) {
+                    alert('Anda sudah menukarkan kode ini!');
+                    codeInput.value = '';
+                    return;
+                }
+
+                // Execute Transaction/Batch
+                const batch = writeBatch(db);
+                const userRef = doc(db, 'users', currentUser.uid);
+
+                batch.update(userRef, {
+                    points: increment(codeData.points)
+                });
+
+                const newHistRef = doc(collection(db, 'pointHistory'));
+                batch.set(newHistRef, {
+                    userId: currentUser.uid,
+                    description: `Kode: ${rawCode}`,
+                    points: codeData.points,
+                    status: 'completed',
+                    createdAt: serverTimestamp()
+                });
+
+                await batch.commit();
                 codeInput.value = '';
+                alert(`✅ Kode "${rawCode}" berhasil disubmit!\nPoint: +${codeData.points}`);
                 return;
             }
-
-            // B. Execute Transaction/Batch
-            const batch = writeBatch(db);
-            const userRef = doc(db, 'users', currentUser.uid);
-
-            batch.update(userRef, {
-                points: increment(codeData.points)
-            });
-
-            const newHistRef = doc(collection(db, 'pointHistory'));
-            batch.set(newHistRef, {
-                userId: currentUser.uid,
-                description: `Kode: ${rawCode}`,
-                points: codeData.points,
-                status: 'completed',
-                createdAt: serverTimestamp()
-            });
-
-            await batch.commit();
-            codeInput.value = '';
-            alert(`✅ Kode "${rawCode}" berhasil disubmit!\nPoint: +${codeData.points}`);
-            return;
         }
 
         // --- IF NEITHER ---
@@ -934,6 +998,300 @@ window.submitCode = async function () {
         alert('Terjadi kesalahan: ' + error.message);
     }
 }
+
+// ==========================================
+// CUSTOM EVENT CODE MANAGEMENT
+// ==========================================
+
+/**
+ * Generate a unique alphanumeric code
+ * @param {number} length - Length of the code
+ * @returns {string} Generated code
+ */
+function generateUniqueCode(length = 8) {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    let code = '';
+    for (let i = 0; i < length; i++) {
+        code += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return code;
+}
+
+/**
+ * Generate and save a custom event code
+ * Admin function to create unique codes for events
+ */
+window.generateCustomCode = async function () {
+    const eventNameInput = document.getElementById('eventNameInput');
+    const pointsInput = document.getElementById('pointsInput');
+
+    if (!eventNameInput || !pointsInput) {
+        showToast('Error', 'Input fields tidak ditemukan!', 'error');
+        return;
+    }
+
+    const eventName = eventNameInput.value.trim();
+    const points = parseInt(pointsInput.value);
+
+    // Validation - only points is required now
+    if (isNaN(points) || points <= 0) {
+        showToast('Input Error', 'Jumlah Point harus lebih dari 0!', 'error');
+        return;
+    }
+
+    try {
+        // Ask for claim type
+        const claimType = await showClaimTypeModal();
+        if (!claimType) return; // User cancelled
+
+        // Determine code: use user input if provided, otherwise generate random
+        let code;
+        let isManualCode = false;
+
+        if (eventName && eventName.length > 0) {
+            // User provided a code manually
+            code = eventName.toUpperCase().replace(/\s+/g, ''); // Remove spaces, uppercase
+            isManualCode = true;
+        } else {
+            // Generate random code
+            code = generateUniqueCode(8);
+        }
+
+        // Validate code uniqueness in database
+        let isUnique = false;
+        let attempts = 0;
+        const maxAttempts = 10;
+
+        while (!isUnique && attempts < maxAttempts) {
+            const codesRef = collection(db, 'codes');
+            const q = query(codesRef, where('code', '==', code));
+            const snapshot = await getDocs(q);
+
+            if (snapshot.empty) {
+                isUnique = true;
+            } else {
+                if (isManualCode) {
+                    // User's manual code already exists
+                    showToast('Error', `Kode "${code}" sudah digunakan! Silakan gunakan kode lain.`, 'error');
+                    return;
+                } else {
+                    // Auto-generated code collision, try again
+                    code = generateUniqueCode(8);
+                    attempts++;
+                }
+            }
+        }
+
+        if (!isUnique) {
+            showToast('Error', 'Gagal generate kode unik. Silakan coba lagi.', 'error');
+            return;
+        }
+
+        // Create code document
+        const codeData = {
+            code: code,
+            eventName: isManualCode ? code : 'Event Custom', // Use code as name if manual
+            points: points,
+            claimType: claimType, // 'multi' or 'single-global'
+            status: 'active', // 'active', 'claimed', 'expired'
+            createdAt: serverTimestamp(),
+            createdBy: currentUser.uid
+        };
+
+        // Add claimedBy field for single-claim codes
+        if (claimType === 'single-global') {
+            codeData.claimedBy = null;
+            codeData.claimedAt = null;
+        }
+
+        await addDoc(collection(db, 'codes'), codeData);
+
+        // Clear inputs
+        eventNameInput.value = '';
+        pointsInput.value = '';
+
+        showToast('Berhasil', `Kode "${code}" berhasil dibuat!`, 'success');
+
+    } catch (error) {
+        console.error('Error generating custom code:', error);
+        showToast('Error', 'Gagal membuat kode: ' + error.message, 'error');
+    }
+}
+
+/**
+ * Show modal to select claim type
+ * @returns {Promise<string|null>} 'multi' or 'single-global' or null if cancelled
+ */
+function showClaimTypeModal() {
+    return new Promise((resolve) => {
+        // Create modal HTML
+        const modalHTML = `
+            <div class="modal fade" id="claimTypeModal" tabindex="-1" data-bs-backdrop="static">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Pilih Tipe Klaim</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <p class="text-muted small mb-3">Pilih bagaimana kode ini dapat diklaim:</p>
+                            <div class="d-grid gap-2">
+                                <button type="button" class="btn btn-outline-dark text-start p-3" data-claim-type="multi">
+                                    <div class="d-flex align-items-start">
+                                        <i class="bi-people-fill fs-4 me-3"></i>
+                                        <div>
+                                            <strong class="d-block">Multi-Claim</strong>
+                                            <small class="text-muted">Kode bisa diklaim oleh banyak user</small>
+                                        </div>
+                                    </div>
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary text-start p-3" data-claim-type="single-global">
+                                    <div class="d-flex align-items-start">
+                                        <i class="bi-person-fill fs-4 me-3"></i>
+                                        <div>
+                                            <strong class="d-block">Single-Claim (Global)</strong>
+                                            <small class="text-muted">Hanya satu user yang bisa mengklaim kode ini</small>
+                                        </div>
+                                    </div>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        // Remove existing modal if any
+        const existingModal = document.getElementById('claimTypeModal');
+        if (existingModal) {
+            existingModal.remove();
+        }
+
+        // Add modal to body
+        document.body.insertAdjacentHTML('beforeend', modalHTML);
+
+        const modalEl = document.getElementById('claimTypeModal');
+        const modal = new bootstrap.Modal(modalEl);
+
+        // Handle button clicks
+        modalEl.querySelectorAll('[data-claim-type]').forEach(btn => {
+            btn.addEventListener('click', function () {
+                const claimType = this.getAttribute('data-claim-type');
+                modal.hide();
+                resolve(claimType);
+            });
+        });
+
+        // Handle modal close without selection
+        modalEl.addEventListener('hidden.bs.modal', function () {
+            modalEl.remove();
+        });
+
+        // Handle close button
+        modalEl.querySelector('.btn-close').addEventListener('click', function () {
+            modal.hide();
+            resolve(null);
+        });
+
+        modal.show();
+    });
+}
+
+/**
+ * Render the active codes table with status and claim type
+ */
+function renderActiveCodesTable() {
+    try {
+        const table = document.getElementById('activeCodesTable');
+        if (!table) return;
+
+        const tbody = table.querySelector('tbody');
+        if (!tbody) return;
+
+        tbody.innerHTML = '';
+
+        if (activeCodesData.length === 0) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="5" class="text-center text-muted py-4">
+                        <i class="bi-info-circle me-2"></i>Belum ada kode aktif
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+
+        activeCodesData.forEach(codeData => {
+            const row = document.createElement('tr');
+
+            // Determine status badge (using tooplate colors)
+            let statusBadge = '';
+            if (codeData.status === 'claimed') {
+                statusBadge = '<span class="badge bg-secondary text-white">Claimed</span>';
+            } else if (codeData.status === 'expired') {
+                statusBadge = '<span class="badge bg-dark text-white">Expired</span>';
+            } else {
+                statusBadge = '<span class="badge bg-dark text-white">Active</span>';
+            }
+
+            // Determine claim type badge (using tooplate colors)
+            let claimTypeBadge = '';
+            if (codeData.claimType === 'single-global') {
+                claimTypeBadge = '<span class="badge bg-secondary text-dark">Single Global</span>';
+            } else {
+                claimTypeBadge = '<span class="badge bg-white text-dark border">Multi</span>';
+            }
+
+
+            // Build claimed info - removed small muted text
+            let claimedInfo = '';
+            if (codeData.claimType === 'single-global' && codeData.claimedBy) {
+                const claimedUser = accountsData.find(acc => acc.id === codeData.claimedBy);
+                const username = claimedUser ? claimedUser.username : 'Unknown';
+                claimedInfo = `<br>Diklaim: ${username}`;
+            }
+
+            row.innerHTML = `
+                <td>
+                    <strong>${codeData.code}</strong>
+                    ${claimedInfo}
+                </td>
+                <td>${claimTypeBadge}</td>
+                <td>${statusBadge}</td>
+                <td><span class="badge bg-secondary rounded-pill">${codeData.points}</span></td>
+                <td>
+                    <button class="btn btn-sm btn-outline-danger" onclick="deleteCustomCode('${codeData.id}', '${codeData.code}')">
+                        <i class="bi-trash d-flex"></i>
+                    </button>
+                </td>
+            `;
+
+            tbody.appendChild(row);
+        });
+    } catch (error) {
+        console.error('Render active codes table error:', error);
+    }
+}
+
+/**
+ * Delete a custom code
+ * @param {string} codeId - Firestore document ID
+ * @param {string} codeValue - The code value for confirmation
+ */
+window.deleteCustomCode = async function (codeId, codeValue) {
+    if (!confirm(`Hapus kode "${codeValue}"?`)) {
+        return;
+    }
+
+    try {
+        await deleteDoc(doc(db, 'codes', codeId));
+        showToast('Berhasil', `Kode "${codeValue}" berhasil dihapus!`, 'success');
+    } catch (error) {
+        console.error('Error deleting code:', error);
+        showToast('Error', 'Gagal menghapus kode: ' + error.message, 'error');
+    }
+}
+
 function renderAccountsTable() {
     try {
         const tbody = document.getElementById('accountsTableBody');
@@ -1370,76 +1728,6 @@ window.addNewAccount = async function () {
     }
 }
 
-// --- Admin Features: Active Codes ---
-function renderActiveCodesTable() {
-    try {
-        const tbody = document.querySelector('#activeCodesTable tbody');
-        if (!tbody) return;
-
-        tbody.innerHTML = '';
-
-        if (activeCodesData.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="3" class="text-center text-muted py-4"><i class="bi-info-circle me-2"></i>Belum ada kode aktif</td></tr>`;
-            return;
-        }
-
-        activeCodesData.forEach(code => {
-            const row = document.createElement('tr');
-            row.innerHTML = `
-                <td><span class="badge bg-light text-dark border border-secondary px-3 py-2"><code class="fs-6">${code.code}</code></span></td>
-                <td><strong>${code.points}</strong> point</td>
-                <td><button class="btn btn-sm text-danger p-0" onclick="deleteCode('${code.id}')"><i class="bi-x-circle-fill fs-5"></i></button></td>
-            `;
-            tbody.appendChild(row);
-        });
-    } catch (error) {
-        console.error("Render active codes table error:", error);
-    }
-}
-
-window.deleteCode = async function (id) {
-    if (confirm("Hapus kode ini?")) {
-        try {
-            await deleteDoc(doc(db, "codes", id));
-        } catch (error) {
-            console.error("Error removing code:", error);
-            alert("Gagal menghapus kode: " + error.message);
-        }
-    }
-}
-
-window.generateCustomCode = async function () {
-    const eventNameInput = document.getElementById('eventNameInput');
-    const pointsInput = document.getElementById('pointsInput');
-
-    if (!eventNameInput || !pointsInput) {
-        alert("Form input tidak ditemukan!");
-        return;
-    }
-
-    const eventName = eventNameInput.value.trim();
-    const points = parseInt(pointsInput.value);
-
-    if (!eventName || !points || points <= 0) {
-        alert("Mohon lengkapi nama event dan masukkan jumlah point yang valid.");
-        return;
-    }
-
-    try {
-        await addDoc(collection(db, "codes"), {
-            code: eventName,
-            points: points,
-            createdAt: serverTimestamp()
-        });
-
-        eventNameInput.value = '';
-        pointsInput.value = '';
-        alert(`✅ Kode Berhasil Dibuat:\n${eventName}\nNilai: ${points} point`);
-    } catch (error) {
-        console.error("Error adding code:", error);
-        alert("Gagal membuat kode: " + error.message);
-    }
-}
 
 // --- Admin Features: Attendance Config ---
 window.saveAttendanceConfig = async function () {
@@ -1714,7 +2002,7 @@ window.claimAttendance = async function () {
             const historySnap = await getDocs(qCheck);
 
             if (!historySnap.empty) {
-                alert(`Anda sudah absen untuk minggu ini (${tokenData.week})!`);
+                window.showToast('Info', `Anda sudah absen untuk minggu ini (${tokenData.week})!`, 'info');
                 return;
             }
         }
@@ -1771,14 +2059,14 @@ window.claimAttendance = async function () {
             if (modal) modal.hide();
         }
 
-        alert(`Kehadiran berhasil diclaim!\n+${earnedPoints} point`);
+        window.showToast('Berhasil', `Kehadiran berhasil diclaim! +${earnedPoints} point`, 'success');
 
     } catch (error) {
         console.error('Error claiming attendance:', error);
         if (error.message.includes("index")) {
-            alert("System Error: Missing Index. Admin, please check console.");
+            window.showToast('System Error', "Missing Index. Admin, please check console.", 'error');
         } else {
-            alert('Gagal claim kehadiran: ' + error.message);
+            window.showToast('Error', 'Gagal claim kehadiran: ' + error.message, 'error');
         }
     }
 }
@@ -1975,7 +2263,7 @@ window.startAdminScanner = function () {
     const modalEl = document.getElementById('adminScanModal');
     // Ensure modal exists
     if (!modalEl) {
-        alert("Scan Modal not found in DOM");
+        window.showToast('Error', "Scan Modal not found in DOM", 'error');
         return;
     }
     const modal = new bootstrap.Modal(modalEl);
@@ -2138,30 +2426,7 @@ window.submitScanResult = async function () {
     }
 }
 
-/**
- * Helper: Show Toast Notification properly
- */
-window.showToast = function (title, message, type = 'info') {
-    const toastEl = document.getElementById('liveToast');
-    if (!toastEl) return;
-
-    const toastTitle = document.getElementById('toastTitle');
-    const toastMessage = document.getElementById('toastMessage');
-
-    toastTitle.textContent = title;
-    toastMessage.textContent = message;
-
-    // Optional: Color coding based on type
-    toastEl.classList.remove('bg-danger', 'bg-success', 'text-white');
-    if (type === 'error') {
-        toastEl.classList.add('bg-danger', 'text-white'); // Override theme for errors
-    } else if (type === 'success') {
-        toastEl.classList.add('bg-success', 'text-white');
-    }
-
-    const toast = new bootstrap.Toast(toastEl);
-    toast.show();
-}
+// showToast definition moved to navbar-auth.js for centralization
 
 
 // --- User QR Code Updater ---

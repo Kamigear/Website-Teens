@@ -60,7 +60,11 @@ export async function loadEventsTable() {
 window.toggleActionButtonFields = function () {
     const isChecked = document.getElementById('enableActionButton').checked;
     const fields = document.getElementById('actionButtonFields');
-    fields.style.display = isChecked ? 'block' : 'none';
+    if (isChecked) {
+        fields.classList.remove('d-none');
+    } else {
+        fields.classList.add('d-none');
+    }
 };
 
 // Save event (add or update)
@@ -246,9 +250,9 @@ window.deleteEvent = async function (eventId) {
 // Helper functions
 function getStatusBadge(status) {
     const badges = {
-        'upcoming': '<span class="badge" style="background-color: var(--white-color); color: var(--primary-color); border: 1px solid var(--border-color);">Akan Datang</span>',
-        'ongoing': '<span class="badge" style="background-color: var(--custom-btn-bg-color); color: var(--white-color);">Berlangsung</span>',
-        'completed': '<span class="badge" style="background-color: var(--border-color); color: var(--p-color);">Selesai</span>'
+        'upcoming': '<span class="badge badge-white-primary">Akan Datang</span>',
+        'ongoing': '<span class="badge badge-custom-white">Berlangsung</span>',
+        'completed': '<span class="badge badge-border">Selesai</span>'
     };
     return badges[status] || '<span class="badge bg-secondary">Unknown</span>';
 }
