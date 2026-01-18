@@ -1,4 +1,4 @@
-// Events Display for Public Pages
+// Events Display for Public Pages - UI/UX Improved Version
 import { db } from './firebase-config.js';
 import {
     collection,
@@ -23,8 +23,12 @@ async function loadFeaturedEvent() {
 
         const querySnapshot = await getDocs(eventsQuery);
 
+        // Remove skeleton
+        const skeleton = featuredContainer.querySelector('.featured-event-skeleton');
+        if (skeleton) skeleton.remove();
+
         if (querySnapshot.empty) {
-            featuredContainer.innerHTML = '<div class="alert alert-info">Belum ada kegiatan featured.</div>';
+            featuredContainer.innerHTML = '<div class="alert alert-info border-0 shadow-sm">Belum ada kegiatan featured.</div>';
             return;
         }
 
@@ -33,68 +37,78 @@ async function loadFeaturedEvent() {
         events.sort((a, b) => new Date(a.date) - new Date(b.date));
 
         const event = events[0];
-        // Horizontal Layout (Image Left, Content Right)
-        featuredContainer.innerHTML = `
-                <div class="row g-0 align-items-center overflow-hidden featured-event-container">
-                    <!-- Image Section (Left) - Flexible/No Stretch -->
-                    <div class="col-lg-5 d-flex align-items-center justify-content-center p-2 position-relative featured-img-col">
-                        <img src="${processImageUrl(event.image) || 'images/logo.png'}" 
-                             class="img-fluid rounded featured-img" 
-                             alt="${event.title}">
-                    </div>
-                    
-                    <!-- Content Section (Right) -->
-                    <div class="col-lg-7">
-                        <div class="card-body p-3">
-                            <h3 class="fw-bold mb-2 text-primary-theme featured-event-title-style">
-                                ${event.title}
-                            </h3>
-                            <p class="mb-3 text-p-theme featured-event-desc-style">
-                                ${event.description}
-                            </p>
-                            
 
-                            
-                            <!-- Meta Info Grid -->
-                            <div class="row g-3">
-                                <div class="col-sm-6">
-                                    <div class="d-flex align-items-center p-2 rounded-3 h-100 bg-white-theme border">
-                                        <i class="bi bi-calendar-check fs-4 me-3 text-primary-theme"></i>
-                                        <div>
-                                            <small class="d-block text-uppercase fw-bold meta-label">Tanggal</small>
-                                            <span class="fw-semibold text-primary-theme">${formatDate(event.date)}</span>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-sm-6">
-                                    <div class="d-flex align-items-center p-2 rounded-3 h-100 bg-white-theme border">
-                                        <i class="bi bi-clock fs-4 me-3 text-primary-theme"></i>
-                                        <div>
-                                            <small class="d-block text-uppercase fw-bold meta-label">Waktu</small>
-                                            <span class="fw-semibold text-primary-theme">${event.time}</span>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-12">
-                                    <div class="d-flex align-items-center p-3 rounded-3 h-100 bg-white-theme placeholder-glow border">
-                                        <i class="bi bi-geo-alt fs-4 me-3 text-primary-theme"></i>
-                                        <div>
-                                            <small class="d-block text-uppercase fw-bold meta-label">Lokasi</small>
-                                            <span class="fw-semibold text-primary-theme">${event.location}</span>
-                                        </div>
-                                    </div>
+        // Featured Event Card with improved hierarchy
+        featuredContainer.innerHTML = `
+            <div class="row g-0 align-items-stretch overflow-hidden shadow-lg rounded-4 bg-secondary-theme">
+                <!-- Image Section (Left) -->
+                <div class="col-lg-5 d-flex align-items-center justify-content-center p-3 p-lg-4 position-relative">
+                    <img src="${processImageUrl(event.image) || 'images/logo.png'}" 
+                         class="img-fluid rounded-3 shadow-sm w-100" 
+                         style="object-fit: contain; max-height: 400px;"
+                         alt="${event.title}">
+                    ${getStatusBadge(event.status, 'position-absolute top-0 end-0 m-3')}
+                </div>
+                
+                <!-- Content Section (Right) -->
+                <div class="col-lg-7 p-4 p-lg-5 d-flex flex-column">
+                    <!-- Category Badge -->
+                    <div class="mb-3">
+                        <span class="badge bg-white-theme text-primary-theme border px-3 py-2 rounded-pill fw-semibold">
+                            <i class="bi bi-tag-fill me-1"></i>${event.category || 'Event'}
+                        </span>
+                    </div>
+
+                    <!-- Title - Highest hierarchy -->
+                    <h3 class="fw-bold mb-3 text-primary-theme" style="font-size: 1.75rem; line-height: 1.3;">
+                        ${event.title}
+                    </h3>
+                    
+                    <!-- Description - Limited with line-clamp -->
+                    <p class="mb-4 text-p-theme" style="font-size: 1rem; line-height: 1.6; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;">
+                        ${event.description}
+                    </p>
+                    
+                    <!-- Meta Info Grid -->
+                    <div class="row g-3 mb-4 mt-auto">
+                        <div class="col-sm-6">
+                            <div class="d-flex align-items-center p-3 rounded-3 h-100 bg-white-theme border">
+                                <i class="bi bi-calendar-check fs-4 me-3 text-primary-theme"></i>
+                                <div>
+                                    <small class="d-block text-uppercase fw-bold text-second-white-color" style="font-size: 0.65rem;">Tanggal</small>
+                                    <span class="fw-semibold text-primary-theme">${formatDate(event.date)}</span>
                                 </div>
                             </div>
-                            
-                            <!-- Action Button (Featured) -->
-                            ${(event.actionButton && event.actionButton.enabled && event.actionButton.url) ?
-                `<div class="mt-4">
-                                <a href="${formatExternalUrl(event.actionButton.url)}" target="_blank" class="btn custom-btn shadow-sm text-uppercase fw-bold px-4 py-3 rounded-pill w-100">
-                                    ${event.actionButton.text || 'Lihat Detail'} <i class="bi-arrow-right ms-2"></i>
-                                </a>
-                            </div>` : ''}
+                        </div>
+                        <div class="col-sm-6">
+                            <div class="d-flex align-items-center p-3 rounded-3 h-100 bg-white-theme border">
+                                <i class="bi bi-clock fs-4 me-3 text-primary-theme"></i>
+                                <div>
+                                    <small class="d-block text-uppercase fw-bold text-second-white-color" style="font-size: 0.65rem;">Waktu</small>
+                                    <span class="fw-semibold text-primary-theme">${event.time}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="d-flex align-items-center p-3 rounded-3 h-100 bg-white-theme border">
+                                <i class="bi bi-geo-alt fs-4 me-3 text-primary-theme"></i>
+                                <div class="flex-grow-1">
+                                    <small class="d-block text-uppercase fw-bold text-second-white-color" style="font-size: 0.65rem;">Lokasi</small>
+                                    <span class="fw-semibold text-primary-theme">${event.location}</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
+                    
+                    <!-- Action Button (Featured) - Strong CTA -->
+                    ${(event.actionButton && event.actionButton.enabled && event.actionButton.url) ?
+                `<div class="mt-3">
+                            <a href="${formatExternalUrl(event.actionButton.url)}" target="_blank" 
+                               class="btn custom-btn shadow text-uppercase fw-bold px-4 py-3 rounded-pill w-100 d-flex align-items-center justify-content-center">
+                                ${event.actionButton.text || 'Lihat Detail'} 
+                                <i class="bi bi-arrow-right ms-2"></i>
+                            </a>
+                        </div>` : ''}
                 </div>
             </div>
         `;
@@ -112,166 +126,191 @@ async function loadRegularEvents() {
     try {
         const eventsQuery = query(
             collection(db, 'events'),
-            orderBy('date', 'asc') // Show nearest events first
+            orderBy('date', 'asc')
         );
 
         const querySnapshot = await getDocs(eventsQuery);
 
+        // Remove all skeleton items
+        const skeletons = eventsContainer.querySelectorAll('.event-skeleton-item');
+        skeletons.forEach(skeleton => skeleton.remove());
+
         if (querySnapshot.empty) {
-            eventsContainer.innerHTML = '<p class="text-center w-100">Belum ada kegiatan.</p>';
+            eventsContainer.innerHTML = '<div class="col-12"><p class="text-center text-muted">Belum ada kegiatan.</p></div>';
             return;
         }
 
-        eventsContainer.innerHTML = '';
-
         const docs = querySnapshot.docs;
+
         // Start from index 1 to skip the first event (Featured Event)
         if (docs.length <= 1) {
-            if (docs.length === 1) return; // Only featured exists
+            if (docs.length === 1) {
+                eventsContainer.innerHTML = '<div class="col-12"><p class="text-center text-muted">Tidak ada kegiatan lainnya.</p></div>';
+                return;
+            }
         }
 
         // Iterate skipping the first one
         for (let i = 1; i < docs.length; i++) {
             const doc = docs[i];
             const event = doc.data();
-            const statusBadge = getStatusBadge(event.status);
 
             const eventCard = document.createElement('div');
-            // 2 columns on mobile, 3 on tablets, 4 on desktop
-            eventCard.className = 'col-lg-3 col-6 mb-4';
+            eventCard.className = 'col-lg-3 col-md-4 col-6 mb-4';
             eventCard.innerHTML = `
-                <div class="event-card position-relative overflow-hidden h-100 shadow-sm border regular-event-card-style" 
+                <div class="card border-0 shadow-sm h-100 overflow-hidden rounded-4 position-relative" 
+                     style="cursor: pointer; transition: all 0.3s ease;"
+                     onmouseover="this.style.transform='translateY(-8px)'; this.style.boxShadow='var(--shadow-lg)';"
+                     onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='var(--shadow-sm)';"
                      onclick='showEventDetails(${JSON.stringify(event).replace(/'/g, "&#39;")})'>
                     
-                    <!-- Image Section with 4:3 ratio (Less tall than square) -->
-                    <div class="position-relative event-img-wrapper">
-                         <img src="${processImageUrl(event.image) || 'images/logo.png'}" 
-                             class="position-absolute top-0 start-0 w-100 h-100 object-fit-cover event-img-overlay event-hover-scale" 
+                    <!-- Image Section with 4:3 ratio -->
+                    <div class="position-relative overflow-hidden" style="padding-top: 75%;">
+                        <img src="${processImageUrl(event.image) || 'images/logo.png'}" 
+                             class="position-absolute top-0 start-0 w-100 h-100" 
+                             style="object-fit: cover; transition: transform 0.5s ease;"
+                             onmouseover="this.style.transform='scale(1.1)';"
+                             onmouseout="this.style.transform='scale(1)';"
                              alt="${event.title}">
                         
-                        <div class="position-absolute top-0 end-0 m-2">
-                            ${statusBadge}
-                        </div>
+                        <!-- Status Badge - Top Right -->
+                        ${getStatusBadge(event.status, 'position-absolute top-0 end-0 m-2')}
                     </div>
                     
                     <!-- Content Section -->
-                    <div class="p-3 text-center">
+                    <div class="card-body p-3 d-flex flex-column">
+                        <!-- Category Badge -->
                         <div class="mb-2">
-                             <span class="badge category-badge-small">
+                            <span class="badge bg-white-theme text-primary-theme border" style="font-size: 0.65rem;">
                                 ${event.category || 'Event'}
                             </span>
                         </div>
-                        <h6 class="fw-bold mb-2 text-truncate event-title-small">
+                        
+                        <!-- Title - Clear hierarchy -->
+                        <h6 class="fw-bold mb-2 text-primary-theme" style="font-size: 1rem; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
                             ${event.title}
                         </h6>
                         
-                        <p class="mb-2 event-desc-small">
-                            ${truncateText(event.description || '', 70)}
+                        <!-- Description - Limited -->
+                        <p class="mb-3 text-p-theme" style="font-size: 0.85rem; line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+                            ${event.description || ''}
                         </p>
                         
-                        <div class="d-flex align-items-center justify-content-center mb-1 event-meta-small">
-                             <i class="bi bi-calendar-event me-2 icon-primary"></i>
-                             ${formatDateShort(event.date)}
-                        </div>
-                        <div class="d-flex align-items-center justify-content-center event-meta-small">
-                             <i class="bi bi-geo-alt me-2 icon-primary"></i>
-                             <span class="text-truncate">${truncateText(event.location, 18)}</span>
+                        <!-- Meta Info -->
+                        <div class="mt-auto">
+                            <div class="d-flex align-items-center mb-2 text-p-theme" style="font-size: 0.8rem;">
+                                <i class="bi bi-calendar-event me-2 text-primary-theme"></i>
+                                <span>${formatDateShort(event.date)}</span>
+                            </div>
+                            <div class="d-flex align-items-center text-p-theme" style="font-size: 0.8rem;">
+                                <i class="bi bi-geo-alt me-2 text-primary-theme"></i>
+                                <span class="text-truncate">${truncateText(event.location, 25)}</span>
+                            </div>
                         </div>
 
-                        <!-- Action Button -->
+                        <!-- Action Button - Clear CTA -->
                         ${(event.actionButton && event.actionButton.enabled && event.actionButton.url) ?
                     `<div class="mt-3">
-                            <a href="${formatExternalUrl(event.actionButton.url)}" target="_blank" class="btn custom-btn btn-sm w-100" onclick="event.stopPropagation();">
-                                ${event.actionButton.text || 'Lihat Detail'}
-                            </a>
-                        </div>` : ''}
+                                <a href="${formatExternalUrl(event.actionButton.url)}" target="_blank" 
+                                   class="btn custom-btn btn-sm w-100 fw-semibold" 
+                                   onclick="event.stopPropagation();">
+                                    ${event.actionButton.text || 'Lihat Detail'}
+                                </a>
+                            </div>` : ''}
                     </div>
                 </div>
             `;
             eventsContainer.appendChild(eventCard);
         }
 
+        // Create modal if not exists
         if (!document.getElementById('eventDetailModal')) {
-            const modalHTML = `
-                <div class="modal fade" id="eventDetailModal" tabindex="-1" aria-hidden="true" style="z-index: 10000;">
-                    <div class="modal-dialog modal-dialog-centered modal-lg">
-                        <div class="modal-content border-0 shadow-lg event-detail-content">
-                            
-                            <!-- Close Button (Custom) -->
-                            <button type="button" class="position-absolute top-0 end-0 m-3 border-0 shadow-lg rounded-circle d-flex align-items-center justify-content-center event-details-close-btn" 
-                                    data-bs-dismiss="modal" aria-label="Close">
-                                <i class="bi bi-x-lg"></i>
-                            </button>
-
-                            <div class="modal-body event-detail-body">
-                                <div class="d-flex flex-column flex-lg-row h-100 w-100">
-                                    <!-- Left Column: Content (Scrollable) -->
-                                    <div class="col-lg-7 p-4 p-lg-5 order-2 order-lg-1 flex-grow-1 event-detail-scroll-area">
-                                        <div class="mb-3 pt-3">
-                                            <span id="modalEventCategory" class="badge px-3 py-2 rounded-pill mb-2 badge-white-primary">Category</span>
-                                            <div id="modalEventStatus" class="d-inline-block ms-2"></div>
-                                        </div>
-                                        
-                                        <h3 id="modalEventTitle" class="fw-bold mb-4 text-primary-theme modal-event-title">Event Title</h3>
-                                        
-                                        <!-- Meta Grid -->
-                                        <div class="row g-3 mb-4">
-                                            <div class="col-sm-6">
-                                                <div class="d-flex align-items-center text-p-theme">
-                                                    <i class="bi bi-calendar-check fs-5 me-3 text-primary-theme"></i>
-                                                    <div>
-                                                        <small class="text-uppercase fw-bold d-block modal-meta-label">Tanggal</small>
-                                                        <span id="modalEventDate" class="fw-bold text-primary-theme">Date</span>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="col-sm-6">
-                                                 <div class="d-flex align-items-center text-p-theme">
-                                                    <i class="bi bi-clock fs-5 me-3 text-primary-theme"></i>
-                                                    <div>
-                                                        <small class="text-uppercase fw-bold d-block modal-meta-label">Waktu</small>
-                                                        <span id="modalEventTime" class="fw-bold text-primary-theme">Time</span>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="col-12">
-                                                 <div class="d-flex align-items-center text-p-theme">
-                                                    <i class="bi bi-geo-alt fs-5 me-3 text-primary-theme"></i>
-                                                    <div>
-                                                        <small class="text-uppercase fw-bold d-block modal-meta-label">Lokasi</small>
-                                                        <span id="modalEventLocation" class="fw-bold text-primary-theme">Location</span>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <hr class="my-2" style="border-color: var(--border-color);">
-
-                                        <div class="mt-3">
-                                            <h6 class="fw-bold mb-2">Deskripsi</h6>
-                                            <p id="modalEventDesc" class="small text-p-theme modal-desc">Description</p>
-                                        </div>
-                                        
-                                        <!-- Dynamic Action Button -->
-                                        <div id="modalActionButtonContainer" class="mt-4"></div>
-                                    </div>
-
-                                    <!-- Right Column: Image (Sticky/Fit) -->
-                                    <div class="col-lg-5 d-flex align-items-center justify-content-center p-4 order-1 order-lg-2 bg-secondary-theme modal-img-container">
-                                        <img id="modalEventImage" src="" class="img-fluid rounded shadow-sm modal-img" alt="Event Image">
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>`;
-            document.body.insertAdjacentHTML('beforeend', modalHTML);
+            createEventModal();
         }
 
     } catch (error) {
         console.error('Error loading regular events:', error);
-        if (eventsContainer) eventsContainer.innerHTML = '<p class="text-center text-danger">Error loading events</p>';
+        if (eventsContainer) eventsContainer.innerHTML = '<div class="col-12"><p class="text-center text-danger">Error loading events</p></div>';
     }
+}
+
+// Create Event Detail Modal
+function createEventModal() {
+    const modalHTML = `
+        <div class="modal fade" id="eventDetailModal" tabindex="-1" aria-hidden="true" style="z-index: 10000;">
+            <div class="modal-dialog modal-dialog-centered modal-lg">
+                <div class="modal-content border-0 shadow-2xl rounded-4 overflow-hidden">
+                    
+                    <!-- Close Button -->
+                    <button type="button" class="position-absolute top-0 end-0 m-3 border-0 shadow-lg rounded-circle d-flex align-items-center justify-content-center bg-primary-theme text-white-theme" 
+                            style="width: 40px; height: 40px; z-index: 9999;"
+                            data-bs-dismiss="modal" aria-label="Close">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
+
+                    <div class="modal-body p-0">
+                        <div class="row g-0">
+                            <!-- Left Column: Content -->
+                            <div class="col-lg-7 p-4 p-lg-5 order-2 order-lg-1">
+                                <div class="mb-3 pt-3">
+                                    <span id="modalEventCategory" class="badge bg-white-theme text-primary-theme border px-3 py-2 rounded-pill fw-semibold">Category</span>
+                                    <div id="modalEventStatus" class="d-inline-block ms-2"></div>
+                                </div>
+                                
+                                <h3 id="modalEventTitle" class="fw-bold mb-4 text-primary-theme" style="font-size: 1.75rem;">Event Title</h3>
+                                
+                                <!-- Meta Grid -->
+                                <div class="row g-3 mb-4">
+                                    <div class="col-sm-6">
+                                        <div class="d-flex align-items-center text-p-theme">
+                                            <i class="bi bi-calendar-check fs-5 me-3 text-primary-theme"></i>
+                                            <div>
+                                                <small class="text-uppercase fw-bold d-block text-second-white-color" style="font-size: 0.65rem;">Tanggal</small>
+                                                <span id="modalEventDate" class="fw-bold text-primary-theme">Date</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-6">
+                                        <div class="d-flex align-items-center text-p-theme">
+                                            <i class="bi bi-clock fs-5 me-3 text-primary-theme"></i>
+                                            <div>
+                                                <small class="text-uppercase fw-bold d-block text-second-white-color" style="font-size: 0.65rem;">Waktu</small>
+                                                <span id="modalEventTime" class="fw-bold text-primary-theme">Time</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-12">
+                                        <div class="d-flex align-items-center text-p-theme">
+                                            <i class="bi bi-geo-alt fs-5 me-3 text-primary-theme"></i>
+                                            <div>
+                                                <small class="text-uppercase fw-bold d-block text-second-white-color" style="font-size: 0.65rem;">Lokasi</small>
+                                                <span id="modalEventLocation" class="fw-bold text-primary-theme">Location</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <hr class="my-4 border-color">
+
+                                <div class="mt-3">
+                                    <h6 class="fw-bold mb-3">Deskripsi</h6>
+                                    <p id="modalEventDesc" class="text-p-theme" style="font-size: 0.95rem; line-height: 1.6; white-space: pre-line;">Description</p>
+                                </div>
+                                
+                                <!-- Dynamic Action Button -->
+                                <div id="modalActionButtonContainer" class="mt-4"></div>
+                            </div>
+
+                            <!-- Right Column: Image -->
+                            <div class="col-lg-5 d-flex align-items-center justify-content-center p-4 order-1 order-lg-2 bg-secondary-theme">
+                                <img id="modalEventImage" src="" class="img-fluid rounded-3 shadow-sm" style="max-height: 400px; object-fit: contain;" alt="Event Image">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>`;
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
 }
 
 // Global function to show event details
@@ -280,7 +319,6 @@ window.showEventDetails = function (event) {
     document.getElementById('modalEventTitle').textContent = event.title;
     document.getElementById('modalEventDesc').textContent = event.description;
 
-    // Format date properly
     const dateObj = new Date(event.date);
     const dateStr = dateObj.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
     document.getElementById('modalEventDate').textContent = dateStr;
@@ -295,8 +333,9 @@ window.showEventDetails = function (event) {
     if (btnContainer) {
         if (event.actionButton && event.actionButton.enabled && event.actionButton.url) {
             btnContainer.innerHTML = `
-                <a href="${formatExternalUrl(event.actionButton.url)}" target="_blank" class="custom-btn btn w-100 shadow fw-bold text-uppercase py-3 rounded-pill action-btn-custom">
-                    ${event.actionButton.text || 'Lihat Detail'} <i class="bi-arrow-right ms-2"></i>
+                <a href="${formatExternalUrl(event.actionButton.url)}" target="_blank" 
+                   class="btn custom-btn w-100 shadow fw-bold text-uppercase py-3 rounded-pill">
+                    ${event.actionButton.text || 'Lihat Detail'} <i class="bi bi-arrow-right ms-2"></i>
                 </a>
             `;
             btnContainer.style.display = 'block';
@@ -325,36 +364,64 @@ export async function loadBriefEvents() {
 
         const querySnapshot = await getDocs(eventsQuery);
 
+        // Remove all skeleton cards
+        const skeletons = briefEventsContainer.querySelectorAll('.brief-event-skeleton');
+        skeletons.forEach(skeleton => skeleton.remove());
+
         if (querySnapshot.empty) {
-            briefEventsContainer.innerHTML = '<p class="text-center text-muted">Belum ada kegiatan mendatang</p>';
+            briefEventsContainer.innerHTML = '<div class="col-12"><p class="text-center text-muted">Belum ada kegiatan mendatang</p></div>';
             return;
         }
 
-        briefEventsContainer.innerHTML = '';
-
         querySnapshot.forEach((doc) => {
             const event = doc.data();
-            const statusBadge = getStatusBadge(event.status);
 
             const eventCard = document.createElement('div');
-            eventCard.className = 'col-lg-4 col-12 mb-4';
+            eventCard.className = 'col-lg-4 col-md-6 col-12';
             eventCard.innerHTML = `
-                <div class="brief-event-card custom-border-radius shadow-sm overflow-hidden h-100 clickable-card" 
+                <div class="card border-0 shadow-sm h-100 rounded-4 overflow-hidden position-relative" 
+                     style="cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);"
+                     onmouseover="this.style.transform='translateY(-8px)'; this.style.boxShadow='var(--shadow-lg)';"
+                     onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='var(--shadow-sm)';"
                      onclick="window.location.href='events.html'">
-                    <div class="brief-event-image position-relative brief-img-wrapper">
+                    
+                    <!-- Image with 16:9 Aspect Ratio -->
+                    <div class="position-relative overflow-hidden bg-secondary-theme" style="aspect-ratio: 16/9;">
                         <img src="${processImageUrl(event.image) || 'images/logo.png'}" 
-                             class="position-absolute top-0 start-0 w-100 h-100 object-fit-cover"
+                             class="position-absolute top-0 start-0 w-100 h-100"
+                             style="object-fit: cover; transition: transform 0.5s ease;"
+                             onmouseover="this.style.transform='scale(1.05)';"
+                             onmouseout="this.style.transform='scale(1)';"
                              alt="${event.title}">
-                        <div class="position-absolute top-0 end-0 m-2">
-                            ${statusBadge}
-                        </div>
+                        
+                        <!-- Status Badge - Top Right -->
+                        ${getStatusBadge(event.status, 'position-absolute top-0 end-0 m-3')}
                     </div>
-                    <div class="brief-event-body p-3">
-                        <h6 class="brief-event-title fw-bold mb-2 brief-title">${event.title}</h6>
-                        <p class="brief-event-desc text-muted mb-2 brief-desc">${truncateText(event.description, 70)}</p>
-                        <div class="brief-event-meta d-flex align-items-center text-muted brief-meta">
-                            <i class="bi bi-calendar-event me-1 text-primary"></i>
-                            <span>${formatDateShort(event.date)}</span>
+                    
+                    <!-- Card Body with Consistent Spacing -->
+                    <div class="card-body p-4 d-flex flex-column">
+                        <!-- Title - Strong Hierarchy -->
+                        <h5 class="fw-bold mb-3 text-primary-theme" style="font-size: 1.15rem; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+                            ${event.title}
+                        </h5>
+                        
+                        <!-- Description - Softer, Limited -->
+                        <p class="text-muted mb-3" style="font-size: 0.9rem; line-height: 1.6; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+                            ${event.description}
+                        </p>
+                        
+                        <!-- Metadata - Most Subtle -->
+                        <div class="mt-auto d-flex align-items-center gap-3">
+                            <div class="d-flex align-items-center text-second-white-color" style="font-size: 0.85rem;">
+                                <i class="bi bi-calendar-event me-2 text-primary-theme"></i>
+                                <span>${formatDateShort(event.date)}</span>
+                            </div>
+                            ${event.location ? `
+                                <div class="d-flex align-items-center text-second-white-color" style="font-size: 0.85rem;">
+                                    <i class="bi bi-geo-alt me-1 text-primary-theme"></i>
+                                    <span class="text-truncate" style="max-width: 120px;">${event.location}</span>
+                                </div>
+                            ` : ''}
                         </div>
                     </div>
                 </div>
@@ -363,16 +430,21 @@ export async function loadBriefEvents() {
         });
     } catch (error) {
         console.error('Error loading brief events:', error);
-        briefEventsContainer.innerHTML = '<p class="text-center text-danger">Error loading events</p>';
+
+        // Remove skeletons on error
+        const skeletons = briefEventsContainer.querySelectorAll('.brief-event-skeleton');
+        skeletons.forEach(skeleton => skeleton.remove());
+
+        briefEventsContainer.innerHTML = '<div class="col-12"><p class="text-center text-danger">Error loading events</p></div>';
     }
 }
 
 // Helper functions
-function getStatusBadge(status) {
+function getStatusBadge(status, additionalClasses = '') {
     const badges = {
-        'upcoming': '<span class="badge shadow-sm badge-white-primary">Akan Datang</span>',
-        'ongoing': '<span class="badge shadow-sm badge-custom-white">Berlangsung</span>',
-        'completed': '<span class="badge shadow-sm badge-border">Selesai</span>'
+        'upcoming': `<span class="badge shadow-sm bg-white-theme text-primary-theme border fw-semibold ${additionalClasses}">Akan Datang</span>`,
+        'ongoing': `<span class="badge shadow-sm text-white-theme fw-semibold ${additionalClasses}" style="background-color: var(--custom-btn-bg-color);">Berlangsung</span>`,
+        'completed': `<span class="badge shadow-sm bg-secondary-theme text-p-theme border fw-semibold ${additionalClasses}">Selesai</span>`
     };
     return badges[status] || '';
 }
@@ -404,29 +476,23 @@ function truncateText(text, maxLength) {
 
 function formatExternalUrl(url) {
     if (!url) return '#';
-    // If it already has a protocol or is protocol-relative, return as-is
     if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('mailto:') || url.startsWith('tel:') || url.startsWith('//')) {
         return url;
     }
-    // If it contains a dot (e.g., google.com) and isn't a relative path, prepend https://
     if (url.includes('.') && !url.startsWith('/') && !url.startsWith('#')) {
         return 'https://' + url;
     }
     return url;
 }
 
-// Helper function to process image URLs
 function processImageUrl(url) {
     if (!url) return 'images/logo.png';
 
-    // Check for known broken paths or default placeholders that don't exist
     if (url.includes('images/events/') || url.includes('images/default-event.jpg')) {
         return 'images/logo.png';
     }
 
-    // Check if it's a Google Drive viewer link
     if (url.includes('drive.google.com') && url.includes('/file/d/')) {
-        // extract ID
         const match = url.match(/\/file\/d\/([^\/]+)/);
         if (match && match[1]) {
             return `https://drive.google.com/uc?export=view&id=${match[1]}`;
@@ -437,7 +503,6 @@ function processImageUrl(url) {
 
 // Initialize based on page
 document.addEventListener('DOMContentLoaded', () => {
-    // Check which page we're on and load appropriate events
     if (document.querySelector('.featured-event-card')) {
         loadFeaturedEvent();
     }

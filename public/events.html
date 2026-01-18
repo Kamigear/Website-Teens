@@ -36,7 +36,7 @@
             </a>
 
 
-            <div class="visible offcanvas offcanvas-end custom-offcanvas show" tabindex="-1" id="offcanvasNavbar"
+            <div class="offcanvas offcanvas-end custom-offcanvas" tabindex="-1" id="offcanvasNavbar"
                 aria-labelledby="offcanvasNavbarLabel" aria-modal="true" role="dialog">
 
                 <div class="offcanvas-header">
@@ -126,31 +126,118 @@
 
     <section class="full-events-section section-padding">
         <div class="container">
-            <div class="row">
-                <div class="col-lg-12 col-12 text-center mb-5">
-                    <h2 class="mb-3">Kegiatan Teens</h2>
-                    <p class="text-muted">Bergabunglah dalam kegiatan spiritual dan sosial yang bermakna bersama Teens
-                    </p>
+            <!-- Page Header -->
+            <div class="row mb-5">
+                <div class="col-12 text-center">
+                    <h2 class="fw-bold mb-3">Kegiatan Teens</h2>
+                    <p class="text-muted mb-0">Bergabunglah dalam kegiatan spiritual dan sosial yang bermakna bersama
+                        Teens</p>
                 </div>
             </div>
 
-            <!-- Featured Event -->
+            <!-- Featured Event Section -->
             <div class="row mb-5">
-                <div class="col-lg-12">
-                    <div class="featured-event-card">
-                        <div class="spinner-border text-primary my-5 mx-auto d-block" role="status">
-                            <span class="visually-hidden">Loading...</span>
+                <div class="col-12">
+                    <div class="featured-event-card" id="featuredEventCard">
+                        <!-- Skeleton Loading for Featured Event -->
+                        <div class="featured-event-skeleton">
+                            <div class="row g-0 align-items-stretch">
+                                <div class="col-lg-5 p-4">
+                                    <div class="placeholder-glow">
+                                        <div class="placeholder w-100 rounded" style="height: 280px;"></div>
+                                    </div>
+                                </div>
+                                <div class="col-lg-7 p-4">
+                                    <div class="placeholder-glow">
+                                        <div class="placeholder col-8 mb-3"></div>
+                                        <div class="placeholder col-12 mb-2"></div>
+                                        <div class="placeholder col-12 mb-2"></div>
+                                        <div class="placeholder col-10 mb-4"></div>
+                                        <div class="row g-3 mb-4">
+                                            <div class="col-sm-6">
+                                                <div class="placeholder col-12" style="height: 60px;"></div>
+                                            </div>
+                                            <div class="col-sm-6">
+                                                <div class="placeholder col-12" style="height: 60px;"></div>
+                                            </div>
+                                            <div class="col-12">
+                                                <div class="placeholder col-12" style="height: 60px;"></div>
+                                            </div>
+                                        </div>
+                                        <div class="placeholder col-12" style="height: 50px;"></div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Regular Events -->
-            <div class="row justify-content-center" id="regularEventsContainer">
-                <!-- Loading Spinner -->
-                <div class="col-12 text-center py-5">
-                    <div class="spinner-border text-primary" role="status">
-                        <span class="visually-hidden">Loading...</span>
+            <!-- Regular Events Section -->
+            <div class="row" id="regularEventsContainer">
+                <!-- Skeleton Loading for Regular Events -->
+                <div class="col-lg-3 col-6 mb-4 event-skeleton-item">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="placeholder-glow">
+                            <div class="placeholder w-100" style="height: 200px;"></div>
+                        </div>
+                        <div class="card-body">
+                            <div class="placeholder-glow">
+                                <div class="placeholder col-6 mb-2"></div>
+                                <div class="placeholder col-12 mb-2"></div>
+                                <div class="placeholder col-10 mb-3"></div>
+                                <div class="placeholder col-8 mb-2"></div>
+                                <div class="placeholder col-9"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-6 mb-4 event-skeleton-item">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="placeholder-glow">
+                            <div class="placeholder w-100" style="height: 200px;"></div>
+                        </div>
+                        <div class="card-body">
+                            <div class="placeholder-glow">
+                                <div class="placeholder col-6 mb-2"></div>
+                                <div class="placeholder col-12 mb-2"></div>
+                                <div class="placeholder col-10 mb-3"></div>
+                                <div class="placeholder col-8 mb-2"></div>
+                                <div class="placeholder col-9"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-6 mb-4 event-skeleton-item">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="placeholder-glow">
+                            <div class="placeholder w-100" style="height: 200px;"></div>
+                        </div>
+                        <div class="card-body">
+                            <div class="placeholder-glow">
+                                <div class="placeholder col-6 mb-2"></div>
+                                <div class="placeholder col-12 mb-2"></div>
+                                <div class="placeholder col-10 mb-3"></div>
+                                <div class="placeholder col-8 mb-2"></div>
+                                <div class="placeholder col-9"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-6 mb-4 event-skeleton-item">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="placeholder-glow">
+                            <div class="placeholder w-100" style="height: 200px;"></div>
+                        </div>
+                        <div class="card-body">
+                            <div class="placeholder-glow">
+                                <div class="placeholder col-6 mb-2"></div>
+                                <div class="placeholder col-12 mb-2"></div>
+                                <div class="placeholder col-10 mb-3"></div>
+                                <div class="placeholder col-8 mb-2"></div>
+                                <div class="placeholder col-9"></div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
