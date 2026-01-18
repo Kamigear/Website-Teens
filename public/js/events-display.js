@@ -46,7 +46,8 @@ async function loadFeaturedEvent() {
                     <img src="${processImageUrl(event.image) || 'images/logo.png'}" 
                          class="img-fluid rounded-3 shadow-sm w-100" 
                          style="object-fit: contain; max-height: 400px;"
-                         alt="${event.title}">
+                         alt="${event.title}"
+                         loading="lazy">
                     ${getStatusBadge(event.status, 'position-absolute top-0 end-0 m-3')}
                 </div>
                 
@@ -171,7 +172,8 @@ async function loadRegularEvents() {
                              style="object-fit: cover; transition: transform 0.5s ease;"
                              onmouseover="this.style.transform='scale(1.1)';"
                              onmouseout="this.style.transform='scale(1)';"
-                             alt="${event.title}">
+                             alt="${event.title}"
+                             loading="lazy">
                         
                         <!-- Status Badge - Top Right -->
                         ${getStatusBadge(event.status, 'position-absolute top-0 end-0 m-2')}
@@ -303,7 +305,7 @@ function createEventModal() {
 
                             <!-- Right Column: Image -->
                             <div class="col-lg-5 d-flex align-items-center justify-content-center p-4 order-1 order-lg-2 bg-secondary-theme">
-                                <img id="modalEventImage" src="" class="img-fluid rounded-3 shadow-sm" style="max-height: 400px; object-fit: contain;" alt="Event Image">
+                                <img id="modalEventImage" src="" class="img-fluid rounded-3 shadow-sm" style="max-height: 400px; object-fit: contain;" alt="Event Image" loading="lazy">
                             </div>
                         </div>
                     </div>
@@ -392,7 +394,8 @@ export async function loadBriefEvents() {
                              style="object-fit: cover; transition: transform 0.5s ease;"
                              onmouseover="this.style.transform='scale(1.05)';"
                              onmouseout="this.style.transform='scale(1)';"
-                             alt="${event.title}">
+                             alt="${event.title}"
+                             loading="lazy">
                         
                         <!-- Status Badge - Top Right -->
                         ${getStatusBadge(event.status, 'position-absolute top-0 end-0 m-3')}
