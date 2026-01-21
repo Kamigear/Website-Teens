@@ -46,6 +46,36 @@ let userChartInstance = null;
 let tokenGeneratorInterval = null;
 let currentWeeklyToken = null;
 
+// --- Loading State ---
+let isInitialLoad = true;
+let loadStatus = {
+    user: false,
+    history: false
+};
+
+function checkInitialLoadComplete() {
+    if (isInitialLoad && loadStatus.user && loadStatus.history) {
+        isInitialLoad = false;
+        // Small delay to ensure smooth transition and avoid flickering
+        setTimeout(() => {
+            toggleSkeleton(false);
+        }, 500);
+    }
+}
+
+function toggleSkeleton(show) {
+    const skeletons = document.querySelectorAll('.card-skeleton');
+    const contents = document.querySelectorAll('.card-content');
+
+    if (show) {
+        skeletons.forEach(el => el.classList.remove('hidden'));
+        contents.forEach(el => el.classList.remove('visible'));
+    } else {
+        skeletons.forEach(el => el.classList.add('hidden'));
+        contents.forEach(el => el.classList.add('visible'));
+    }
+}
+
 // --- Data State (Synced with Firestore) ---
 let accountsData = [];
 let activeCodesData = [];
@@ -65,6 +95,9 @@ try {
 onAuthStateChanged(auth, async (user) => {
     if (user) {
         try {
+            // Initial Skeleton Show
+            toggleSkeleton(true);
+
             const userDocRef = doc(db, 'users', user.uid);
             const userDocSnap = await getDoc(userDocRef);
 
@@ -96,7 +129,9 @@ onAuthStateChanged(auth, async (user) => {
 function initDashboard() {
     try {
         updateViewMode();
-        updateUserInfo();
+        // user info update moved to listener for consistency, 
+        // but we can do a preliminary one here if needed.
+        // updateUserInfo(); 
         initCharts();
         setupFirestoreListeners();
         setupEventListeners();
@@ -124,6 +159,10 @@ function updateUserInfo() {
         });
 
         checkEmailStatus();
+
+        // Mark user data as loaded
+        loadStatus.user = true;
+        checkInitialLoadComplete();
     } catch (error) {
         console.error("Update user info error:", error);
     }
@@ -135,14 +174,15 @@ function checkEmailStatus() {
         const notLinkedEl = document.getElementById('emailNotLinked');
         const linkedEl = document.getElementById('emailLinked');
         const pendingEl = document.getElementById('emailVerificationPending');
-        const loadingEl = document.getElementById('emailLoading'); // Skeleton
+        // Old skeleton removed
+        // const loadingEl = document.getElementById('emailLoading'); 
         const linkedEmailDisplay = document.getElementById('linkedEmailDisplay');
         const pendingEmailDisplay = document.getElementById('pendingEmailDisplay');
 
         if (!notLinkedEl || !linkedEl || !pendingEl) return;
 
-        // Hide skeleton
-        if (loadingEl) loadingEl.style.display = 'none';
+        // Hide skeleton (Old logic removed, handled by card skeleton now)
+        // if (loadingEl) loadingEl.style.display = 'none';
 
         const isTempEmail = currentUser.email && currentUser.email.endsWith('@temp.vdrteens.local');
 
@@ -399,6 +439,10 @@ function setupFirestoreListeners() {
 
             renderPointHistory();
             updateChartWithRealData();
+
+            // Mark history data as loaded
+            loadStatus.history = true;
+            checkInitialLoadComplete();
         });
 
         // 3. Admin Listeners

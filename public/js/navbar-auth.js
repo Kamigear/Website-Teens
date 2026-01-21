@@ -81,30 +81,32 @@ onAuthStateChanged(auth, async (user) => {
                 username = userDocSnap.data().username || user.email;
             }
 
-            // Update DESKTOP navbar
+            // Update DESKTOP navbar - Dropdown "Akun Saya"
             if (desktopAuthContainer) {
                 desktopAuthContainer.innerHTML = `
                     <div class="dropdown">
-                        <a class="custom-btn btn mt-2 mt-lg-0 dropdown-toggle" href="#" role="button" id="navUserDropdown"
+                        <a class="custom-btn btn mt-2 mt-xl-0 dropdown-toggle" href="#" role="button" id="navUserDropdown"
                             data-bs-toggle="dropdown" aria-expanded="false">
-                            <i class="bi-grid me-2"></i>Dashboard
+                            <i class="bi-person me-2"></i>Akun Saya
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navUserDropdown">
-                            <li class="px-3 py-2">
-                                <small class="text-muted">Masuk sebagai</small>
-                                <div class="fw-semibold">${username}</div>
+                            <li>
+                                <a class="dropdown-item" href="dashboard.html">
+                                    <i class="bi-grid me-2"></i>Dashboard - ${username}
+                                </a>
                             </li>
                             <li><hr class="dropdown-divider"></li>
-                             <li><a class="dropdown-item" href="dashboard.html">
-                                <i class="bi-grid me-2"></i>Dashboard
-                            </a></li>
-                            <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#changePasswordModal">
-                                <i class="bi-key me-2"></i>Ganti Password
-                            </a></li>
+                            <li>
+                                <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#changePasswordModal">
+                                    <i class="bi-key me-2"></i>Ganti Password
+                                </a>
+                            </li>
                             <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item text-danger" href="#" id="navLogoutBtn">
-                                <i class="bi-box-arrow-right me-2"></i>Keluar
-                            </a></li>
+                            <li>
+                                <a class="dropdown-item text-danger" href="#" id="navLogoutBtn">
+                                    <i class="bi-box-arrow-right me-2"></i>Logout
+                                </a>
+                            </li>
                         </ul>
                     </div>
                 `;
@@ -117,6 +119,7 @@ onAuthStateChanged(auth, async (user) => {
                         if (confirm('Apakah Anda yakin ingin logout?')) {
                             try {
                                 await signOut(auth);
+                                // Redirect to index after logout
                                 window.location.href = 'index.html';
                             } catch (error) {
                                 console.error('Logout error:', error);
@@ -165,21 +168,17 @@ onAuthStateChanged(auth, async (user) => {
             console.error('Error loading user data:', error);
         }
     } else {
-        // User is not logged in - navbar shows default login button
-        // Reset to default if needed
-        if (desktopAuthContainer && !desktopAuthContainer.querySelector('a[href="login.html"]')) {
+        // User is NOT logged in - Show simple Login button (no dropdown)
+        if (desktopAuthContainer) {
             desktopAuthContainer.innerHTML = `
-                <a class="custom-btn btn mt-2 mt-lg-0" href="login.html">Login</a>
+                <a class="custom-btn btn mt-2 mt-xl-0" href="login.html">Login</a>
             `;
         }
 
-        if (mobileAuthSection && !mobileAuthSection.querySelector('a[href="login.html"]')) {
+        if (mobileAuthSection) {
             mobileAuthSection.innerHTML = `
                 <div class="d-grid gap-3">
-                    <a class="btn btn-dark rounded-pill py-3 fw-semibold" href="dashboard.html">
-                        <i class="bi-grid me-2"></i>Dashboard
-                    </a>
-                    <a class="btn custom-btn" href="login.html">Login</a>
+                    <a class="btn custom-btn rounded-pill py-3 fw-semibold" href="login.html">Login</a>
                 </div>
             `;
         }

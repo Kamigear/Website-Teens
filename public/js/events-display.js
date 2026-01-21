@@ -38,11 +38,11 @@ async function loadFeaturedEvent() {
 
         const event = events[0];
 
-        // Featured Event Card with improved hierarchy
+        // Featured Event Card with improved hierarchy and content-fade-in
         featuredContainer.innerHTML = `
-            <div class="row g-0 align-items-stretch overflow-hidden shadow-lg rounded-4 bg-secondary-theme">
+            <div class="row g-0 align-items-stretch overflow-hidden shadow-lg rounded-4 bg-main-card transition-hover content-fade-in">
                 <!-- Image Section (Left) -->
-                <div class="col-lg-5 d-flex align-items-center justify-content-center p-3 p-lg-4 position-relative">
+                <div class="col-lg-5 d-flex align-items-center justify-content-center p-3 p-lg-4 position-relative bg-main-card">
                     <img src="${processImageUrl(event.image) || 'images/logo.png'}" 
                          class="img-fluid rounded-3 shadow-sm w-100" 
                          style="object-fit: contain; max-height: 400px;"
@@ -51,11 +51,11 @@ async function loadFeaturedEvent() {
                     ${getStatusBadge(event.status, 'position-absolute top-0 end-0 m-3')}
                 </div>
                 
-                <!-- Content Section (Right) -->
-                <div class="col-lg-7 p-4 p-lg-5 d-flex flex-column">
+                <!-- Content Section (Right) - Secondary BG -->
+                <div class="col-lg-7 p-4 p-lg-5 d-flex flex-column bg-secondary-theme">
                     <!-- Category Badge -->
                     <div class="mb-3">
-                        <span class="badge bg-white-theme text-primary-theme border px-3 py-2 rounded-pill fw-semibold">
+                        <span class="badge badge-default border-theme px-3 py-2 rounded-pill fw-semibold">
                             <i class="bi bi-tag-fill me-1"></i>${event.category || 'Event'}
                         </span>
                     </div>
@@ -73,28 +73,28 @@ async function loadFeaturedEvent() {
                     <!-- Meta Info Grid -->
                     <div class="row g-3 mb-4 mt-auto">
                         <div class="col-sm-6">
-                            <div class="d-flex align-items-center p-3 rounded-3 h-100 bg-white-theme border">
+                            <div class="d-flex align-items-center p-3 rounded-3 h-100 bg-main-card border-theme">
                                 <i class="bi bi-calendar-check fs-4 me-3 text-primary-theme"></i>
                                 <div>
-                                    <small class="d-block text-uppercase fw-bold text-second-white-color" style="font-size: 0.65rem;">Tanggal</small>
+                                    <small class="d-block text-uppercase fw-bold text-meta-theme" style="font-size: 0.65rem;">Tanggal</small>
                                     <span class="fw-semibold text-primary-theme">${formatDate(event.date)}</span>
                                 </div>
                             </div>
                         </div>
                         <div class="col-sm-6">
-                            <div class="d-flex align-items-center p-3 rounded-3 h-100 bg-white-theme border">
+                            <div class="d-flex align-items-center p-3 rounded-3 h-100 bg-main-card border-theme">
                                 <i class="bi bi-clock fs-4 me-3 text-primary-theme"></i>
                                 <div>
-                                    <small class="d-block text-uppercase fw-bold text-second-white-color" style="font-size: 0.65rem;">Waktu</small>
+                                    <small class="d-block text-uppercase fw-bold text-meta-theme" style="font-size: 0.65rem;">Waktu</small>
                                     <span class="fw-semibold text-primary-theme">${event.time}</span>
                                 </div>
                             </div>
                         </div>
                         <div class="col-12">
-                            <div class="d-flex align-items-center p-3 rounded-3 h-100 bg-white-theme border">
+                            <div class="d-flex align-items-center p-3 rounded-3 h-100 bg-main-card border-theme">
                                 <i class="bi bi-geo-alt fs-4 me-3 text-primary-theme"></i>
                                 <div class="flex-grow-1">
-                                    <small class="d-block text-uppercase fw-bold text-second-white-color" style="font-size: 0.65rem;">Lokasi</small>
+                                    <small class="d-block text-uppercase fw-bold text-meta-theme" style="font-size: 0.65rem;">Lokasi</small>
                                     <span class="fw-semibold text-primary-theme">${event.location}</span>
                                 </div>
                             </div>
@@ -105,7 +105,7 @@ async function loadFeaturedEvent() {
                     ${(event.actionButton && event.actionButton.enabled && event.actionButton.url) ?
                 `<div class="mt-3">
                             <a href="${formatExternalUrl(event.actionButton.url)}" target="_blank" 
-                               class="btn custom-btn shadow text-uppercase fw-bold px-4 py-3 rounded-pill w-100 d-flex align-items-center justify-content-center">
+                               class="btn btn-primary-theme shadow text-uppercase fw-bold px-4 py-3 rounded-pill w-100 d-flex align-items-center justify-content-center">
                                 ${event.actionButton.text || 'Lihat Detail'} 
                                 <i class="bi bi-arrow-right ms-2"></i>
                             </a>
@@ -113,6 +113,12 @@ async function loadFeaturedEvent() {
                 </div>
             </div>
         `;
+
+        // Trigger fade-in
+        setTimeout(() => {
+            const card = featuredContainer.querySelector('.content-fade-in');
+            if (card) card.classList.add('visible');
+        }, 50);
     } catch (error) {
         console.error('Error loading featured event:', error);
         featuredContainer.innerHTML = '<p class="text-center text-danger">Error loading featured event</p>';
@@ -159,10 +165,8 @@ async function loadRegularEvents() {
             const eventCard = document.createElement('div');
             eventCard.className = 'col-lg-3 col-md-4 col-6 mb-4';
             eventCard.innerHTML = `
-                <div class="card border-0 shadow-sm h-100 overflow-hidden rounded-4 position-relative" 
-                     style="cursor: pointer; transition: all 0.3s ease;"
-                     onmouseover="this.style.transform='translateY(-8px)'; this.style.boxShadow='var(--shadow-lg)';"
-                     onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='var(--shadow-sm)';"
+                <div class="card border-0 shadow-sm h-100 overflow-hidden rounded-4 position-relative bg-main-card transition-hover content-fade-in" 
+                     style="cursor: pointer;"
                      onclick='showEventDetails(${JSON.stringify(event).replace(/'/g, "&#39;")})'>
                     
                     <!-- Image Section with 4:3 ratio -->
@@ -170,8 +174,6 @@ async function loadRegularEvents() {
                         <img src="${processImageUrl(event.image) || 'images/logo.png'}" 
                              class="position-absolute top-0 start-0 w-100 h-100" 
                              style="object-fit: cover; transition: transform 0.5s ease;"
-                             onmouseover="this.style.transform='scale(1.1)';"
-                             onmouseout="this.style.transform='scale(1)';"
                              alt="${event.title}"
                              loading="lazy">
                         
@@ -183,7 +185,7 @@ async function loadRegularEvents() {
                     <div class="card-body p-3 d-flex flex-column">
                         <!-- Category Badge -->
                         <div class="mb-2">
-                            <span class="badge bg-white-theme text-primary-theme border" style="font-size: 0.65rem;">
+                            <span class="badge badge-default border-theme" style="font-size: 0.65rem;">
                                 ${event.category || 'Event'}
                             </span>
                         </div>
@@ -200,11 +202,11 @@ async function loadRegularEvents() {
                         
                         <!-- Meta Info -->
                         <div class="mt-auto">
-                            <div class="d-flex align-items-center mb-2 text-p-theme" style="font-size: 0.8rem;">
+                            <div class="d-flex align-items-center mb-2 text-meta-theme" style="font-size: 0.8rem;">
                                 <i class="bi bi-calendar-event me-2 text-primary-theme"></i>
                                 <span>${formatDateShort(event.date)}</span>
                             </div>
-                            <div class="d-flex align-items-center text-p-theme" style="font-size: 0.8rem;">
+                            <div class="d-flex align-items-center text-meta-theme" style="font-size: 0.8rem;">
                                 <i class="bi bi-geo-alt me-2 text-primary-theme"></i>
                                 <span class="text-truncate">${truncateText(event.location, 25)}</span>
                             </div>
@@ -214,7 +216,7 @@ async function loadRegularEvents() {
                         ${(event.actionButton && event.actionButton.enabled && event.actionButton.url) ?
                     `<div class="mt-3">
                                 <a href="${formatExternalUrl(event.actionButton.url)}" target="_blank" 
-                                   class="btn custom-btn btn-sm w-100 fw-semibold" 
+                                   class="btn btn-primary-theme btn-sm w-100 fw-semibold" 
                                    onclick="event.stopPropagation();">
                                     ${event.actionButton.text || 'Lihat Detail'}
                                 </a>
@@ -223,6 +225,12 @@ async function loadRegularEvents() {
                 </div>
             `;
             eventsContainer.appendChild(eventCard);
+
+            // Trigger fade-in
+            setTimeout(() => {
+                const card = eventCard.querySelector('.content-fade-in');
+                if (card) card.classList.add('visible');
+            }, 50);
         }
 
         // Create modal if not exists
@@ -241,10 +249,10 @@ function createEventModal() {
     const modalHTML = `
         <div class="modal fade" id="eventDetailModal" tabindex="-1" aria-hidden="true" style="z-index: 10000;">
             <div class="modal-dialog modal-dialog-centered modal-lg">
-                <div class="modal-content border-0 shadow-2xl rounded-4 overflow-hidden">
+                <div class="modal-content border-0 shadow-2xl rounded-4 overflow-hidden bg-main-card">
                     
                     <!-- Close Button -->
-                    <button type="button" class="position-absolute top-0 end-0 m-3 border-0 shadow-lg rounded-circle d-flex align-items-center justify-content-center bg-primary-theme text-white-theme" 
+                    <button type="button" class="position-absolute top-0 end-0 m-3 border-0 shadow-lg rounded-circle d-flex align-items-center justify-content-center btn-primary-theme" 
                             style="width: 40px; height: 40px; z-index: 9999;"
                             data-bs-dismiss="modal" aria-label="Close">
                         <i class="bi bi-x-lg"></i>
@@ -255,7 +263,7 @@ function createEventModal() {
                             <!-- Left Column: Content -->
                             <div class="col-lg-7 p-4 p-lg-5 order-2 order-lg-1">
                                 <div class="mb-3 pt-3">
-                                    <span id="modalEventCategory" class="badge bg-white-theme text-primary-theme border px-3 py-2 rounded-pill fw-semibold">Category</span>
+                                    <span id="modalEventCategory" class="badge badge-default border-theme px-3 py-2 rounded-pill fw-semibold">Category</span>
                                     <div id="modalEventStatus" class="d-inline-block ms-2"></div>
                                 </div>
                                 
@@ -264,35 +272,35 @@ function createEventModal() {
                                 <!-- Meta Grid -->
                                 <div class="row g-3 mb-4">
                                     <div class="col-sm-6">
-                                        <div class="d-flex align-items-center text-p-theme">
+                                        <div class="d-flex align-items-center text-meta-theme">
                                             <i class="bi bi-calendar-check fs-5 me-3 text-primary-theme"></i>
                                             <div>
-                                                <small class="text-uppercase fw-bold d-block text-second-white-color" style="font-size: 0.65rem;">Tanggal</small>
+                                                <small class="text-uppercase fw-bold d-block text-meta-theme" style="font-size: 0.65rem;">Tanggal</small>
                                                 <span id="modalEventDate" class="fw-bold text-primary-theme">Date</span>
                                             </div>
                                         </div>
                                     </div>
                                     <div class="col-sm-6">
-                                        <div class="d-flex align-items-center text-p-theme">
+                                        <div class="d-flex align-items-center text-meta-theme">
                                             <i class="bi bi-clock fs-5 me-3 text-primary-theme"></i>
                                             <div>
-                                                <small class="text-uppercase fw-bold d-block text-second-white-color" style="font-size: 0.65rem;">Waktu</small>
+                                                <small class="text-uppercase fw-bold d-block text-meta-theme" style="font-size: 0.65rem;">Waktu</small>
                                                 <span id="modalEventTime" class="fw-bold text-primary-theme">Time</span>
                                             </div>
                                         </div>
                                     </div>
                                     <div class="col-12">
-                                        <div class="d-flex align-items-center text-p-theme">
+                                        <div class="d-flex align-items-center text-meta-theme">
                                             <i class="bi bi-geo-alt fs-5 me-3 text-primary-theme"></i>
                                             <div>
-                                                <small class="text-uppercase fw-bold d-block text-second-white-color" style="font-size: 0.65rem;">Lokasi</small>
+                                                <small class="text-uppercase fw-bold d-block text-meta-theme" style="font-size: 0.65rem;">Lokasi</small>
                                                 <span id="modalEventLocation" class="fw-bold text-primary-theme">Location</span>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
 
-                                <hr class="my-4 border-color">
+                                <hr class="my-4 border-theme">
 
                                 <div class="mt-3">
                                     <h6 class="fw-bold mb-3">Deskripsi</h6>
@@ -336,7 +344,7 @@ window.showEventDetails = function (event) {
         if (event.actionButton && event.actionButton.enabled && event.actionButton.url) {
             btnContainer.innerHTML = `
                 <a href="${formatExternalUrl(event.actionButton.url)}" target="_blank" 
-                   class="btn custom-btn w-100 shadow fw-bold text-uppercase py-3 rounded-pill">
+                   class="btn btn-primary-theme w-100 shadow fw-bold text-uppercase py-3 rounded-pill">
                     ${event.actionButton.text || 'Lihat Detail'} <i class="bi bi-arrow-right ms-2"></i>
                 </a>
             `;
@@ -380,11 +388,10 @@ export async function loadBriefEvents() {
 
             const eventCard = document.createElement('div');
             eventCard.className = 'col-lg-4 col-md-6 col-12';
+            // Brief Event Card with improved hierarchy and content-fade-in
             eventCard.innerHTML = `
-                <div class="card border-0 shadow-sm h-100 rounded-4 overflow-hidden position-relative" 
-                     style="cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);"
-                     onmouseover="this.style.transform='translateY(-8px)'; this.style.boxShadow='var(--shadow-lg)';"
-                     onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='var(--shadow-sm)';"
+                <div class="card border-0 shadow-sm h-100 rounded-4 overflow-hidden position-relative bg-main-card transition-hover content-fade-in" 
+                     style="cursor: pointer;"
                      onclick="window.location.href='events.html'">
                     
                     <!-- Image with 16:9 Aspect Ratio -->
@@ -409,18 +416,18 @@ export async function loadBriefEvents() {
                         </h5>
                         
                         <!-- Description - Softer, Limited -->
-                        <p class="text-muted mb-3" style="font-size: 0.9rem; line-height: 1.6; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+                        <p class="text-p-theme mb-3" style="font-size: 0.9rem; line-height: 1.6; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
                             ${event.description}
                         </p>
                         
                         <!-- Metadata - Most Subtle -->
                         <div class="mt-auto d-flex align-items-center gap-3">
-                            <div class="d-flex align-items-center text-second-white-color" style="font-size: 0.85rem;">
+                            <div class="d-flex align-items-center text-meta-theme" style="font-size: 0.85rem;">
                                 <i class="bi bi-calendar-event me-2 text-primary-theme"></i>
                                 <span>${formatDateShort(event.date)}</span>
                             </div>
                             ${event.location ? `
-                                <div class="d-flex align-items-center text-second-white-color" style="font-size: 0.85rem;">
+                                <div class="d-flex align-items-center text-meta-theme" style="font-size: 0.85rem;">
                                     <i class="bi bi-geo-alt me-1 text-primary-theme"></i>
                                     <span class="text-truncate" style="max-width: 120px;">${event.location}</span>
                                 </div>
@@ -429,11 +436,17 @@ export async function loadBriefEvents() {
                     </div>
                 </div>
             `;
+
             briefEventsContainer.appendChild(eventCard);
+
+            // Trigger fade-in after a short delay for smooth transition from skeleton
+            setTimeout(() => {
+                const card = eventCard.querySelector('.content-fade-in');
+                if (card) card.classList.add('visible');
+            }, 50);
         });
     } catch (error) {
         console.error('Error loading brief events:', error);
-
         // Remove skeletons on error
         const skeletons = briefEventsContainer.querySelectorAll('.brief-event-skeleton');
         skeletons.forEach(skeleton => skeleton.remove());
@@ -445,9 +458,9 @@ export async function loadBriefEvents() {
 // Helper functions
 function getStatusBadge(status, additionalClasses = '') {
     const badges = {
-        'upcoming': `<span class="badge shadow-sm bg-white-theme text-primary-theme border fw-semibold ${additionalClasses}">Akan Datang</span>`,
-        'ongoing': `<span class="badge shadow-sm text-white-theme fw-semibold ${additionalClasses}" style="background-color: var(--custom-btn-bg-color);">Berlangsung</span>`,
-        'completed': `<span class="badge shadow-sm bg-secondary-theme text-p-theme border fw-semibold ${additionalClasses}">Selesai</span>`
+        'upcoming': `<span class="badge shadow-sm badge-default border-theme fw-semibold ${additionalClasses}">Akan Datang</span>`,
+        'ongoing': `<span class="badge shadow-sm badge-active fw-semibold ${additionalClasses}">Berlangsung</span>`,
+        'completed': `<span class="badge shadow-sm bg-secondary-theme text-p-theme border-theme fw-semibold ${additionalClasses}">Selesai</span>`
     };
     return badges[status] || '';
 }

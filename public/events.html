@@ -65,36 +65,14 @@
 
                     <div class="mt-auto mb-4 d-lg-none w-100 mobile-auth-section" id="mobileAuthSection">
                         <div class="d-grid gap-3">
-                            <a class="btn btn-dark rounded-pill py-3 fw-semibold text-truncate" href="dashboard.html">
-                                <i class="bi-grid me-2"></i>Dashboard - admin
-                            </a>
-                            <button class="btn btn-outline-dark rounded-pill py-3" data-bs-toggle="modal"
-                                data-bs-target="#changePasswordModal">
-                                <i class="bi-key me-2"></i>Ganti Password
-                            </button>
-                            <button class="btn btn-outline-danger rounded-pill py-3" id="mobileLogoutBtn">
-                                <i class="bi-box-arrow-right me-2"></i>Logout
-                            </button>
+                            <div class="btn-skeleton-mobile"></div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div class="d-none d-xl-flex align-items-center ms-xl-auto desktop-auth-container">
-                <div class="dropdown">
-                    <a class="custom-btn btn mt-2 mt-xl-0 dropdown-toggle" href="#" role="button" id="userDropdown"
-                        data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="bi-person me-2"></i> Akun Saya
-                    </a>
-                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
-                        <li><a class="dropdown-item" href="#" data-bs-toggle="modal"
-                                data-bs-target="#changePasswordModal">Ganti Password</a></li>
-                        <li>
-                            <hr class="dropdown-divider">
-                        </li>
-                        <li><a class="dropdown-item" href="#" onclick="logoutUser()">Logout</a></li>
-                    </ul>
-                </div>
+            <div class="d-none d-xl-flex align-items-center ms-xl-auto" id="desktopAuthContainer">
+                <div class="btn-skeleton"></div>
             </div>
         </div>
     </nav>
@@ -140,34 +118,9 @@
                 <div class="col-12">
                     <div class="featured-event-card" id="featuredEventCard">
                         <!-- Skeleton Loading for Featured Event -->
-                        <div class="featured-event-skeleton">
-                            <div class="row g-0 align-items-stretch">
-                                <div class="col-lg-5 p-4">
-                                    <div class="placeholder-glow">
-                                        <div class="placeholder w-100 rounded" style="height: 280px;"></div>
-                                    </div>
-                                </div>
-                                <div class="col-lg-7 p-4">
-                                    <div class="placeholder-glow">
-                                        <div class="placeholder col-8 mb-3"></div>
-                                        <div class="placeholder col-12 mb-2"></div>
-                                        <div class="placeholder col-12 mb-2"></div>
-                                        <div class="placeholder col-10 mb-4"></div>
-                                        <div class="row g-3 mb-4">
-                                            <div class="col-sm-6">
-                                                <div class="placeholder col-12" style="height: 60px;"></div>
-                                            </div>
-                                            <div class="col-sm-6">
-                                                <div class="placeholder col-12" style="height: 60px;"></div>
-                                            </div>
-                                            <div class="col-12">
-                                                <div class="placeholder col-12" style="height: 60px;"></div>
-                                            </div>
-                                        </div>
-                                        <div class="placeholder col-12" style="height: 50px;"></div>
-                                    </div>
-                                </div>
-                            </div>
+                        <div class="featured-event-skeleton position-relative rounded-4 overflow-hidden shadow-lg bg-main-card"
+                            style="min-height: 450px;">
+                            <div class="card-skeleton"></div>
                         </div>
                     </div>
                 </div>
@@ -177,67 +130,27 @@
             <div class="row" id="regularEventsContainer">
                 <!-- Skeleton Loading for Regular Events -->
                 <div class="col-lg-3 col-6 mb-4 event-skeleton-item">
-                    <div class="card border-0 shadow-sm h-100">
-                        <div class="placeholder-glow">
-                            <div class="placeholder w-100" style="height: 200px;"></div>
-                        </div>
-                        <div class="card-body">
-                            <div class="placeholder-glow">
-                                <div class="placeholder col-6 mb-2"></div>
-                                <div class="placeholder col-12 mb-2"></div>
-                                <div class="placeholder col-10 mb-3"></div>
-                                <div class="placeholder col-8 mb-2"></div>
-                                <div class="placeholder col-9"></div>
-                            </div>
-                        </div>
+                    <div class="card border-0 shadow-sm h-100 position-relative rounded-4 overflow-hidden bg-main-card"
+                        style="min-height: 380px;">
+                        <div class="card-skeleton"></div>
                     </div>
                 </div>
                 <div class="col-lg-3 col-6 mb-4 event-skeleton-item">
-                    <div class="card border-0 shadow-sm h-100">
-                        <div class="placeholder-glow">
-                            <div class="placeholder w-100" style="height: 200px;"></div>
-                        </div>
-                        <div class="card-body">
-                            <div class="placeholder-glow">
-                                <div class="placeholder col-6 mb-2"></div>
-                                <div class="placeholder col-12 mb-2"></div>
-                                <div class="placeholder col-10 mb-3"></div>
-                                <div class="placeholder col-8 mb-2"></div>
-                                <div class="placeholder col-9"></div>
-                            </div>
-                        </div>
+                    <div class="card border-0 shadow-sm h-100 position-relative rounded-4 overflow-hidden bg-main-card"
+                        style="min-height: 380px;">
+                        <div class="card-skeleton"></div>
                     </div>
                 </div>
                 <div class="col-lg-3 col-6 mb-4 event-skeleton-item">
-                    <div class="card border-0 shadow-sm h-100">
-                        <div class="placeholder-glow">
-                            <div class="placeholder w-100" style="height: 200px;"></div>
-                        </div>
-                        <div class="card-body">
-                            <div class="placeholder-glow">
-                                <div class="placeholder col-6 mb-2"></div>
-                                <div class="placeholder col-12 mb-2"></div>
-                                <div class="placeholder col-10 mb-3"></div>
-                                <div class="placeholder col-8 mb-2"></div>
-                                <div class="placeholder col-9"></div>
-                            </div>
-                        </div>
+                    <div class="card border-0 shadow-sm h-100 position-relative rounded-4 overflow-hidden bg-main-card"
+                        style="min-height: 380px;">
+                        <div class="card-skeleton"></div>
                     </div>
                 </div>
                 <div class="col-lg-3 col-6 mb-4 event-skeleton-item">
-                    <div class="card border-0 shadow-sm h-100">
-                        <div class="placeholder-glow">
-                            <div class="placeholder w-100" style="height: 200px;"></div>
-                        </div>
-                        <div class="card-body">
-                            <div class="placeholder-glow">
-                                <div class="placeholder col-6 mb-2"></div>
-                                <div class="placeholder col-12 mb-2"></div>
-                                <div class="placeholder col-10 mb-3"></div>
-                                <div class="placeholder col-8 mb-2"></div>
-                                <div class="placeholder col-9"></div>
-                            </div>
-                        </div>
+                    <div class="card border-0 shadow-sm h-100 position-relative rounded-4 overflow-hidden bg-main-card"
+                        style="min-height: 380px;">
+                        <div class="card-skeleton"></div>
                     </div>
                 </div>
             </div>
@@ -334,10 +247,7 @@
     <!-- TOAST CONTAINER for Unified Notifications -->
     <div class="toast-container position-fixed bottom-0 end-0 p-3" id="toastContainer" style="z-index: 10000;"></div>
 
-    <script src="js/jquery.min.js"></script>
     <script src="js/bootstrap.min.js"></script>
-    <script src="js/counter.js"></script>
-    <script src="js/sidebar.js"></script>
 
     <!-- Navbar Auth State -->
     <script type="module" src="js/navbar-auth.js"></script>
