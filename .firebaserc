@@ -1,5 +1,22 @@
 {
   "projects": {
     "default": "teens-vdr"
-  }
+  },
+  "targets": {
+    "teens-vdr": {
+      "hosting": {
+        "game": [
+          "game-gnosia"
+        ]
+      }
+    },
+    "gnosia-f1586": {
+      "hosting": {
+        "game": [
+          "game-gnosia"
+        ]
+      }
+    }
+  },
+  "etags": {}
 }

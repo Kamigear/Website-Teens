@@ -1532,7 +1532,7 @@ window.editAccount = async function (id) {
                                     style="width: 50px;" value="${p.points}" onchange="updatePointHistoryItem('${pid}', 'points', this.value)">
                             </td>
                             <td class="align-middle">
-                                <button class="btn btn-outline-danger btn-sm py-0 px-1" onclick="deletePointHistoryItem('${pid}', '${id}', ${p.points})">
+                                <button type="button" class="btn btn-outline-danger btn-sm py-0 px-1" onclick="deletePointHistoryItem('${pid}', '${id}', ${p.points})">
                                     <i class="bi-trash"></i>
                                 </button>
                             </td>
