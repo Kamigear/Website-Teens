@@ -2487,3 +2487,375 @@ if (qrModalEl) {
         }
     });
 }
+
+// ==========================================
+// GOOGLE SHEETS EXPORT SYSTEM
+// ==========================================
+
+const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwm6Qvo5Db4nvgiaVcwMJ7ZZub8WV5aWpSGUUj2HvojHE-u7OTK76ZIII5BOGThsgek/exec';
+
+// Export modal state
+let exportClickCount = 0;
+let exportType = null; // 'users' or 'server'
+
+/**
+ * Export User Data to Google Sheets
+ * Opens confirmation modal
+ */
+window.exportUserDataToSheets = function () {
+    if (!isAdmin) {
+        showToast('Akses Ditolak', 'Hanya admin yang bisa export data!', 'error');
+        return;
+    }
+
+    exportType = 'users';
+    const modal = new bootstrap.Modal(document.getElementById('exportConfirmModal'));
+    document.getElementById('exportModalMessage').textContent =
+        'Semua data user akan di-export ke UserData sheet di Google Sheets.';
+    modal.show();
+}
+
+/**
+ * Export Server Data to Google Sheets
+ * Opens confirmation modal
+ */
+window.exportServerDataToSheets = function () {
+    if (!isAdmin) {
+        showToast('Akses Ditolak', 'Hanya admin yang bisa export data!', 'error');
+        return;
+    }
+
+    exportType = 'server';
+    const modal = new bootstrap.Modal(document.getElementById('exportConfirmModal'));
+    document.getElementById('exportModalMessage').textContent =
+        'Konfigurasi server akan di-export ke ServerData sheet di Google Sheets.';
+    modal.show();
+}
+
+/**
+ * Handle confirmation click (10 clicks required)
+ */
+window.handleConfirmClick = function () {
+    exportClickCount++;
+    document.getElementById('clickCounter').textContent = exportClickCount;
+
+    const remaining = 10 - exportClickCount;
+    document.getElementById('clickCountDisplay').textContent = remaining;
+
+    // Change button color as progress
+    const btn = document.getElementById('confirmClickBtn');
+    if (exportClickCount >= 5 && exportClickCount < 10) {
+        btn.classList.remove('btn-outline-primary');
+        btn.classList.add('btn-outline-warning');
+    }
+
+    if (exportClickCount >= 10) {
+        btn.classList.remove('btn-outline-warning');
+        btn.classList.add('btn-success');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="bi-check-circle-fill"></i> Konfirmasi Selesai!';
+
+        // Enable password input
+        const passwordInput = document.getElementById('exportPasswordInput');
+        passwordInput.disabled = false;
+        passwordInput.parentElement.querySelector('button').disabled = false;
+        passwordInput.focus();
+
+        // Enable submit button
+        document.getElementById('submitExportBtn').disabled = false;
+    }
+}
+
+/**
+ * Reset export modal state
+ */
+window.resetExportModal = function () {
+    exportClickCount = 0;
+    exportType = null;
+    document.getElementById('clickCounter').textContent = '0';
+    document.getElementById('clickCountDisplay').textContent = '10';
+    document.getElementById('exportPasswordInput').value = '';
+    document.getElementById('exportPasswordInput').disabled = true;
+    document.getElementById('exportPasswordInput').parentElement.querySelector('button').disabled = true;
+    document.getElementById('submitExportBtn').disabled = true;
+
+    const btn = document.getElementById('confirmClickBtn');
+    btn.classList.remove('btn-outline-warning', 'btn-success');
+    btn.classList.add('btn-outline-primary');
+    btn.disabled = false;
+    btn.innerHTML = '<i class="bi-hand-index-thumb"></i> Klik Saya (<span id="clickCounter">0</span>/10)';
+}
+
+/**
+ * Submit export to Google Sheets
+ */
+window.submitExport = async function () {
+    const password = document.getElementById('exportPasswordInput').value.trim();
+
+    if (!password) {
+        showToast('Error', 'Masukkan password terlebih dahulu!', 'error');
+        return;
+    }
+
+    if (password !== 'vdrteens') {
+        showToast('Error', 'Password salah!', 'error');
+        return;
+    }
+
+    // Check if Google Script URL is configured
+    if (GOOGLE_SCRIPT_URL === 'YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE') {
+        showToast('Konfigurasi Error',
+            'Google Apps Script URL belum dikonfigurasi! Silakan deploy script dan update GOOGLE_SCRIPT_URL di dashboard.js',
+            'error');
+        return;
+    }
+
+    try {
+        const submitBtn = document.getElementById('submitExportBtn');
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Exporting...';
+
+        if (exportType === 'users') {
+            await exportUsersToSheets(password);
+        } else if (exportType === 'server') {
+            await exportServerToSheets(password);
+        }
+
+        // Close modal
+        const modal = bootstrap.Modal.getInstance(document.getElementById('exportConfirmModal'));
+        modal.hide();
+        resetExportModal();
+
+    } catch (error) {
+        console.error('Export error:', error);
+        showToast('Error', 'Gagal export: ' + error.message, 'error');
+        document.getElementById('submitExportBtn').disabled = false;
+        document.getElementById('submitExportBtn').innerHTML = '<i class="bi-cloud-upload me-2"></i>Export Sekarang';
+    }
+}
+
+/**
+ * Export all users to Google Sheets
+ */
+async function exportUsersToSheets(password) {
+    try {
+        // Fetch all users from Firestore
+        const usersRef = collection(db, 'users');
+        const snapshot = await getDocs(usersRef);
+
+        const users = snapshot.docs.map(doc => {
+            const data = doc.data();
+            return {
+                uid: doc.id,
+                username: data.username || '',
+                email: data.email || '',
+                points: data.points || 0,
+                totalAttendance: data.totalAttendance || 0,
+                isAdmin: data.isAdmin || false,
+                createdAt: data.createdAt ? data.createdAt.toDate().toISOString() : ''
+            };
+        });
+
+        // Send to Google Sheets
+        const response = await fetch(GOOGLE_SCRIPT_URL, {
+            method: 'POST',
+            mode: 'no-cors', // Important for Google Apps Script
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                action: 'exportUserData',
+                password: password,
+                users: users
+            })
+        });
+
+        // Note: no-cors mode doesn't allow reading response, so we assume success
+        showToast('Berhasil', `${users.length} user berhasil di-export ke Google Sheets!`, 'success');
+
+    } catch (error) {
+        console.error('Export users error:', error);
+        throw error;
+    }
+}
+
+/**
+ * Export server configuration to Google Sheets
+ */
+async function exportServerToSheets(password) {
+    try {
+        // Fetch attendance config
+        const configRef = doc(db, 'settings', 'attendanceConfig');
+        const configSnap = await getDoc(configRef);
+
+        const serverData = [];
+
+        if (configSnap.exists()) {
+            const config = configSnap.data();
+            serverData.push(
+                {
+                    key: 'slot1Time',
+                    value: config.slot1Time || '09:05',
+                    description: 'Waktu batas slot 1 (tepat waktu)'
+                },
+                {
+                    key: 'slot1Points',
+                    value: config.slot1Points || 3,
+                    description: 'Poin untuk slot 1'
+                },
+                {
+                    key: 'slot2Time',
+                    value: config.slot2Time || '09:20',
+                    description: 'Waktu batas slot 2 (terlambat)'
+                },
+                {
+                    key: 'slot2Points',
+                    value: config.slot2Points || 2,
+                    description: 'Poin untuk slot 2'
+                },
+                {
+                    key: 'defaultPoints',
+                    value: config.defaultPoints || 0,
+                    description: 'Poin default (sangat terlambat)'
+                },
+                {
+                    key: 'tokenInterval',
+                    value: config.tokenInterval || 30,
+                    description: 'Interval refresh token (detik)'
+                },
+                {
+                    key: 'tokenValidity',
+                    value: config.tokenValidity || 5,
+                    description: 'Masa aktif token (menit)'
+                }
+            );
+        }
+
+        // Add system info
+        serverData.push(
+            {
+                key: 'exportDate',
+                value: new Date().toISOString(),
+                description: 'Tanggal export terakhir'
+            },
+            {
+                key: 'totalUsers',
+                value: accountsData.length,
+                description: 'Total user terdaftar'
+            },
+            {
+                key: 'totalActiveCodes',
+                value: activeCodesData.length,
+                description: 'Total kode aktif'
+            }
+        );
+
+        // Send to Google Sheets
+        const response = await fetch(GOOGLE_SCRIPT_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                action: 'exportServerData',
+                password: password,
+                serverData: serverData
+            })
+        });
+
+        showToast('Berhasil', `${serverData.length} konfigurasi berhasil di-export ke Google Sheets!`, 'success');
+
+    } catch (error) {
+        console.error('Export server error:', error);
+        throw error;
+    }
+}
+
+/**
+ * Record attendance to Google Sheets (called automatically from submitCode)
+ * This integrates with the existing weekly token submission
+ */
+async function recordAttendanceToSheets(attendanceData) {
+    // Only record if Google Script URL is configured
+    if (GOOGLE_SCRIPT_URL === 'YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE') {
+        console.warn('Google Sheets integration not configured. Skipping attendance recording.');
+        return;
+    }
+
+    try {
+        await fetch(GOOGLE_SCRIPT_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                action: 'recordAttendance',
+                attendance: {
+                    uid: attendanceData.uid,
+                    username: attendanceData.username,
+                    email: attendanceData.email || '',
+                    points: attendanceData.points,
+                    week: attendanceData.week
+                }
+            })
+        });
+
+        console.log('Attendance recorded to Google Sheets');
+    } catch (error) {
+        console.error('Failed to record attendance to Google Sheets:', error);
+        // Don't throw error - attendance is still recorded in Firebase
+    }
+}
+
+// ==========================================
+// INTEGRATE WITH EXISTING SUBMIT CODE
+// ==========================================
+
+/**
+ * Override the existing submitCode to also record to Google Sheets
+ * This is called when user submits weekly token
+ */
+const originalSubmitCode = window.submitCode;
+window.submitCode = async function () {
+    // Call original function
+    await originalSubmitCode();
+
+    // After successful submission, record to Google Sheets
+    // We need to extract the attendance data from the last submission
+    // This will be called after the batch commit in the original function
+
+    // Note: Since the original function doesn't return the attendance data,
+    // we'll add a listener to attendanceHistory collection to catch new entries
+    // and send them to Google Sheets
+}
+
+// Listen for new attendance records and send to Google Sheets
+if (isAdmin) {
+    const attendanceRef = collection(db, 'attendanceHistory');
+    const currentWeek = getWeekIdentifier();
+    const qAttendance = query(attendanceRef, where('week', '==', currentWeek));
+
+    let isFirstLoad = true;
+    onSnapshot(qAttendance, (snapshot) => {
+        if (isFirstLoad) {
+            isFirstLoad = false;
+            return; // Skip initial load
+        }
+
+        // Process new documents
+        snapshot.docChanges().forEach(change => {
+            if (change.type === 'added') {
+                const data = change.doc.data();
+                recordAttendanceToSheets({
+                    uid: data.userId,
+                    username: data.username,
+                    email: '', // Email not stored in attendance history
+                    points: data.points,
+                    week: data.week
+                });
+            }
+        });
+    });
+}

@@ -377,6 +377,41 @@
                             </div>
                         </div>
 
+                        <!-- Export UserData Card -->
+                        <div class="col-lg-4 mb-4">
+                            <div class="dashboard-card h-100 bg-light">
+                                <div class="d-flex align-items-center mb-3">
+                                    <div
+                                        class="icon-box me-3 d-flex align-items-center justify-content-center rounded-circle bg-primary">
+                                        <i class="bi-people-fill text-white"></i>
+                                    </div>
+                                    <h5 class="mb-0">Export User Data</h5>
+                                </div>
+                                <p class="text-muted small">Backup semua data user ke Google Sheets.</p>
+                                <button class="btn btn-primary btn-sm w-100 mt-auto" onclick="exportUserDataToSheets()">
+                                    <i class="bi-cloud-upload me-2"></i>Export Users
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Export ServerData Card -->
+                        <div class="col-lg-4 mb-4">
+                            <div class="dashboard-card h-100 bg-light">
+                                <div class="d-flex align-items-center mb-3">
+                                    <div
+                                        class="icon-box me-3 d-flex align-items-center justify-content-center rounded-circle bg-success">
+                                        <i class="bi-server text-white"></i>
+                                    </div>
+                                    <h5 class="mb-0">Export Server Data</h5>
+                                </div>
+                                <p class="text-muted small">Backup konfigurasi server ke Google Sheets.</p>
+                                <button class="btn btn-success btn-sm w-100 mt-auto"
+                                    onclick="exportServerDataToSheets()">
+                                    <i class="bi-cloud-upload me-2"></i>Export Settings
+                                </button>
+                            </div>
+                        </div>
+
                         <div class="col-12 mb-4">
                             <div class="dashboard-card">
                                 <h5 class="mb-3">Buat Kode Event Unik</h5>
@@ -807,6 +842,62 @@
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
                     <button type="button" class="btn btn-danger" id="submitUnlinkEmail">Putuskan Koneksi</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Export Confirmation Modal -->
+    <div class="modal fade" id="exportConfirmModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-warning text-dark">
+                    <h5 class="modal-title">
+                        <i class="bi-exclamation-triangle-fill me-2"></i>Konfirmasi Export
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-warning">
+                        <strong>Perhatian!</strong> Anda akan mengexport data ke Google Sheets.
+                    </div>
+
+                    <p class="text-muted small mb-3" id="exportModalMessage">
+                        Data akan dikirim ke spreadsheet backup.
+                    </p>
+
+                    <!-- 10-Click Confirmation -->
+                    <div class="mb-3 text-center">
+                        <p class="small text-muted mb-2">Klik tombol di bawah <strong id="clickCountDisplay">10</strong>
+                            kali untuk konfirmasi:</p>
+                        <button type="button" class="btn btn-outline-primary btn-lg" id="confirmClickBtn"
+                            onclick="handleConfirmClick()">
+                            <i class="bi-hand-index-thumb"></i> Klik Saya (<span id="clickCounter">0</span>/10)
+                        </button>
+                    </div>
+
+                    <form id="exportPasswordForm">
+                        <div class="mb-3">
+                            <label class="form-label">Masukkan Password Admin:</label>
+                            <div class="input-group">
+                                <input type="password" class="form-control" id="exportPasswordInput"
+                                    placeholder="Password" required disabled>
+                                <button class="btn btn-outline-secondary" type="button" disabled
+                                    onclick="togglePassword('exportPasswordInput', 'icon-exportPassword')">
+                                    <i class="bi bi-eye" id="icon-exportPassword"></i>
+                                </button>
+                            </div>
+                            <small class="text-muted">Password: vdrteens</small>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"
+                        onclick="resetExportModal()">Batal</button>
+                    <button type="button" class="btn btn-primary" id="submitExportBtn" disabled
+                        onclick="submitExport()">
+                        <i class="bi-cloud-upload me-2"></i>Export Sekarang
+                    </button>
                 </div>
             </div>
         </div>
