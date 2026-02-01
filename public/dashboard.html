@@ -851,14 +851,14 @@
     <div class="modal fade" id="exportConfirmModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
-                <div class="modal-header bg-warning text-dark">
+                <div class="modal-header border-0 bg-secondary-theme">
                     <h5 class="modal-title">
                         <i class="bi-exclamation-triangle-fill me-2"></i>Konfirmasi Export
                     </h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <div class="alert alert-warning">
+                    <div class="alert alert-warning-custom">
                         <strong>Perhatian!</strong> Anda akan mengexport data ke Google Sheets.
                     </div>
 
@@ -870,7 +870,7 @@
                     <div class="mb-3 text-center">
                         <p class="small text-muted mb-2">Klik tombol di bawah <strong id="clickCountDisplay">10</strong>
                             kali untuk konfirmasi:</p>
-                        <button type="button" class="btn btn-outline-primary btn-lg" id="confirmClickBtn"
+                        <button type="button" class="btn custom-border-btn btn-lg" id="confirmClickBtn"
                             onclick="handleConfirmClick()">
                             <i class="bi-hand-index-thumb"></i> Klik Saya (<span id="clickCounter">0</span>/10)
                         </button>
@@ -882,7 +882,7 @@
                             <div class="input-group">
                                 <input type="password" class="form-control" id="exportPasswordInput"
                                     placeholder="Password" required disabled>
-                                <button class="btn btn-outline-secondary" type="button" disabled
+                                <button class="btn btn-outline-dark" type="button" disabled
                                     onclick="togglePassword('exportPasswordInput', 'icon-exportPassword')">
                                     <i class="bi bi-eye" id="icon-exportPassword"></i>
                                 </button>
@@ -891,10 +891,9 @@
                     </form>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"
+                    <button type="button" class="btn btn-outline-dark" data-bs-dismiss="modal"
                         onclick="resetExportModal()">Batal</button>
-                    <button type="button" class="btn btn-primary" id="submitExportBtn" disabled
-                        onclick="submitExport()">
+                    <button type="button" class="btn custom-btn" id="submitExportBtn" disabled onclick="submitExport()">
                         <i class="bi-cloud-upload me-2"></i>Export Sekarang
                     </button>
                 </div>

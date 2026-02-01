@@ -4399,3 +4399,23 @@ nav[aria-label="breadcrumb"] {
   transform: translateY(-8px) !important;
   box-shadow: 0 1rem 3rem rgba(0, 0, 0, .175) !important;
 }
+
+/*---------------------------------------
+  EXPORT MODAL CUSTOM THEME             
+-----------------------------------------*/
+.bg-secondary-theme {
+  background-color: var(--secondary-color) !important;
+  color: var(--dark-color) !important;
+}
+
+.alert-warning-custom {
+  background-color: var(--alert-warning-bg);
+  border: 1px solid var(--alert-warning-border);
+  color: var(--alert-warning-text);
+  border-radius: var(--border-radius-small);
+  padding: 12px 16px;
+}
+
+.alert-warning-custom strong {
+  font-weight: var(--font-weight-bold);
+}

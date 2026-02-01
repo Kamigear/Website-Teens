@@ -2537,32 +2537,53 @@ window.exportServerDataToSheets = function () {
  */
 window.handleConfirmClick = function () {
     exportClickCount++;
-    document.getElementById('clickCounter').textContent = exportClickCount;
+
+    const clickCounterEl = document.getElementById('clickCounter');
+    const clickCountDisplayEl = document.getElementById('clickCountDisplay');
+    const btn = document.getElementById('confirmClickBtn');
+
+    if (!btn) {
+        console.error('confirmClickBtn not found');
+        return;
+    }
+
+    if (clickCounterEl) {
+        clickCounterEl.textContent = exportClickCount;
+    }
 
     const remaining = 10 - exportClickCount;
-    document.getElementById('clickCountDisplay').textContent = remaining;
+    if (clickCountDisplayEl) {
+        clickCountDisplayEl.textContent = remaining;
+    }
 
     // Change button color as progress
-    const btn = document.getElementById('confirmClickBtn');
     if (exportClickCount >= 5 && exportClickCount < 10) {
-        btn.classList.remove('btn-outline-primary');
-        btn.classList.add('btn-outline-warning');
+        btn.classList.remove('custom-border-btn');
+        btn.classList.add('btn-outline-dark');
     }
 
     if (exportClickCount >= 10) {
-        btn.classList.remove('btn-outline-warning');
-        btn.classList.add('btn-success');
+        btn.classList.remove('btn-outline-dark', 'custom-border-btn');
+        btn.classList.add('custom-btn');
         btn.disabled = true;
         btn.innerHTML = '<i class="bi-check-circle-fill"></i> Konfirmasi Selesai!';
 
         // Enable password input
         const passwordInput = document.getElementById('exportPasswordInput');
-        passwordInput.disabled = false;
-        passwordInput.parentElement.querySelector('button').disabled = false;
-        passwordInput.focus();
+        if (passwordInput) {
+            passwordInput.disabled = false;
+            const toggleBtn = passwordInput.parentElement.querySelector('button');
+            if (toggleBtn) {
+                toggleBtn.disabled = false;
+            }
+            passwordInput.focus();
+        }
 
         // Enable submit button
-        document.getElementById('submitExportBtn').disabled = false;
+        const submitBtn = document.getElementById('submitExportBtn');
+        if (submitBtn) {
+            submitBtn.disabled = false;
+        }
     }
 }
 
@@ -2572,18 +2593,40 @@ window.handleConfirmClick = function () {
 window.resetExportModal = function () {
     exportClickCount = 0;
     exportType = null;
-    document.getElementById('clickCounter').textContent = '0';
-    document.getElementById('clickCountDisplay').textContent = '10';
-    document.getElementById('exportPasswordInput').value = '';
-    document.getElementById('exportPasswordInput').disabled = true;
-    document.getElementById('exportPasswordInput').parentElement.querySelector('button').disabled = true;
-    document.getElementById('submitExportBtn').disabled = true;
 
+    const clickCounterEl = document.getElementById('clickCounter');
+    const clickCountDisplayEl = document.getElementById('clickCountDisplay');
+    const passwordInput = document.getElementById('exportPasswordInput');
+    const submitBtn = document.getElementById('submitExportBtn');
     const btn = document.getElementById('confirmClickBtn');
-    btn.classList.remove('btn-outline-warning', 'btn-success');
-    btn.classList.add('btn-outline-primary');
-    btn.disabled = false;
-    btn.innerHTML = '<i class="bi-hand-index-thumb"></i> Klik Saya (<span id="clickCounter">0</span>/10)';
+
+    if (clickCounterEl) {
+        clickCounterEl.textContent = '0';
+    }
+
+    if (clickCountDisplayEl) {
+        clickCountDisplayEl.textContent = '10';
+    }
+
+    if (passwordInput) {
+        passwordInput.value = '';
+        passwordInput.disabled = true;
+        const toggleBtn = passwordInput.parentElement?.querySelector('button');
+        if (toggleBtn) {
+            toggleBtn.disabled = true;
+        }
+    }
+
+    if (submitBtn) {
+        submitBtn.disabled = true;
+    }
+
+    if (btn) {
+        btn.classList.remove('btn-outline-dark', 'custom-btn');
+        btn.classList.add('custom-border-btn');
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi-hand-index-thumb"></i> Klik Saya (<span id="clickCounter">0</span>/10)';
+    }
 }
 
 /**
