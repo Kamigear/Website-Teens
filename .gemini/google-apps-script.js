@@ -202,25 +202,44 @@ function exportUserData(data) {
  */
 function exportServerData(data) {
     try {
+        Logger.log('=== exportServerData called ===');
+        Logger.log('Data received: ' + JSON.stringify(data).substring(0, 200));
+
         // Verify password
         if (data.password !== ADMIN_PASSWORD) {
+            Logger.log('ERROR: Invalid password');
             return createResponse(false, 'Invalid password');
         }
+
+        Logger.log('Password verified');
 
         const sheet = getOrCreateSheet(SHEET_NAMES.SERVER);
         const rawData = data.rawData || {};
 
+        Logger.log('Collections in rawData: ' + Object.keys(rawData).join(', '));
+
         // Clear sheet
         sheet.clear();
+        Logger.log('Sheet cleared');
 
         let currentCol = 1; // Start from column A
         let totalDocs = 0;
         const collections = Object.keys(rawData);
 
+        if (collections.length === 0) {
+            Logger.log('WARNING: No collections found in rawData');
+            sheet.getRange(1, 1).setValue('No data to export');
+            return createResponse(false, 'No collections found in data');
+        }
+
         // Process each collection (arrange horizontally)
         collections.forEach(function (collectionName) {
+            Logger.log('Processing collection: ' + collectionName);
+
             const collectionData = rawData[collectionName];
             const docIds = Object.keys(collectionData);
+
+            Logger.log('  - Documents in ' + collectionName + ': ' + docIds.length);
 
             if (docIds.length === 0) {
                 // Empty collection
@@ -244,6 +263,7 @@ function exportServerData(data) {
             });
 
             var fieldNames = Object.keys(allFields);
+            Logger.log('  - Fields found: ' + fieldNames.length);
 
             // Table headers (row 2): Document ID + all fields
             var headers = ['Document ID'].concat(fieldNames);
@@ -287,24 +307,32 @@ function exportServerData(data) {
                 totalDocs++;
             }
 
+            Logger.log('  - Wrote ' + docIds.length + ' documents');
+
             // Move to next column group (add spacing)
             currentCol += headers.length + 1;
         });
+
+        Logger.log('Total documents written: ' + totalDocs);
 
         // Auto-resize columns (limit to prevent timeout)
         var maxCols = Math.min(sheet.getMaxColumns(), currentCol);
         if (maxCols > 0) {
             sheet.autoResizeColumns(1, maxCols);
+            Logger.log('Auto-resized ' + maxCols + ' columns');
         }
 
         // Freeze first 2 rows (collection header + column headers)
         sheet.setFrozenRows(2);
 
         var timestamp = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'yyyy-MM-dd HH:mm:ss');
+        Logger.log('=== Export completed successfully ===');
         return createResponse(true, 'Success! Backed up ' + totalDocs + ' documents from ' + collections.length + ' collections to ServerData sheet at ' + timestamp);
 
     } catch (error) {
-        Logger.log('Error exporting server data: ' + error.toString());
+        Logger.log('=== ERROR in exportServerData ===');
+        Logger.log('Error message: ' + error.toString());
+        Logger.log('Error stack: ' + error.stack);
         return createResponse(false, 'Failed to export server data: ' + error.toString());
     }
 }

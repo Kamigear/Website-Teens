@@ -2736,6 +2736,9 @@ async function exportUsersToSheets(password) {
  */
 async function exportServerToSheets(password) {
     try {
+        console.log('=== exportServerToSheets called ===');
+        console.log('Password:', password);
+
         const backupData = {};
         const collectionsToBackup = [
             'attendanceHistory',
@@ -2747,6 +2750,7 @@ async function exportServerToSheets(password) {
 
         // Fetch RAW data from all collections (preserve Firestore structure)
         for (const collectionName of collectionsToBackup) {
+            console.log(`Fetching collection: ${collectionName}`);
             const querySnapshot = await getDocs(collection(db, collectionName));
             backupData[collectionName] = {};
 
@@ -2757,7 +2761,31 @@ async function exportServerToSheets(password) {
                     subcollections: {}
                 };
             });
+
+            console.log(`  - ${collectionName}: ${Object.keys(backupData[collectionName]).length} documents`);
         }
+
+        console.log('Backup data structure:', backupData);
+        console.log('Collections:', Object.keys(backupData));
+
+        // Calculate total documents
+        const totalDocs = Object.values(backupData).reduce((acc, coll) => acc + Object.keys(coll).length, 0);
+        console.log('Total documents to export:', totalDocs);
+
+        if (totalDocs === 0) {
+            showToast('Warning', 'Tidak ada data untuk di-export!', 'warning');
+            return;
+        }
+
+        // Prepare payload
+        const payload = {
+            action: 'exportServerData',
+            password: password,
+            rawData: backupData
+        };
+
+        console.log('Payload size:', JSON.stringify(payload).length, 'characters');
+        console.log('Sending to:', GOOGLE_SCRIPT_URL);
 
         // Send RAW data to Google Sheets (no processing)
         const response = await fetch(GOOGLE_SCRIPT_URL, {
@@ -2766,20 +2794,20 @@ async function exportServerToSheets(password) {
             headers: {
                 'Content-Type': 'text/plain;charset=utf-8',
             },
-            body: JSON.stringify({
-                action: 'exportServerData',
-                password: password,
-                rawData: backupData  // Send as rawData
-            })
+            body: JSON.stringify(payload)
         });
 
-        // Calculate total documents
-        const totalDocs = Object.values(backupData).reduce((acc, coll) => acc + Object.keys(coll).length, 0);
+        console.log('Request sent successfully (no-cors mode)');
+        console.log('Response type:', response.type);
+        console.log('Response status:', response.status);
 
         showToast('Berhasil', `Backup sedang diproses! Total ${totalDocs} dokumen dari ${collectionsToBackup.length} koleksi.`, 'success');
 
     } catch (error) {
-        console.error('Export server error:', error);
+        console.error('=== Export server error ===');
+        console.error('Error:', error);
+        console.error('Error message:', error.message);
+        console.error('Error stack:', error.stack);
         throw error;
     }
 }
