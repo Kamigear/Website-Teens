@@ -2653,8 +2653,10 @@ window.submitExport = async function () {
         return;
     }
 
+    const submitBtn = document.getElementById('submitExportBtn');
+    const originalHTML = submitBtn.innerHTML;
+
     try {
-        const submitBtn = document.getElementById('submitExportBtn');
         submitBtn.disabled = true;
         submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Exporting...';
 
@@ -2666,14 +2668,20 @@ window.submitExport = async function () {
 
         // Close modal
         const modal = bootstrap.Modal.getInstance(document.getElementById('exportConfirmModal'));
-        modal.hide();
+        if (modal) {
+            modal.hide();
+        }
         resetExportModal();
 
     } catch (error) {
         console.error('Export error:', error);
         showToast('Error', 'Gagal export: ' + error.message, 'error');
-        document.getElementById('submitExportBtn').disabled = false;
-        document.getElementById('submitExportBtn').innerHTML = '<i class="bi-cloud-upload me-2"></i>Export Sekarang';
+
+        // Reset button on error
+        if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalHTML;
+        }
     }
 }
 
@@ -2704,7 +2712,7 @@ async function exportUsersToSheets(password) {
             method: 'POST',
             mode: 'no-cors', // Important for Google Apps Script
             headers: {
-                'Content-Type': 'application/json',
+                'Content-Type': 'text/plain;charset=utf-8',
             },
             body: JSON.stringify({
                 action: 'exportUserData',
@@ -2727,69 +2735,121 @@ async function exportUsersToSheets(password) {
  */
 async function exportServerToSheets(password) {
     try {
-        // Fetch attendance config
+        const serverData = [];
+
+        // 1. Attendance Config
         const configRef = doc(db, 'settings', 'attendanceConfig');
         const configSnap = await getDoc(configRef);
-
-        const serverData = [];
 
         if (configSnap.exists()) {
             const config = configSnap.data();
             serverData.push(
                 {
-                    key: 'slot1Time',
+                    key: 'attendanceConfig.slot1Time',
                     value: config.slot1Time || '09:05',
                     description: 'Waktu batas slot 1 (tepat waktu)'
                 },
                 {
-                    key: 'slot1Points',
+                    key: 'attendanceConfig.slot1Points',
                     value: config.slot1Points || 3,
                     description: 'Poin untuk slot 1'
                 },
                 {
-                    key: 'slot2Time',
+                    key: 'attendanceConfig.slot2Time',
                     value: config.slot2Time || '09:20',
                     description: 'Waktu batas slot 2 (terlambat)'
                 },
                 {
-                    key: 'slot2Points',
+                    key: 'attendanceConfig.slot2Points',
                     value: config.slot2Points || 2,
                     description: 'Poin untuk slot 2'
                 },
                 {
-                    key: 'defaultPoints',
+                    key: 'attendanceConfig.defaultPoints',
                     value: config.defaultPoints || 0,
                     description: 'Poin default (sangat terlambat)'
                 },
                 {
-                    key: 'tokenInterval',
+                    key: 'attendanceConfig.tokenInterval',
                     value: config.tokenInterval || 30,
                     description: 'Interval refresh token (detik)'
                 },
                 {
-                    key: 'tokenValidity',
+                    key: 'attendanceConfig.tokenValidity',
                     value: config.tokenValidity || 5,
                     description: 'Masa aktif token (menit)'
                 }
             );
         }
 
-        // Add system info
+        // 2. Count Collections
+        // attendanceHistory
+        const attendanceSnapshot = await getDocs(collection(db, 'attendanceHistory'));
+        serverData.push({
+            key: 'collections.attendanceHistory',
+            value: attendanceSnapshot.size,
+            description: 'Total attendance records'
+        });
+
+        // codes
+        const codesSnapshot = await getDocs(collection(db, 'codes'));
+        serverData.push({
+            key: 'collections.codes',
+            value: codesSnapshot.size,
+            description: 'Total custom event codes'
+        });
+
+        // events
+        const eventsSnapshot = await getDocs(collection(db, 'events'));
+        serverData.push({
+            key: 'collections.events',
+            value: eventsSnapshot.size,
+            description: 'Total events'
+        });
+
+        // pointHistory
+        const pointHistorySnapshot = await getDocs(collection(db, 'pointHistory'));
+        serverData.push({
+            key: 'collections.pointHistory',
+            value: pointHistorySnapshot.size,
+            description: 'Total point history records'
+        });
+
+        // settings
+        const settingsSnapshot = await getDocs(collection(db, 'settings'));
+        serverData.push({
+            key: 'collections.settings',
+            value: settingsSnapshot.size,
+            description: 'Total settings documents'
+        });
+
+        // users (already counted in UserData export, but include for completeness)
+        const usersSnapshot = await getDocs(collection(db, 'users'));
+        serverData.push({
+            key: 'collections.users',
+            value: usersSnapshot.size,
+            description: 'Total registered users'
+        });
+
+        // weeklyTokens
+        const tokensSnapshot = await getDocs(collection(db, 'weeklyTokens'));
+        serverData.push({
+            key: 'collections.weeklyTokens',
+            value: tokensSnapshot.size,
+            description: 'Total weekly tokens generated'
+        });
+
+        // 3. System Info
         serverData.push(
             {
-                key: 'exportDate',
+                key: 'system.exportDate',
                 value: new Date().toISOString(),
                 description: 'Tanggal export terakhir'
             },
             {
-                key: 'totalUsers',
-                value: accountsData.length,
-                description: 'Total user terdaftar'
-            },
-            {
-                key: 'totalActiveCodes',
-                value: activeCodesData.length,
-                description: 'Total kode aktif'
+                key: 'system.exportedBy',
+                value: currentUser?.email || currentUser?.uid || 'Unknown',
+                description: 'Admin yang melakukan export'
             }
         );
 
@@ -2798,7 +2858,7 @@ async function exportServerToSheets(password) {
             method: 'POST',
             mode: 'no-cors',
             headers: {
-                'Content-Type': 'application/json',
+                'Content-Type': 'text/plain;charset=utf-8',
             },
             body: JSON.stringify({
                 action: 'exportServerData',
@@ -2831,7 +2891,7 @@ async function recordAttendanceToSheets(attendanceData) {
             method: 'POST',
             mode: 'no-cors',
             headers: {
-                'Content-Type': 'application/json',
+                'Content-Type': 'text/plain;charset=utf-8',
             },
             body: JSON.stringify({
                 action: 'recordAttendance',

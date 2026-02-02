@@ -36,6 +36,31 @@ const ADMIN_PASSWORD = 'vdrteens';
 
 function doPost(e) {
     try {
+        // Log the entire request for debugging
+        Logger.log('doPost called');
+        Logger.log('Request parameter: ' + JSON.stringify(e));
+
+        // Check if e exists
+        if (!e) {
+            Logger.log('ERROR: e parameter is undefined');
+            return createResponse(false, 'No request data received');
+        }
+
+        // Check if postData exists
+        if (!e.postData) {
+            Logger.log('ERROR: e.postData is undefined');
+            Logger.log('Available properties: ' + Object.keys(e).join(', '));
+            return createResponse(false, 'No POST data received. Make sure request method is POST.');
+        }
+
+        // Check if contents exists
+        if (!e.postData.contents) {
+            Logger.log('ERROR: e.postData.contents is undefined');
+            return createResponse(false, 'No content in POST data');
+        }
+
+        Logger.log('POST data contents: ' + e.postData.contents);
+
         const data = JSON.parse(e.postData.contents);
         const action = data.action;
 
@@ -56,6 +81,7 @@ function doPost(e) {
         }
     } catch (error) {
         Logger.log('Error in doPost: ' + error.toString());
+        Logger.log('Error stack: ' + error.stack);
         return createResponse(false, 'Server error: ' + error.toString());
     }
 }
@@ -278,4 +304,128 @@ function testSetup() {
     Logger.log('- AbsenceData: ' + getSheetId(SHEET_NAMES.ABSENCE));
     Logger.log('- UserData: ' + getSheetId(SHEET_NAMES.USERS));
     Logger.log('- ServerData: ' + getSheetId(SHEET_NAMES.SERVER));
+}
+
+/**
+ * Test doPost with ServerData export
+ * Run this to test if export works
+ */
+function testExportServerData() {
+    Logger.log('Testing ServerData export...');
+
+    const mockEvent = {
+        postData: {
+            contents: JSON.stringify({
+                action: 'exportServerData',
+                password: 'vdrteens',
+                serverData: [
+                    {
+                        key: 'test.key1',
+                        value: 'test value 1',
+                        description: 'Test entry 1'
+                    },
+                    {
+                        key: 'test.key2',
+                        value: 123,
+                        description: 'Test entry 2'
+                    },
+                    {
+                        key: 'test.key3',
+                        value: true,
+                        description: 'Test entry 3'
+                    }
+                ]
+            })
+        }
+    };
+
+    const result = doPost(mockEvent);
+    Logger.log('Result: ' + result.getContent());
+
+    // Check if data appears in sheet
+    const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_NAMES.SERVER);
+    if (sheet) {
+        Logger.log('ServerData sheet has ' + sheet.getLastRow() + ' rows');
+        Logger.log('SUCCESS: Check the ServerData sheet!');
+    } else {
+        Logger.log('ERROR: ServerData sheet not found');
+    }
+}
+
+/**
+ * Test doPost with UserData export
+ * Run this to test if user export works
+ */
+function testExportUserData() {
+    Logger.log('Testing UserData export...');
+
+    const mockEvent = {
+        postData: {
+            contents: JSON.stringify({
+                action: 'exportUserData',
+                password: 'vdrteens',
+                users: [
+                    {
+                        uid: 'test-uid-1',
+                        username: 'testuser1',
+                        email: 'test1@example.com',
+                        points: 100,
+                        totalAttendance: 5,
+                        isAdmin: false,
+                        createdAt: '2026-01-01T00:00:00Z'
+                    },
+                    {
+                        uid: 'test-uid-2',
+                        username: 'testuser2',
+                        email: 'test2@example.com',
+                        points: 200,
+                        totalAttendance: 10,
+                        isAdmin: true,
+                        createdAt: '2026-01-02T00:00:00Z'
+                    }
+                ]
+            })
+        }
+    };
+
+    const result = doPost(mockEvent);
+    Logger.log('Result: ' + result.getContent());
+
+    // Check if data appears in sheet
+    const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_NAMES.USERS);
+    if (sheet) {
+        Logger.log('UserData sheet has ' + sheet.getLastRow() + ' rows');
+        Logger.log('SUCCESS: Check the UserData sheet!');
+    } else {
+        Logger.log('ERROR: UserData sheet not found');
+    }
+}
+
+/**
+ * Test doPost with wrong password
+ * Run this to test password validation
+ */
+function testWrongPassword() {
+    Logger.log('Testing wrong password...');
+
+    const mockEvent = {
+        postData: {
+            contents: JSON.stringify({
+                action: 'exportServerData',
+                password: 'wrongpassword',
+                serverData: []
+            })
+        }
+    };
+
+    const result = doPost(mockEvent);
+    const response = JSON.parse(result.getContent());
+
+    Logger.log('Result: ' + result.getContent());
+
+    if (response.success === false && response.message.includes('password')) {
+        Logger.log('SUCCESS: Password validation works!');
+    } else {
+        Logger.log('ERROR: Password validation failed');
+    }
 }
