@@ -2492,7 +2492,7 @@ if (qrModalEl) {
 // GOOGLE SHEETS EXPORT SYSTEM
 // ==========================================
 
-const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwm6Qvo5Db4nvgiaVcwMJ7ZZub8WV5aWpSGUUj2HvojHE-u7OTK76ZIII5BOGThsgek/exec';
+const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxsDO2DRqWJpCYzaDAt3Kj-MLaAr3wuLg-va8dnXXArbYoCq2xT8MEEsjEaIYElMT1W/exec';
 
 // Export modal state
 let exportClickCount = 0;

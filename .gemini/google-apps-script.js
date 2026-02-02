@@ -196,8 +196,8 @@ function exportUserData(data) {
 // ==========================================
 
 /**
- * Exports server collections to ServerData sheet (RAW JSON Format)
- * Writes data exactly as received from Firestore
+ * Exports server collections to ServerData sheet (Table Format - Horizontal)
+ * Each collection becomes a table arranged left to right
  * Requires password confirmation
  */
 function exportServerData(data) {
@@ -213,30 +213,94 @@ function exportServerData(data) {
         // Clear sheet
         sheet.clear();
 
-        // Convert entire rawData object to JSON string
-        const jsonString = JSON.stringify(rawData, null, 2); // Pretty print with 2-space indent
-
-        // Write JSON to cell A1
-        sheet.getRange(1, 1).setValue(jsonString);
-
-        // Format the cell for better readability
-        sheet.getRange(1, 1).setWrap(true);
-        sheet.getRange(1, 1).setVerticalAlignment('top');
-        sheet.getRange(1, 1).setHorizontalAlignment('left');
-        sheet.getRange(1, 1).setFontFamily('Courier New'); // Monospace font for JSON
-        sheet.getRange(1, 1).setFontSize(10);
-
-        // Auto-resize column A to fit content (up to 1000px width)
-        sheet.setColumnWidth(1, 1000);
-
-        // Count total documents
+        let currentCol = 1; // Start from column A
         let totalDocs = 0;
         const collections = Object.keys(rawData);
+
+        // Process each collection (arrange horizontally)
         collections.forEach(function (collectionName) {
-            totalDocs += Object.keys(rawData[collectionName]).length;
+            const collectionData = rawData[collectionName];
+            const docIds = Object.keys(collectionData);
+
+            if (docIds.length === 0) {
+                // Empty collection
+                sheet.getRange(1, currentCol).setValue('--- ' + collectionName + ' (No Data) ---');
+                sheet.getRange(1, currentCol).setFontWeight('bold').setBackground('#ffeb3b');
+                currentCol += 2; // Skip a column
+                return;
+            }
+
+            // Collection header (row 1)
+            sheet.getRange(1, currentCol).setValue('=== ' + collectionName + ' (' + docIds.length + ' docs) ===');
+            sheet.getRange(1, currentCol).setFontWeight('bold').setBackground('#4285f4').setFontColor('#ffffff').setFontSize(11);
+
+            // Collect all unique field names from all documents
+            var allFields = {};
+            docIds.forEach(function (docId) {
+                var fields = collectionData[docId].fields || {};
+                Object.keys(fields).forEach(function (fieldName) {
+                    allFields[fieldName] = true;
+                });
+            });
+
+            var fieldNames = Object.keys(allFields);
+
+            // Table headers (row 2): Document ID + all fields
+            var headers = ['Document ID'].concat(fieldNames);
+
+            // Write headers in row 2
+            for (var i = 0; i < headers.length; i++) {
+                sheet.getRange(2, currentCol + i).setValue(headers[i]);
+            }
+            sheet.getRange(2, currentCol, 1, headers.length)
+                .setFontWeight('bold')
+                .setBackground('#34a853')
+                .setFontColor('#ffffff');
+
+            // Write data rows (starting from row 3)
+            for (var rowIdx = 0; rowIdx < docIds.length; rowIdx++) {
+                var docId = docIds[rowIdx];
+                var fields = collectionData[docId].fields || {};
+
+                // First column: Document ID
+                sheet.getRange(3 + rowIdx, currentCol).setValue(docId);
+
+                // Remaining columns: field values
+                for (var colIdx = 0; colIdx < fieldNames.length; colIdx++) {
+                    var fieldName = fieldNames[colIdx];
+                    var value = fields[fieldName];
+
+                    // Convert value to string
+                    var displayValue = '';
+                    if (value === null || value === undefined) {
+                        displayValue = '';
+                    } else if (typeof value === 'object') {
+                        // For timestamps and nested objects, convert to JSON
+                        displayValue = JSON.stringify(value);
+                    } else {
+                        displayValue = String(value);
+                    }
+
+                    sheet.getRange(3 + rowIdx, currentCol + colIdx + 1).setValue(displayValue);
+                }
+
+                totalDocs++;
+            }
+
+            // Move to next column group (add spacing)
+            currentCol += headers.length + 1;
         });
 
-        const timestamp = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'yyyy-MM-dd HH:mm:ss');
+        // Auto-resize columns (limit to prevent timeout)
+        var maxCols = Math.min(sheet.getMaxColumns(), currentCol);
+        if (maxCols > 0) {
+            sheet.autoResizeColumns(1, maxCols);
+        }
+
+        // Freeze first 2 rows (collection header + column headers)
+        sheet.setFrozenRows(2);
+
+        var timestamp = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'yyyy-MM-dd HH:mm:ss');
         return createResponse(true, 'Success! Backed up ' + totalDocs + ' documents from ' + collections.length + ' collections to ServerData sheet at ' + timestamp);
 
     } catch (error) {
