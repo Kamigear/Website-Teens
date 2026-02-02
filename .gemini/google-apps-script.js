@@ -199,6 +199,10 @@ function exportUserData(data) {
  * Exports server configuration to ServerData sheet
  * Requires password confirmation
  */
+/**
+ * Exports server collections to separate sheets (Full Backup)
+ * Requires password confirmation
+ */
 function exportServerData(data) {
     try {
         // Verify password
@@ -206,32 +210,61 @@ function exportServerData(data) {
             return createResponse(false, 'Invalid password');
         }
 
-        const sheet = getOrCreateSheet(SHEET_NAMES.SERVER);
+        const backupData = data.backupData || {}; // Object containing arrays { events: [], settings: [], ... }
+        const collections = Object.keys(backupData);
+        let logMessage = 'Backup created for: ';
 
-        // Clear existing data
-        sheet.clear();
+        // Process each collection
+        collections.forEach(collectionName => {
+            const sheetName = 'Backup_' + collectionName; // e.g., Backup_events
+            const sheet = getOrCreateSheet(sheetName);
+            const items = backupData[collectionName];
 
-        // Set headers
-        sheet.appendRow(['key', 'value', 'description', 'updatedAt']);
-        sheet.getRange(1, 1, 1, 4).setFontWeight('bold').setBackground('#34a853').setFontColor('#ffffff');
+            // Clear sheet
+            sheet.clear();
 
-        // Add server data
-        const serverData = data.serverData || [];
-        const timestamp = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'yyyy-MM-dd HH:mm:ss');
+            if (items && items.length > 0) {
+                // Determine headers dynamically from the first item keys
+                // We use a Set to get unique keys from all items to be safe, or just first item
+                let headers = Object.keys(items[0]);
 
-        serverData.forEach(item => {
-            sheet.appendRow([
-                item.key,
-                typeof item.value === 'object' ? JSON.stringify(item.value) : item.value,
-                item.description || '',
-                timestamp
-            ]);
+                // Ensure 'id' is first if exists
+                if (headers.includes('id')) {
+                    headers = ['id', ...headers.filter(h => h !== 'id')];
+                }
+
+                // Write headers
+                sheet.appendRow(headers);
+                sheet.getRange(1, 1, 1, headers.length).setFontWeight('bold').setBackground('#34a853').setFontColor('#ffffff');
+
+                // Prepare rows
+                const rows = items.map(item => {
+                    return headers.map(header => {
+                        let val = item[header];
+                        // Stringify objects/arrays
+                        if (typeof val === 'object' && val !== null) {
+                            return JSON.stringify(val);
+                        }
+                        return val;
+                    });
+                });
+
+                // Write data in bulk (much faster)
+                if (rows.length > 0) {
+                    sheet.getRange(2, 1, rows.length, headers.length).setValues(rows);
+                }
+
+                // Auto resize
+                sheet.autoResizeColumns(1, Math.min(headers.length, 10)); // Limit resize to first 10 cols to save time
+                logMessage += `${collectionName} (${items.length}), `;
+            } else {
+                sheet.appendRow(['No data found for this collection']);
+                logMessage += `${collectionName} (0), `;
+            }
         });
 
-        // Auto-resize columns
-        sheet.autoResizeColumns(1, 4);
-
-        return createResponse(true, `Successfully exported ${serverData.length} server settings at ${timestamp}`);
+        const timestamp = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'yyyy-MM-dd HH:mm:ss');
+        return createResponse(true, `Success! ${logMessage} at ${timestamp}`);
 
     } catch (error) {
         Logger.log('Error exporting server data: ' + error.toString());

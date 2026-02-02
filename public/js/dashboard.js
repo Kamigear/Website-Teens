@@ -2731,127 +2731,39 @@ async function exportUsersToSheets(password) {
 }
 
 /**
- * Export server configuration to Google Sheets
+ * Export server collections to Google Sheets (Full Backup)
  */
 async function exportServerToSheets(password) {
     try {
-        const serverData = [];
+        const backupData = {};
+        const collectionsToBackup = [
+            'attendanceHistory',
+            'events',
+            'pointHistory',
+            'settings',
+            'weeklyTokens'
+        ];
 
-        // 1. Attendance Config
-        const configRef = doc(db, 'settings', 'attendanceConfig');
-        const configSnap = await getDoc(configRef);
+        // Fetch data from all collections
+        for (const collectionName of collectionsToBackup) {
+            const querySnapshot = await getDocs(collection(db, collectionName));
+            backupData[collectionName] = [];
 
-        if (configSnap.exists()) {
-            const config = configSnap.data();
-            serverData.push(
-                {
-                    key: 'attendanceConfig.slot1Time',
-                    value: config.slot1Time || '09:05',
-                    description: 'Waktu batas slot 1 (tepat waktu)'
-                },
-                {
-                    key: 'attendanceConfig.slot1Points',
-                    value: config.slot1Points || 3,
-                    description: 'Poin untuk slot 1'
-                },
-                {
-                    key: 'attendanceConfig.slot2Time',
-                    value: config.slot2Time || '09:20',
-                    description: 'Waktu batas slot 2 (terlambat)'
-                },
-                {
-                    key: 'attendanceConfig.slot2Points',
-                    value: config.slot2Points || 2,
-                    description: 'Poin untuk slot 2'
-                },
-                {
-                    key: 'attendanceConfig.defaultPoints',
-                    value: config.defaultPoints || 0,
-                    description: 'Poin default (sangat terlambat)'
-                },
-                {
-                    key: 'attendanceConfig.tokenInterval',
-                    value: config.tokenInterval || 30,
-                    description: 'Interval refresh token (detik)'
-                },
-                {
-                    key: 'attendanceConfig.tokenValidity',
-                    value: config.tokenValidity || 5,
-                    description: 'Masa aktif token (menit)'
+            querySnapshot.forEach((doc) => {
+                const data = doc.data();
+                // Add ID to data
+                data.id = doc.id;
+
+                // Convert Timestamps to strings
+                for (const key in data) {
+                    if (data[key] && typeof data[key].toDate === 'function') {
+                        data[key] = data[key].toDate().toISOString();
+                    }
                 }
-            );
+
+                backupData[collectionName].push(data);
+            });
         }
-
-        // 2. Count Collections
-        // attendanceHistory
-        const attendanceSnapshot = await getDocs(collection(db, 'attendanceHistory'));
-        serverData.push({
-            key: 'collections.attendanceHistory',
-            value: attendanceSnapshot.size,
-            description: 'Total attendance records'
-        });
-
-        // codes
-        const codesSnapshot = await getDocs(collection(db, 'codes'));
-        serverData.push({
-            key: 'collections.codes',
-            value: codesSnapshot.size,
-            description: 'Total custom event codes'
-        });
-
-        // events
-        const eventsSnapshot = await getDocs(collection(db, 'events'));
-        serverData.push({
-            key: 'collections.events',
-            value: eventsSnapshot.size,
-            description: 'Total events'
-        });
-
-        // pointHistory
-        const pointHistorySnapshot = await getDocs(collection(db, 'pointHistory'));
-        serverData.push({
-            key: 'collections.pointHistory',
-            value: pointHistorySnapshot.size,
-            description: 'Total point history records'
-        });
-
-        // settings
-        const settingsSnapshot = await getDocs(collection(db, 'settings'));
-        serverData.push({
-            key: 'collections.settings',
-            value: settingsSnapshot.size,
-            description: 'Total settings documents'
-        });
-
-        // users (already counted in UserData export, but include for completeness)
-        const usersSnapshot = await getDocs(collection(db, 'users'));
-        serverData.push({
-            key: 'collections.users',
-            value: usersSnapshot.size,
-            description: 'Total registered users'
-        });
-
-        // weeklyTokens
-        const tokensSnapshot = await getDocs(collection(db, 'weeklyTokens'));
-        serverData.push({
-            key: 'collections.weeklyTokens',
-            value: tokensSnapshot.size,
-            description: 'Total weekly tokens generated'
-        });
-
-        // 3. System Info
-        serverData.push(
-            {
-                key: 'system.exportDate',
-                value: new Date().toISOString(),
-                description: 'Tanggal export terakhir'
-            },
-            {
-                key: 'system.exportedBy',
-                value: currentUser?.email || currentUser?.uid || 'Unknown',
-                description: 'Admin yang melakukan export'
-            }
-        );
 
         // Send to Google Sheets
         const response = await fetch(GOOGLE_SCRIPT_URL, {
@@ -2863,11 +2775,14 @@ async function exportServerToSheets(password) {
             body: JSON.stringify({
                 action: 'exportServerData',
                 password: password,
-                serverData: serverData
+                backupData: backupData
             })
         });
 
-        showToast('Berhasil', `${serverData.length} konfigurasi berhasil di-export ke Google Sheets!`, 'success');
+        // Calculate total items for toast message
+        const totalItems = Object.values(backupData).reduce((acc, curr) => acc + curr.length, 0);
+
+        showToast('Berhasil', `Backup sedang diproses! Total ${totalItems} item dari ${collectionsToBackup.length} koleksi dikirim.`, 'success');
 
     } catch (error) {
         console.error('Export server error:', error);
