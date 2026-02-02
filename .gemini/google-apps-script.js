@@ -34,6 +34,22 @@ const ADMIN_PASSWORD = 'vdrteens';
 // MAIN HANDLER - Receives POST requests from website
 // ==========================================
 
+/**
+ * Handles GET requests (when someone opens the Web App URL in browser)
+ * Returns a simple HTML page
+ */
+function doGet(e) {
+    return HtmlService.createHtmlOutput(
+        '<h1>VDR Teens Backup System</h1>' +
+        '<p>This is a backend service for VDR Teens Dashboard.</p>' +
+        '<p>Status: <strong style="color: green;">Active</strong></p>' +
+        '<p>Last updated: ' + new Date().toISOString() + '</p>'
+    );
+}
+
+/**
+ * Handles POST requests from the website
+ */
 function doPost(e) {
     try {
         // Log the entire request for debugging
