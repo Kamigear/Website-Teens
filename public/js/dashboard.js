@@ -2731,7 +2731,8 @@ async function exportUsersToSheets(password) {
 }
 
 /**
- * Export server collections to Google Sheets (Full Backup)
+ * Export server collections to Google Sheets (Full Backup - RAW Data)
+ * Sends data exactly as stored in Firestore
  */
 async function exportServerToSheets(password) {
     try {
@@ -2744,28 +2745,21 @@ async function exportServerToSheets(password) {
             'weeklyTokens'
         ];
 
-        // Fetch data from all collections
+        // Fetch RAW data from all collections (preserve Firestore structure)
         for (const collectionName of collectionsToBackup) {
             const querySnapshot = await getDocs(collection(db, collectionName));
-            backupData[collectionName] = [];
+            backupData[collectionName] = {};
 
             querySnapshot.forEach((doc) => {
-                const data = doc.data();
-                // Add ID to data
-                data.id = doc.id;
-
-                // Convert Timestamps to strings
-                for (const key in data) {
-                    if (data[key] && typeof data[key].toDate === 'function') {
-                        data[key] = data[key].toDate().toISOString();
-                    }
-                }
-
-                backupData[collectionName].push(data);
+                // Store with document ID as key, preserve full structure
+                backupData[collectionName][doc.id] = {
+                    fields: doc.data(),
+                    subcollections: {}
+                };
             });
         }
 
-        // Send to Google Sheets
+        // Send RAW data to Google Sheets (no processing)
         const response = await fetch(GOOGLE_SCRIPT_URL, {
             method: 'POST',
             mode: 'no-cors',
@@ -2775,14 +2769,14 @@ async function exportServerToSheets(password) {
             body: JSON.stringify({
                 action: 'exportServerData',
                 password: password,
-                backupData: backupData
+                rawData: backupData  // Send as rawData
             })
         });
 
-        // Calculate total items for toast message
-        const totalItems = Object.values(backupData).reduce((acc, curr) => acc + curr.length, 0);
+        // Calculate total documents
+        const totalDocs = Object.values(backupData).reduce((acc, coll) => acc + Object.keys(coll).length, 0);
 
-        showToast('Berhasil', `Backup sedang diproses! Total ${totalItems} item dari ${collectionsToBackup.length} koleksi dikirim.`, 'success');
+        showToast('Berhasil', `Backup sedang diproses! Total ${totalDocs} dokumen dari ${collectionsToBackup.length} koleksi.`, 'success');
 
     } catch (error) {
         console.error('Export server error:', error);

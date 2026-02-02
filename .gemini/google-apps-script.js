@@ -196,11 +196,8 @@ function exportUserData(data) {
 // ==========================================
 
 /**
- * Exports server configuration to ServerData sheet
- * Requires password confirmation
- */
-/**
- * Exports server collections to separate sheets (Full Backup)
+ * Exports server collections to ServerData sheet (RAW JSON Format)
+ * Writes data exactly as received from Firestore
  * Requires password confirmation
  */
 function exportServerData(data) {
@@ -210,61 +207,37 @@ function exportServerData(data) {
             return createResponse(false, 'Invalid password');
         }
 
-        const backupData = data.backupData || {}; // Object containing arrays { events: [], settings: [], ... }
-        const collections = Object.keys(backupData);
-        let logMessage = 'Backup created for: ';
+        const sheet = getOrCreateSheet(SHEET_NAMES.SERVER);
+        const rawData = data.rawData || {};
 
-        // Process each collection
-        collections.forEach(collectionName => {
-            const sheetName = 'Backup_' + collectionName; // e.g., Backup_events
-            const sheet = getOrCreateSheet(sheetName);
-            const items = backupData[collectionName];
+        // Clear sheet
+        sheet.clear();
 
-            // Clear sheet
-            sheet.clear();
+        // Convert entire rawData object to JSON string
+        const jsonString = JSON.stringify(rawData, null, 2); // Pretty print with 2-space indent
 
-            if (items && items.length > 0) {
-                // Determine headers dynamically from the first item keys
-                // We use a Set to get unique keys from all items to be safe, or just first item
-                let headers = Object.keys(items[0]);
+        // Write JSON to cell A1
+        sheet.getRange(1, 1).setValue(jsonString);
 
-                // Ensure 'id' is first if exists
-                if (headers.includes('id')) {
-                    headers = ['id', ...headers.filter(h => h !== 'id')];
-                }
+        // Format the cell for better readability
+        sheet.getRange(1, 1).setWrap(true);
+        sheet.getRange(1, 1).setVerticalAlignment('top');
+        sheet.getRange(1, 1).setHorizontalAlignment('left');
+        sheet.getRange(1, 1).setFontFamily('Courier New'); // Monospace font for JSON
+        sheet.getRange(1, 1).setFontSize(10);
 
-                // Write headers
-                sheet.appendRow(headers);
-                sheet.getRange(1, 1, 1, headers.length).setFontWeight('bold').setBackground('#34a853').setFontColor('#ffffff');
+        // Auto-resize column A to fit content (up to 1000px width)
+        sheet.setColumnWidth(1, 1000);
 
-                // Prepare rows
-                const rows = items.map(item => {
-                    return headers.map(header => {
-                        let val = item[header];
-                        // Stringify objects/arrays
-                        if (typeof val === 'object' && val !== null) {
-                            return JSON.stringify(val);
-                        }
-                        return val;
-                    });
-                });
-
-                // Write data in bulk (much faster)
-                if (rows.length > 0) {
-                    sheet.getRange(2, 1, rows.length, headers.length).setValues(rows);
-                }
-
-                // Auto resize
-                sheet.autoResizeColumns(1, Math.min(headers.length, 10)); // Limit resize to first 10 cols to save time
-                logMessage += `${collectionName} (${items.length}), `;
-            } else {
-                sheet.appendRow(['No data found for this collection']);
-                logMessage += `${collectionName} (0), `;
-            }
+        // Count total documents
+        let totalDocs = 0;
+        const collections = Object.keys(rawData);
+        collections.forEach(function (collectionName) {
+            totalDocs += Object.keys(rawData[collectionName]).length;
         });
 
         const timestamp = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'yyyy-MM-dd HH:mm:ss');
-        return createResponse(true, `Success! ${logMessage} at ${timestamp}`);
+        return createResponse(true, 'Success! Backed up ' + totalDocs + ' documents from ' + collections.length + ' collections to ServerData sheet at ' + timestamp);
 
     } catch (error) {
         Logger.log('Error exporting server data: ' + error.toString());
@@ -351,23 +324,40 @@ function testExportServerData() {
             contents: JSON.stringify({
                 action: 'exportServerData',
                 password: 'vdrteens',
-                serverData: [
-                    {
-                        key: 'test.key1',
-                        value: 'test value 1',
-                        description: 'Test entry 1'
+                rawData: {
+                    events: {
+                        'event1': {
+                            fields: {
+                                title: 'Test Event 1',
+                                date: '2026-02-01',
+                                description: 'This is a test event',
+                                status: 'upcoming'
+                            },
+                            subcollections: {}
+                        },
+                        'event2': {
+                            fields: {
+                                title: 'Test Event 2',
+                                date: '2026-02-02',
+                                description: 'Another test event',
+                                status: 'ongoing'
+                            },
+                            subcollections: {}
+                        }
                     },
-                    {
-                        key: 'test.key2',
-                        value: 123,
-                        description: 'Test entry 2'
-                    },
-                    {
-                        key: 'test.key3',
-                        value: true,
-                        description: 'Test entry 3'
+                    settings: {
+                        'attendanceConfig': {
+                            fields: {
+                                slot1Time: '09:05',
+                                slot1Points: 3,
+                                slot2Time: '09:20',
+                                slot2Points: 2,
+                                defaultPoints: 0
+                            },
+                            subcollections: {}
+                        }
                     }
-                ]
+                }
             })
         }
     };
@@ -375,11 +365,14 @@ function testExportServerData() {
     const result = doPost(mockEvent);
     Logger.log('Result: ' + result.getContent());
 
-    // Check if data appears in sheet
+    // Check if ServerData sheet has JSON data
     const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_NAMES.SERVER);
+
     if (sheet) {
-        Logger.log('ServerData sheet has ' + sheet.getLastRow() + ' rows');
-        Logger.log('SUCCESS: Check the ServerData sheet!');
+        const jsonData = sheet.getRange(1, 1).getValue();
+        Logger.log('SUCCESS! ServerData sheet created with JSON data');
+        Logger.log('JSON length: ' + jsonData.length + ' characters');
+        Logger.log('Check cell A1 in ServerData sheet for the full JSON backup');
     } else {
         Logger.log('ERROR: ServerData sheet not found');
     }
