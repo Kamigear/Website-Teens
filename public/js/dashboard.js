@@ -2850,6 +2850,216 @@ async function recordAttendanceToSheets(attendanceData) {
 }
 
 // ==========================================
+// IMPORT FROM GOOGLE SHEETS
+// ==========================================
+
+// Import modal state
+let importClickCount = 0;
+let currentImportType = null;
+
+/**
+ * Import User Data from Google Sheets
+ */
+window.importUserDataFromSheets = function () {
+    currentImportType = 'users';
+    const modal = new bootstrap.Modal(document.getElementById('importConfirmModal'));
+    document.getElementById('importModalMessage').textContent = 'Data user dari Google Sheets akan ditambahkan/diupdate ke Firestore.';
+    modal.show();
+};
+
+/**
+ * Import Server Data from Google Sheets
+ */
+window.importServerDataFromSheets = function () {
+    currentImportType = 'server';
+    const modal = new bootstrap.Modal(document.getElementById('importConfirmModal'));
+    document.getElementById('importModalMessage').textContent = 'Data server dari Google Sheets akan ditambahkan/diupdate ke Firestore.';
+    modal.show();
+};
+
+/**
+ * Handle import confirmation clicks (10-click mechanism)
+ */
+window.handleImportConfirmClick = function () {
+    importClickCount++;
+    document.getElementById('importClickCounter').textContent = importClickCount;
+    document.getElementById('importClickCountDisplay').textContent = 10 - importClickCount;
+
+    if (importClickCount >= 10) {
+        // Enable password input
+        document.getElementById('importPasswordInput').disabled = false;
+        document.querySelector('#importPasswordInput').nextElementSibling.disabled = false;
+        document.getElementById('submitImportBtn').disabled = false;
+        document.getElementById('importConfirmClickBtn').disabled = true;
+        document.getElementById('importConfirmClickBtn').classList.add('btn-success');
+        document.getElementById('importConfirmClickBtn').innerHTML = '<i class="bi-check-circle-fill"></i> Konfirmasi Selesai!';
+    }
+};
+
+/**
+ * Submit import after password confirmation
+ */
+window.submitImport = async function () {
+    const password = document.getElementById('importPasswordInput').value;
+
+    if (!password) {
+        showToast('Error', 'Password harus diisi!', 'error');
+        return;
+    }
+
+    const submitBtn = document.getElementById('submitImportBtn');
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Importing...';
+
+    try {
+        if (currentImportType === 'users') {
+            await importUsersFromSheets(password);
+        } else if (currentImportType === 'server') {
+            await importServerFromSheets(password);
+        }
+
+        // Close modal
+        bootstrap.Modal.getInstance(document.getElementById('importConfirmModal')).hide();
+        resetImportModal();
+
+    } catch (error) {
+        console.error('Import error:', error);
+        showToast('Error', error.message || 'Gagal mengimport data', 'error');
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<i class="bi-cloud-download me-2"></i>Import Sekarang';
+    }
+};
+
+/**
+ * Reset import modal
+ */
+window.resetImportModal = function () {
+    importClickCount = 0;
+    currentImportType = null;
+    document.getElementById('importClickCounter').textContent = '0';
+    document.getElementById('importClickCountDisplay').textContent = '10';
+    document.getElementById('importPasswordInput').value = '';
+    document.getElementById('importPasswordInput').disabled = true;
+    document.querySelector('#importPasswordInput').nextElementSibling.disabled = true;
+    document.getElementById('submitImportBtn').disabled = true;
+    document.getElementById('importConfirmClickBtn').disabled = false;
+    document.getElementById('importConfirmClickBtn').classList.remove('btn-success');
+    document.getElementById('importConfirmClickBtn').innerHTML = '<i class="bi-hand-index-thumb"></i> Klik Saya (<span id="importClickCounter">0</span>/10)';
+    document.getElementById('submitImportBtn').innerHTML = '<i class="bi-cloud-download me-2"></i>Import Sekarang';
+};
+
+/**
+ * Import users from Google Sheets to Firestore
+ */
+async function importUsersFromSheets(password) {
+    try {
+        // Fetch data from Google Sheets
+        const response = await fetch(GOOGLE_SCRIPT_URL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                action: 'importUserData',
+                password: password
+            })
+        });
+
+        const result = await response.json();
+
+        if (!result.success) {
+            throw new Error(result.message || 'Failed to fetch data from Google Sheets');
+        }
+
+        const users = result.data.users;
+        if (!users || users.length === 0) {
+            showToast('Info', 'Tidak ada data user untuk diimport', 'info');
+            return;
+        }
+
+        // Import to Firestore
+        const batch = writeBatch(db);
+        let importCount = 0;
+
+        users.forEach(user => {
+            if (user.uid) {
+                const userRef = doc(db, 'users', user.uid);
+                batch.set(userRef, {
+                    username: user.username,
+                    email: user.email,
+                    points: user.points,
+                    totalAttendance: user.totalAttendance,
+                    isAdmin: user.isAdmin,
+                    createdAt: user.createdAt
+                }, { merge: true }); // merge: true to update existing or create new
+                importCount++;
+            }
+        });
+
+        await batch.commit();
+        showToast('Berhasil', `Berhasil mengimport ${importCount} user ke Firestore!`, 'success');
+
+    } catch (error) {
+        console.error('Import users error:', error);
+        throw error;
+    }
+}
+
+/**
+ * Import server data from Google Sheets to Firestore
+ */
+async function importServerFromSheets(password) {
+    try {
+        // Fetch data from Google Sheets
+        const response = await fetch(GOOGLE_SCRIPT_URL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                action: 'importServerData',
+                password: password
+            })
+        });
+
+        const result = await response.json();
+
+        if (!result.success) {
+            throw new Error(result.message || 'Failed to fetch data from Google Sheets');
+        }
+
+        const rawData = result.data.rawData;
+        const collections = Object.keys(rawData);
+
+        if (collections.length === 0) {
+            showToast('Info', 'Tidak ada data server untuk diimport', 'info');
+            return;
+        }
+
+        // Import to Firestore
+        let totalImported = 0;
+
+        for (const collectionName of collections) {
+            const collectionData = rawData[collectionName];
+            const docIds = Object.keys(collectionData);
+
+            for (const docId of docIds) {
+                const docData = collectionData[docId].fields;
+                const docRef = doc(db, collectionName, docId);
+                await setDoc(docRef, docData, { merge: true });
+                totalImported++;
+            }
+        }
+
+        showToast('Berhasil', `Berhasil mengimport ${totalImported} dokumen dari ${collections.length} koleksi!`, 'success');
+
+    } catch (error) {
+        console.error('Import server error:', error);
+        throw error;
+    }
+}
+
+// ==========================================
 // INTEGRATE WITH EXISTING SUBMIT CODE
 // ==========================================
 

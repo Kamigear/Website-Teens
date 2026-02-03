@@ -412,6 +412,43 @@
                             </div>
                         </div>
 
+                        <!-- Import UserData Card -->
+                        <div class="col-lg-4 mb-4">
+                            <div class="dashboard-card h-100">
+                                <div class="d-flex align-items-center mb-3">
+                                    <div
+                                        class="icon-box me-3 d-flex align-items-center justify-content-center rounded-circle">
+                                        <i class="bi-cloud-download-fill"></i>
+                                    </div>
+                                    <h5 class="mb-0">Import User Data</h5>
+                                </div>
+                                <p class="text-muted small">Restore data user dari Google Sheets ke Firestore.</p>
+                                <button class="btn btn-outline-primary btn-sm w-100 mt-auto"
+                                    onclick="importUserDataFromSheets()">
+                                    <i class="bi-cloud-download me-2"></i>Import Users
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Import ServerData Card -->
+                        <div class="col-lg-4 mb-4">
+                            <div class="dashboard-card h-100">
+                                <div class="d-flex align-items-center mb-3">
+                                    <div
+                                        class="icon-box me-3 d-flex align-items-center justify-content-center rounded-circle">
+                                        <i class="bi-database-fill-down"></i>
+                                    </div>
+                                    <h5 class="mb-0">Import Server Data</h5>
+                                </div>
+                                <p class="text-muted small">Restore konfigurasi server dari Google Sheets ke Firestore.
+                                </p>
+                                <button class="btn btn-outline-primary btn-sm w-100 mt-auto"
+                                    onclick="importServerDataFromSheets()">
+                                    <i class="bi-cloud-download me-2"></i>Import Settings
+                                </button>
+                            </div>
+                        </div>
+
                         <div class="col-12 mb-4">
                             <div class="dashboard-card">
                                 <h5 class="mb-3">Buat Kode Event Unik</h5>
@@ -895,6 +932,63 @@
                         onclick="resetExportModal()">Batal</button>
                     <button type="button" class="btn custom-btn" id="submitExportBtn" disabled onclick="submitExport()">
                         <i class="bi-cloud-upload me-2"></i>Export Sekarang
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Import Confirmation Modal -->
+    <div class="modal fade" id="importConfirmModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header border-0 bg-info">
+                    <h5 class="modal-title text-white">
+                        <i class="bi-exclamation-triangle-fill me-2"></i>Konfirmasi Import
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                        aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-info">
+                        <strong>Perhatian!</strong> Anda akan mengimport data dari Google Sheets ke Firestore.
+                    </div>
+
+                    <p class="text-muted small mb-3" id="importModalMessage">
+                        Data dari spreadsheet akan ditambahkan/diupdate ke Firestore.
+                    </p>
+
+                    <!-- 10-Click Confirmation -->
+                    <div class="mb-3 text-center">
+                        <p class="small text-muted mb-2">Klik tombol di bawah <strong
+                                id="importClickCountDisplay">10</strong>
+                            kali untuk konfirmasi:</p>
+                        <button type="button" class="btn btn-outline-info btn-lg" id="importConfirmClickBtn"
+                            onclick="handleImportConfirmClick()">
+                            <i class="bi-hand-index-thumb"></i> Klik Saya (<span id="importClickCounter">0</span>/10)
+                        </button>
+                    </div>
+
+                    <form id="importPasswordForm">
+                        <div class="mb-3">
+                            <label class="form-label">Masukkan Password Admin:</label>
+                            <div class="input-group">
+                                <input type="password" class="form-control" id="importPasswordInput"
+                                    placeholder="Password" required disabled>
+                                <button class="btn btn-outline-dark" type="button" disabled
+                                    onclick="togglePassword('importPasswordInput', 'icon-importPassword')">
+                                    <i class="bi bi-eye" id="icon-importPassword"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-dark" data-bs-dismiss="modal"
+                        onclick="resetImportModal()">Batal</button>
+                    <button type="button" class="btn btn-info text-white" id="submitImportBtn" disabled
+                        onclick="submitImport()">
+                        <i class="bi-cloud-download me-2"></i>Import Sekarang
                     </button>
                 </div>
             </div>

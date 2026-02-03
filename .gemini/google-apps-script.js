@@ -1,21 +1,14 @@
 /**
- * VDR TEENS - GOOGLE SHEETS BACKUP SYSTEM
+ * VDR TEENS - GOOGLE SHEETS BACKUP SYSTEM (PLAIN TEXT ONLY)
  * 
  * SETUP INSTRUCTIONS:
- * 1. Open your Google Spreadsheet: https://docs.google.com/spreadsheets/d/141O3Ure-WZyzFdcUKsvQDQBOSASj7PgDrJ55TFZP5v0/edit
+ * 1. Open your Google Spreadsheet
  * 2. Go to Extensions > Apps Script
- * 3. Delete any existing code and paste THIS ENTIRE FILE
- * 4. Click "Deploy" > "New deployment"
- * 5. Choose type: "Web app"
- * 6. Execute as: "Me"
- * 7. Who has access: "Anyone"
- * 8. Click "Deploy" and copy the Web App URL
- * 9. Paste the URL into dashboard.js (GOOGLE_SCRIPT_URL constant)
- * 
- * SHEET STRUCTURE:
- * - AbsenceData: Automated attendance records (written by submitCode in dashboard.js)
- * - UserData: User identity information (manual export from dashboard)
- * - ServerData: Server configuration (manual export from dashboard)
+ * 3. Delete ANY existing code and paste THIS ENTIRE FILE
+ * 4. Click "Save"
+ * 5. Click "Deploy" > "New deployment"
+ * 6. Choose type: "Web app", Execute as: "Me", Access: "Anyone"
+ * 7. Copy the NEW Web App URL and paste it into dashboard.js
  */
 
 // ==========================================
@@ -31,535 +24,316 @@ const SHEET_NAMES = {
 const ADMIN_PASSWORD = 'vdrteens';
 
 // ==========================================
-// MAIN HANDLER - Receives POST requests from website
+// MAIN HANDLER
 // ==========================================
 
-/**
- * Handles GET requests (when someone opens the Web App URL in browser)
- * Returns a simple HTML page
- */
 function doGet(e) {
-    return HtmlService.createHtmlOutput(
-        '<h1>VDR Teens Backup System</h1>' +
-        '<p>This is a backend service for VDR Teens Dashboard.</p>' +
-        '<p>Status: <strong style="color: green;">Active</strong></p>' +
-        '<p>Last updated: ' + new Date().toISOString() + '</p>'
-    );
+    return HtmlService.createHtmlOutput('<h1>VDR Teens Backup System</h1><p>Status: Active</p>');
 }
 
-/**
- * Handles POST requests from the website
- */
 function doPost(e) {
     try {
-        // Log the entire request for debugging
-        Logger.log('doPost called');
-        Logger.log('Request parameter: ' + JSON.stringify(e));
-
-        // Check if e exists
-        if (!e) {
-            Logger.log('ERROR: e parameter is undefined');
-            return createResponse(false, 'No request data received');
-        }
-
-        // Check if postData exists
-        if (!e.postData) {
-            Logger.log('ERROR: e.postData is undefined');
-            Logger.log('Available properties: ' + Object.keys(e).join(', '));
-            return createResponse(false, 'No POST data received. Make sure request method is POST.');
-        }
-
-        // Check if contents exists
-        if (!e.postData.contents) {
-            Logger.log('ERROR: e.postData.contents is undefined');
-            return createResponse(false, 'No content in POST data');
-        }
-
-        Logger.log('POST data contents: ' + e.postData.contents);
-
+        if (!e || !e.postData || !e.postData.contents) return createResponse(false, 'No payload');
         const data = JSON.parse(e.postData.contents);
         const action = data.action;
 
-        Logger.log('Received action: ' + action);
-
         switch (action) {
-            case 'recordAttendance':
-                return recordAttendance(data);
-
-            case 'exportUserData':
-                return exportUserData(data);
-
-            case 'exportServerData':
-                return exportServerData(data);
-
-            default:
-                return createResponse(false, 'Unknown action: ' + action);
+            case 'recordAttendance': return recordAttendance(data);
+            case 'exportUserData': return exportUserData(data);
+            case 'exportServerData': return exportServerData(data);
+            case 'importUserData': return importUserData(data);
+            case 'importServerData': return importServerData(data);
+            default: return createResponse(false, 'Unknown action');
         }
     } catch (error) {
-        Logger.log('Error in doPost: ' + error.toString());
-        Logger.log('Error stack: ' + error.stack);
         return createResponse(false, 'Server error: ' + error.toString());
     }
 }
 
 // ==========================================
-// ATTENDANCE RECORDING (Automatic)
+// SERVER DATA EXPORT (PLAIN TEXT - NO COLOR)
 // ==========================================
 
-/**
- * Records attendance to AbsenceData sheet
- * Called automatically when user submits weekly token
- */
-function recordAttendance(data) {
-    try {
-        const sheet = getOrCreateSheet(SHEET_NAMES.ABSENCE);
-
-        // Ensure headers exist
-        if (sheet.getLastRow() === 0) {
-            sheet.appendRow(['uid', 'username', 'email', 'date', 'time', 'points', 'week']);
-            sheet.getRange(1, 1, 1, 7).setFontWeight('bold').setBackground('#f3f3f3');
-        }
-
-        const attendance = data.attendance;
-        const now = new Date();
-
-        // Append new row
-        sheet.appendRow([
-            attendance.uid,
-            attendance.username,
-            attendance.email || '',
-            Utilities.formatDate(now, Session.getScriptTimeZone(), 'yyyy-MM-dd'),
-            Utilities.formatDate(now, Session.getScriptTimeZone(), 'HH:mm:ss'),
-            attendance.points || 0,
-            attendance.week || ''
-        ]);
-
-        // Add hyperlinks to uid and username (link to UserData)
-        const lastRow = sheet.getLastRow();
-        const userDataSheetId = getSheetId(SHEET_NAMES.USERS);
-
-        if (userDataSheetId) {
-            // Create link formula that searches for matching UID in UserData
-            const linkFormula = `=HYPERLINK("#gid=${userDataSheetId}&range=A:A", "${attendance.uid}")`;
-            sheet.getRange(lastRow, 1).setFormula(linkFormula);
-
-            const usernameLinkFormula = `=HYPERLINK("#gid=${userDataSheetId}&range=A:A", "${attendance.username}")`;
-            sheet.getRange(lastRow, 2).setFormula(usernameLinkFormula);
-        }
-
-        return createResponse(true, 'Attendance recorded successfully');
-
-    } catch (error) {
-        Logger.log('Error recording attendance: ' + error.toString());
-        return createResponse(false, 'Failed to record attendance: ' + error.toString());
-    }
-}
-
-// ==========================================
-// USER DATA EXPORT (Manual with Password)
-// ==========================================
-
-/**
- * Exports all user data to UserData sheet
- * Requires password confirmation
- */
-function exportUserData(data) {
-    try {
-        // Verify password
-        if (data.password !== ADMIN_PASSWORD) {
-            return createResponse(false, 'Invalid password');
-        }
-
-        const sheet = getOrCreateSheet(SHEET_NAMES.USERS);
-
-        // Clear existing data
-        sheet.clear();
-
-        // Set headers
-        sheet.appendRow(['uid', 'username', 'email', 'points', 'totalAttendance', 'isAdmin', 'createdAt']);
-        sheet.getRange(1, 1, 1, 7).setFontWeight('bold').setBackground('#4285f4').setFontColor('#ffffff');
-
-        // Add user data
-        const users = data.users || [];
-        users.forEach(user => {
-            sheet.appendRow([
-                user.uid,
-                user.username || '',
-                user.email || '',
-                user.points || 0,
-                user.totalAttendance || 0,
-                user.isAdmin ? 'Yes' : 'No',
-                user.createdAt || ''
-            ]);
-        });
-
-        // Auto-resize columns
-        sheet.autoResizeColumns(1, 7);
-
-        // Add timestamp
-        const timestamp = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'yyyy-MM-dd HH:mm:ss');
-
-        return createResponse(true, `Successfully exported ${users.length} users at ${timestamp}`);
-
-    } catch (error) {
-        Logger.log('Error exporting user data: ' + error.toString());
-        return createResponse(false, 'Failed to export user data: ' + error.toString());
-    }
-}
-
-// ==========================================
-// SERVER DATA EXPORT (Manual with Password)
-// ==========================================
-
-/**
- * Exports server collections to ServerData sheet (Table Format - Horizontal)
- * Each collection becomes a table arranged left to right
- * Requires password confirmation
- */
 function exportServerData(data) {
     try {
-        Logger.log('=== exportServerData called ===');
-        Logger.log('Data received: ' + JSON.stringify(data).substring(0, 200));
+        if (data.password !== ADMIN_PASSWORD) return createResponse(false, 'Invalid password');
 
-        // Verify password
-        if (data.password !== ADMIN_PASSWORD) {
-            Logger.log('ERROR: Invalid password');
-            return createResponse(false, 'Invalid password');
-        }
-
-        Logger.log('Password verified');
-
+        const ss = SpreadsheetApp.getActiveSpreadsheet();
         const sheet = getOrCreateSheet(SHEET_NAMES.SERVER);
         const rawData = data.rawData || {};
-
-        Logger.log('Collections in rawData: ' + Object.keys(rawData).join(', '));
-
-        // Clear sheet
-        sheet.clear();
-        Logger.log('Sheet cleared');
-
-        let currentCol = 1; // Start from column A
-        let totalDocs = 0;
         const collections = Object.keys(rawData);
 
-        if (collections.length === 0) {
-            Logger.log('WARNING: No collections found in rawData');
-            sheet.getRange(1, 1).setValue('No data to export');
-            return createResponse(false, 'No collections found in data');
-        }
+        sheet.clear();
 
-        // Process each collection (arrange horizontally)
+        let currentCol = 1;
+        let totalDocs = 0;
+
         collections.forEach(function (collectionName) {
-            Logger.log('Processing collection: ' + collectionName);
-
             const collectionData = rawData[collectionName];
             const docIds = Object.keys(collectionData);
 
-            Logger.log('  - Documents in ' + collectionName + ': ' + docIds.length);
-
             if (docIds.length === 0) {
-                // Empty collection
-                sheet.getRange(1, currentCol).setValue('--- ' + collectionName + ' (No Data) ---');
-                sheet.getRange(1, currentCol).setFontWeight('bold').setBackground('#ffeb3b');
-                currentCol += 2; // Skip a column
+                // Just text title for empty collection
+                sheet.getRange(1, currentCol).setValue('--- ' + collectionName + ' (Empty) ---');
+                currentCol += 2;
                 return;
             }
 
-            // Collection header (row 1)
-            sheet.getRange(1, currentCol).setValue('=== ' + collectionName + ' (' + docIds.length + ' docs) ===');
-            sheet.getRange(1, currentCol).setFontWeight('bold').setBackground('#4285f4').setFontColor('#ffffff').setFontSize(11);
+            // Get unique field Names
+            const fieldKeysSet = new Set();
+            docIds.forEach(function (id) {
+                const fields = collectionData[id].fields || {};
+                Object.keys(fields).forEach(function (key) { fieldKeysSet.add(key); });
+            });
+            const fieldNames = Array.from(fieldKeysSet);
+            const headers = ['Document ID'].concat(fieldNames);
 
-            // Collect all unique field names from all documents
-            var allFields = {};
-            docIds.forEach(function (docId) {
-                var fields = collectionData[docId].fields || {};
-                Object.keys(fields).forEach(function (fieldName) {
-                    allFields[fieldName] = true;
+            const tableValues = [];
+            tableValues.push(headers); // Column Headers as Row 2
+
+            docIds.forEach(function (id) {
+                const docFields = collectionData[id].fields || {};
+                const row = [id];
+                fieldNames.forEach(function (fName) {
+                    let val = docFields[fName];
+                    if (val === null || val === undefined) {
+                        val = '';
+                    } else if (typeof val === 'object') {
+                        val = JSON.stringify(val);
+                    } else {
+                        val = String(val);
+                    }
+                    row.push(val);
                 });
+                tableValues.push(row);
+                totalDocs++;
             });
 
-            var fieldNames = Object.keys(allFields);
-            Logger.log('  - Fields found: ' + fieldNames.length);
+            // Write Section Name Header (Row 1) - Plain Text
+            sheet.getRange(1, currentCol).setValue('=== ' + collectionName + ' (' + docIds.length + ' docs) ===');
 
-            // Table headers (row 2): Document ID + all fields
-            var headers = ['Document ID'].concat(fieldNames);
+            // Bulk Write Table (Row 2 onwards) - Plain Text
+            sheet.getRange(2, currentCol, tableValues.length, headers.length).setValues(tableValues);
 
-            // Write headers in row 2
-            for (var i = 0; i < headers.length; i++) {
-                sheet.getRange(2, currentCol + i).setValue(headers[i]);
-            }
-            sheet.getRange(2, currentCol, 1, headers.length)
-                .setFontWeight('bold')
-                .setBackground('#34a853')
-                .setFontColor('#ffffff');
-
-            // Write data rows (starting from row 3)
-            for (var rowIdx = 0; rowIdx < docIds.length; rowIdx++) {
-                var docId = docIds[rowIdx];
-                var fields = collectionData[docId].fields || {};
-
-                // First column: Document ID
-                sheet.getRange(3 + rowIdx, currentCol).setValue(docId);
-
-                // Remaining columns: field values
-                for (var colIdx = 0; colIdx < fieldNames.length; colIdx++) {
-                    var fieldName = fieldNames[colIdx];
-                    var value = fields[fieldName];
-
-                    // Convert value to string
-                    var displayValue = '';
-                    if (value === null || value === undefined) {
-                        displayValue = '';
-                    } else if (typeof value === 'object') {
-                        // For timestamps and nested objects, convert to JSON
-                        displayValue = JSON.stringify(value);
-                    } else {
-                        displayValue = String(value);
-                    }
-
-                    sheet.getRange(3 + rowIdx, currentCol + colIdx + 1).setValue(displayValue);
-                }
-
-                totalDocs++;
-            }
-
-            Logger.log('  - Wrote ' + docIds.length + ' documents');
-
-            // Move to next column group (add spacing)
             currentCol += headers.length + 1;
         });
 
-        Logger.log('Total documents written: ' + totalDocs);
-
-        // Auto-resize columns (limit to prevent timeout)
-        var maxCols = Math.min(sheet.getMaxColumns(), currentCol);
-        if (maxCols > 0) {
-            sheet.autoResizeColumns(1, maxCols);
-            Logger.log('Auto-resized ' + maxCols + ' columns');
+        // Optional: Auto resize only for readability, NO styling/colors
+        if (currentCol > 1) {
+            sheet.autoResizeColumns(1, Math.min(sheet.getLastColumn(), 50));
         }
 
-        // Freeze first 2 rows (collection header + column headers)
-        sheet.setFrozenRows(2);
-
-        var timestamp = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'yyyy-MM-dd HH:mm:ss');
-        Logger.log('=== Export completed successfully ===');
-        return createResponse(true, 'Success! Backed up ' + totalDocs + ' documents from ' + collections.length + ' collections to ServerData sheet at ' + timestamp);
-
+        return createResponse(true, 'Success! Backed up ' + totalDocs + ' documents.');
     } catch (error) {
-        Logger.log('=== ERROR in exportServerData ===');
-        Logger.log('Error message: ' + error.toString());
-        Logger.log('Error stack: ' + error.stack);
-        return createResponse(false, 'Failed to export server data: ' + error.toString());
+        return createResponse(false, 'Failed: ' + error.toString());
     }
 }
 
 // ==========================================
-// HELPER FUNCTIONS
+// USER EXPORT (PLAIN TEXT - NO COLOR)
+// ==========================================
+
+function exportUserData(data) {
+    try {
+        if (data.password !== ADMIN_PASSWORD) return createResponse(false, 'Invalid password');
+        const sheet = getOrCreateSheet(SHEET_NAMES.USERS);
+        sheet.clear();
+
+        const users = data.users || [];
+        if (users.length === 0) return createResponse(true, 'No users');
+
+        const headers = ['uid', 'username', 'email', 'points', 'totalAttendance', 'isAdmin', 'createdAt'];
+        const values = [headers];
+
+        users.forEach(function (u) {
+            values.push([
+                u.uid || '', u.username || '', u.email || '',
+                u.points || 0, u.totalAttendance || 0,
+                u.isAdmin ? 'Yes' : 'No', u.createdAt || ''
+            ]);
+        });
+
+        sheet.getRange(1, 1, values.length, headers.length).setValues(values);
+        sheet.autoResizeColumns(1, headers.length);
+
+        return createResponse(true, 'Exported ' + users.length + ' users');
+    } catch (e) {
+        return createResponse(false, e.toString());
+    }
+}
+
+// ==========================================
+// IMPORT DATA FROM SHEETS
 // ==========================================
 
 /**
- * Gets or creates a sheet by name
+ * Import User Data from UserData sheet
+ * Reads the sheet and returns data to website for Firestore import
  */
-function getOrCreateSheet(sheetName) {
-    const ss = SpreadsheetApp.getActiveSpreadsheet();
-    let sheet = ss.getSheetByName(sheetName);
+function importUserData(data) {
+    try {
+        if (data.password !== ADMIN_PASSWORD) return createResponse(false, 'Invalid password');
 
-    if (!sheet) {
-        sheet = ss.insertSheet(sheetName);
+        const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_NAMES.USERS);
+        if (!sheet) return createResponse(false, 'UserData sheet not found');
+
+        const lastRow = sheet.getLastRow();
+        if (lastRow < 2) return createResponse(false, 'No data in UserData sheet');
+
+        // Get all data (skip header row)
+        const values = sheet.getRange(2, 1, lastRow - 1, 7).getValues();
+        const users = [];
+
+        values.forEach(function (row) {
+            if (row[0]) { // Check if uid exists
+                users.push({
+                    uid: String(row[0]),
+                    username: String(row[1] || ''),
+                    email: String(row[2] || ''),
+                    points: Number(row[3]) || 0,
+                    totalAttendance: Number(row[4]) || 0,
+                    isAdmin: String(row[5]).toLowerCase() === 'yes',
+                    createdAt: String(row[6] || '')
+                });
+            }
+        });
+
+        return createResponse(true, 'Found ' + users.length + ' users', { users: users });
+    } catch (e) {
+        return createResponse(false, 'Import error: ' + e.toString());
     }
+}
 
+/**
+ * Import Server Data from ServerData sheet
+ * Reads horizontal tables and returns data in Firestore format
+ */
+function importServerData(data) {
+    try {
+        if (data.password !== ADMIN_PASSWORD) return createResponse(false, 'Invalid password');
+
+        const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_NAMES.SERVER);
+        if (!sheet) return createResponse(false, 'ServerData sheet not found');
+
+        const lastRow = sheet.getLastRow();
+        const lastCol = sheet.getLastColumn();
+        if (lastRow < 2 || lastCol < 1) return createResponse(false, 'No data in ServerData sheet');
+
+        // Read all data at once
+        const allValues = sheet.getRange(1, 1, lastRow, lastCol).getValues();
+        const rawData = {};
+
+        // Parse horizontal tables
+        let currentCol = 0;
+        while (currentCol < lastCol) {
+            const sectionHeader = allValues[0][currentCol];
+            if (!sectionHeader) {
+                currentCol++;
+                continue;
+            }
+
+            // Extract collection name from header like "=== events (4 docs) ==="
+            const match = sectionHeader.match(/===\s*(\w+)\s*\(/);
+            if (!match) {
+                currentCol++;
+                continue;
+            }
+
+            const collectionName = match[1];
+            const columnHeaders = [];
+            let colCount = 0;
+
+            // Read column headers (row 2)
+            for (let c = currentCol; c < lastCol; c++) {
+                const header = allValues[1][c];
+                if (!header) break;
+                columnHeaders.push(String(header));
+                colCount++;
+            }
+
+            if (columnHeaders.length === 0) {
+                currentCol++;
+                continue;
+            }
+
+            // Read data rows (row 3 onwards)
+            rawData[collectionName] = {};
+            for (let r = 2; r < lastRow; r++) {
+                const docId = allValues[r][currentCol];
+                if (!docId) continue;
+
+                const fields = {};
+                for (let c = 1; c < columnHeaders.length; c++) {
+                    const fieldName = columnHeaders[c];
+                    let value = allValues[r][currentCol + c];
+
+                    // Try to parse JSON strings back to objects
+                    if (typeof value === 'string' && (value.startsWith('{') || value.startsWith('['))) {
+                        try {
+                            value = JSON.parse(value);
+                        } catch (e) {
+                            // Keep as string if not valid JSON
+                        }
+                    }
+
+                    fields[fieldName] = value;
+                }
+
+                rawData[collectionName][String(docId)] = {
+                    fields: fields,
+                    subcollections: {}
+                };
+            }
+
+            currentCol += colCount + 1; // Move to next table
+        }
+
+        const totalDocs = Object.values(rawData).reduce(function (sum, coll) {
+            return sum + Object.keys(coll).length;
+        }, 0);
+
+        return createResponse(true, 'Found ' + totalDocs + ' documents', { rawData: rawData });
+    } catch (e) {
+        return createResponse(false, 'Import error: ' + e.toString());
+    }
+}
+
+// ==========================================
+// HELPERS
+// ==========================================
+
+function recordAttendance(data) {
+    try {
+        const sheet = getOrCreateSheet(SHEET_NAMES.ABSENCE);
+        const att = data.attendance;
+        const now = new Date();
+
+        if (sheet.getLastRow() === 0) {
+            sheet.appendRow(['uid', 'username', 'email', 'date', 'time', 'points', 'week']);
+        }
+
+        sheet.appendRow([
+            att.uid, att.username, att.email || '',
+            Utilities.formatDate(now, Session.getScriptTimeZone(), 'yyyy-MM-dd'),
+            Utilities.formatDate(now, Session.getScriptTimeZone(), 'HH:mm:ss'),
+            att.points || 0, att.week || ''
+        ]);
+
+        return createResponse(true, 'Record added');
+    } catch (e) {
+        return createResponse(false, e.toString());
+    }
+}
+
+function getOrCreateSheet(name) {
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    let sheet = ss.getSheetByName(name);
+    if (!sheet) sheet = ss.insertSheet(name);
     return sheet;
 }
 
-/**
- * Gets the sheet ID (gid) for creating hyperlinks
- */
-function getSheetId(sheetName) {
-    const ss = SpreadsheetApp.getActiveSpreadsheet();
-    const sheet = ss.getSheetByName(sheetName);
-
-    if (!sheet) return null;
-
-    return sheet.getSheetId();
-}
-
-/**
- * Creates a standardized JSON response
- */
-function createResponse(success, message, data = null) {
-    const response = {
-        success: success,
-        message: message,
-        timestamp: new Date().toISOString()
-    };
-
-    if (data) {
-        response.data = data;
-    }
-
-    return ContentService
-        .createTextOutput(JSON.stringify(response))
-        .setMimeType(ContentService.MimeType.JSON);
-}
-
-/**
- * Test function - run this to verify the script works
- */
-function testSetup() {
-    Logger.log('Testing Google Apps Script setup...');
-
-    // Create all sheets
-    getOrCreateSheet(SHEET_NAMES.ABSENCE);
-    getOrCreateSheet(SHEET_NAMES.USERS);
-    getOrCreateSheet(SHEET_NAMES.SERVER);
-
-    Logger.log('All sheets created successfully!');
-    Logger.log('Sheet IDs:');
-    Logger.log('- AbsenceData: ' + getSheetId(SHEET_NAMES.ABSENCE));
-    Logger.log('- UserData: ' + getSheetId(SHEET_NAMES.USERS));
-    Logger.log('- ServerData: ' + getSheetId(SHEET_NAMES.SERVER));
-}
-
-/**
- * Test doPost with ServerData export
- * Run this to test if export works
- */
-function testExportServerData() {
-    Logger.log('Testing ServerData export...');
-
-    const mockEvent = {
-        postData: {
-            contents: JSON.stringify({
-                action: 'exportServerData',
-                password: 'vdrteens',
-                rawData: {
-                    events: {
-                        'event1': {
-                            fields: {
-                                title: 'Test Event 1',
-                                date: '2026-02-01',
-                                description: 'This is a test event',
-                                status: 'upcoming'
-                            },
-                            subcollections: {}
-                        },
-                        'event2': {
-                            fields: {
-                                title: 'Test Event 2',
-                                date: '2026-02-02',
-                                description: 'Another test event',
-                                status: 'ongoing'
-                            },
-                            subcollections: {}
-                        }
-                    },
-                    settings: {
-                        'attendanceConfig': {
-                            fields: {
-                                slot1Time: '09:05',
-                                slot1Points: 3,
-                                slot2Time: '09:20',
-                                slot2Points: 2,
-                                defaultPoints: 0
-                            },
-                            subcollections: {}
-                        }
-                    }
-                }
-            })
-        }
-    };
-
-    const result = doPost(mockEvent);
-    Logger.log('Result: ' + result.getContent());
-
-    // Check if ServerData sheet has JSON data
-    const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_NAMES.SERVER);
-
-    if (sheet) {
-        const jsonData = sheet.getRange(1, 1).getValue();
-        Logger.log('SUCCESS! ServerData sheet created with JSON data');
-        Logger.log('JSON length: ' + jsonData.length + ' characters');
-        Logger.log('Check cell A1 in ServerData sheet for the full JSON backup');
-    } else {
-        Logger.log('ERROR: ServerData sheet not found');
-    }
-}
-
-/**
- * Test doPost with UserData export
- * Run this to test if user export works
- */
-function testExportUserData() {
-    Logger.log('Testing UserData export...');
-
-    const mockEvent = {
-        postData: {
-            contents: JSON.stringify({
-                action: 'exportUserData',
-                password: 'vdrteens',
-                users: [
-                    {
-                        uid: 'test-uid-1',
-                        username: 'testuser1',
-                        email: 'test1@example.com',
-                        points: 100,
-                        totalAttendance: 5,
-                        isAdmin: false,
-                        createdAt: '2026-01-01T00:00:00Z'
-                    },
-                    {
-                        uid: 'test-uid-2',
-                        username: 'testuser2',
-                        email: 'test2@example.com',
-                        points: 200,
-                        totalAttendance: 10,
-                        isAdmin: true,
-                        createdAt: '2026-01-02T00:00:00Z'
-                    }
-                ]
-            })
-        }
-    };
-
-    const result = doPost(mockEvent);
-    Logger.log('Result: ' + result.getContent());
-
-    // Check if data appears in sheet
-    const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_NAMES.USERS);
-    if (sheet) {
-        Logger.log('UserData sheet has ' + sheet.getLastRow() + ' rows');
-        Logger.log('SUCCESS: Check the UserData sheet!');
-    } else {
-        Logger.log('ERROR: UserData sheet not found');
-    }
-}
-
-/**
- * Test doPost with wrong password
- * Run this to test password validation
- */
-function testWrongPassword() {
-    Logger.log('Testing wrong password...');
-
-    const mockEvent = {
-        postData: {
-            contents: JSON.stringify({
-                action: 'exportServerData',
-                password: 'wrongpassword',
-                serverData: []
-            })
-        }
-    };
-
-    const result = doPost(mockEvent);
-    const response = JSON.parse(result.getContent());
-
-    Logger.log('Result: ' + result.getContent());
-
-    if (response.success === false && response.message.includes('password')) {
-        Logger.log('SUCCESS: Password validation works!');
-    } else {
-        Logger.log('ERROR: Password validation failed');
-    }
+function createResponse(success, message, data) {
+    const res = { success: success, message: message };
+    if (data) res.data = data;
+    return ContentService.createTextOutput(JSON.stringify(res)).setMimeType(ContentService.MimeType.JSON);
 }
