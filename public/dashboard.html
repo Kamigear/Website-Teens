@@ -423,7 +423,7 @@
                                     <h5 class="mb-0">Import User Data</h5>
                                 </div>
                                 <p class="text-muted small">Restore data user dari Google Sheets ke Firestore.</p>
-                                <button class="btn btn-outline-primary btn-sm w-100 mt-auto"
+                                <button class="btn custom-btn btn-sm w-100 mt-auto"
                                     onclick="importUserDataFromSheets()">
                                     <i class="bi-cloud-download me-2"></i>Import Users
                                 </button>
@@ -442,7 +442,7 @@
                                 </div>
                                 <p class="text-muted small">Restore konfigurasi server dari Google Sheets ke Firestore.
                                 </p>
-                                <button class="btn btn-outline-primary btn-sm w-100 mt-auto"
+                                <button class="btn custom-btn btn-sm w-100 mt-auto"
                                     onclick="importServerDataFromSheets()">
                                     <i class="bi-cloud-download me-2"></i>Import Settings
                                 </button>
@@ -942,15 +942,14 @@
     <div class="modal fade" id="importConfirmModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
-                <div class="modal-header border-0 bg-info">
-                    <h5 class="modal-title text-white">
+                <div class="modal-header border-0 bg-secondary-theme">
+                    <h5 class="modal-title">
                         <i class="bi-exclamation-triangle-fill me-2"></i>Konfirmasi Import
                     </h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
-                        aria-label="Close"></button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <div class="alert alert-info">
+                    <div class="alert alert-warning-custom">
                         <strong>Perhatian!</strong> Anda akan mengimport data dari Google Sheets ke Firestore.
                     </div>
 
@@ -963,7 +962,7 @@
                         <p class="small text-muted mb-2">Klik tombol di bawah <strong
                                 id="importClickCountDisplay">10</strong>
                             kali untuk konfirmasi:</p>
-                        <button type="button" class="btn btn-outline-info btn-lg" id="importConfirmClickBtn"
+                        <button type="button" class="btn custom-border-btn btn-lg" id="importConfirmClickBtn"
                             onclick="handleImportConfirmClick()">
                             <i class="bi-hand-index-thumb"></i> Klik Saya (<span id="importClickCounter">0</span>/10)
                         </button>
@@ -986,8 +985,7 @@
                 <div class="modal-footer">
                     <button type="button" class="btn btn-outline-dark" data-bs-dismiss="modal"
                         onclick="resetImportModal()">Batal</button>
-                    <button type="button" class="btn btn-info text-white" id="submitImportBtn" disabled
-                        onclick="submitImport()">
+                    <button type="button" class="btn custom-btn" id="submitImportBtn" disabled onclick="submitImport()">
                         <i class="bi-cloud-download me-2"></i>Import Sekarang
                     </button>
                 </div>

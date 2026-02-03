@@ -2736,9 +2736,6 @@ async function exportUsersToSheets(password) {
  */
 async function exportServerToSheets(password) {
     try {
-        console.log('=== exportServerToSheets called ===');
-        console.log('Password:', password);
-
         const backupData = {};
         const collectionsToBackup = [
             'attendanceHistory',
@@ -2750,7 +2747,6 @@ async function exportServerToSheets(password) {
 
         // Fetch RAW data from all collections (preserve Firestore structure)
         for (const collectionName of collectionsToBackup) {
-            console.log(`Fetching collection: ${collectionName}`);
             const querySnapshot = await getDocs(collection(db, collectionName));
             backupData[collectionName] = {};
 
@@ -2761,16 +2757,10 @@ async function exportServerToSheets(password) {
                     subcollections: {}
                 };
             });
-
-            console.log(`  - ${collectionName}: ${Object.keys(backupData[collectionName]).length} documents`);
         }
-
-        console.log('Backup data structure:', backupData);
-        console.log('Collections:', Object.keys(backupData));
 
         // Calculate total documents
         const totalDocs = Object.values(backupData).reduce((acc, coll) => acc + Object.keys(coll).length, 0);
-        console.log('Total documents to export:', totalDocs);
 
         if (totalDocs === 0) {
             showToast('Warning', 'Tidak ada data untuk di-export!', 'warning');
@@ -2784,9 +2774,6 @@ async function exportServerToSheets(password) {
             rawData: backupData
         };
 
-        console.log('Payload size:', JSON.stringify(payload).length, 'characters');
-        console.log('Sending to:', GOOGLE_SCRIPT_URL);
-
         // Send RAW data to Google Sheets (no processing)
         const response = await fetch(GOOGLE_SCRIPT_URL, {
             method: 'POST',
@@ -2796,10 +2783,6 @@ async function exportServerToSheets(password) {
             },
             body: JSON.stringify(payload)
         });
-
-        console.log('Request sent successfully (no-cors mode)');
-        console.log('Response type:', response.type);
-        console.log('Response status:', response.status);
 
         showToast('Berhasil', `Backup sedang diproses! Total ${totalDocs} dokumen dari ${collectionsToBackup.length} koleksi.`, 'success');
 
@@ -2885,14 +2868,27 @@ window.handleImportConfirmClick = function () {
     document.getElementById('importClickCounter').textContent = importClickCount;
     document.getElementById('importClickCountDisplay').textContent = 10 - importClickCount;
 
+    const btn = document.getElementById('importConfirmClickBtn');
+
+    // Change button color as progress
+    if (importClickCount >= 5 && importClickCount < 10) {
+        btn.classList.remove('custom-border-btn');
+        btn.classList.add('btn-outline-dark');
+    }
+
     if (importClickCount >= 10) {
+        btn.classList.remove('btn-outline-dark', 'custom-border-btn');
+        btn.classList.add('custom-btn');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="bi-check-circle-fill"></i> Konfirmasi Selesai!';
+
         // Enable password input
         document.getElementById('importPasswordInput').disabled = false;
         document.querySelector('#importPasswordInput').nextElementSibling.disabled = false;
         document.getElementById('submitImportBtn').disabled = false;
-        document.getElementById('importConfirmClickBtn').disabled = true;
-        document.getElementById('importConfirmClickBtn').classList.add('btn-success');
-        document.getElementById('importConfirmClickBtn').innerHTML = '<i class="bi-check-circle-fill"></i> Konfirmasi Selesai!';
+
+        // Focus
+        document.getElementById('importPasswordInput').focus();
     }
 };
 
@@ -2942,9 +2938,13 @@ window.resetImportModal = function () {
     document.getElementById('importPasswordInput').disabled = true;
     document.querySelector('#importPasswordInput').nextElementSibling.disabled = true;
     document.getElementById('submitImportBtn').disabled = true;
-    document.getElementById('importConfirmClickBtn').disabled = false;
-    document.getElementById('importConfirmClickBtn').classList.remove('btn-success');
-    document.getElementById('importConfirmClickBtn').innerHTML = '<i class="bi-hand-index-thumb"></i> Klik Saya (<span id="importClickCounter">0</span>/10)';
+
+    const btn = document.getElementById('importConfirmClickBtn');
+    btn.disabled = false;
+    btn.classList.remove('custom-btn', 'btn-outline-dark');
+    btn.classList.add('custom-border-btn');
+    btn.innerHTML = '<i class="bi-hand-index-thumb"></i> Klik Saya (<span id="importClickCounter">0</span>/10)';
+
     document.getElementById('submitImportBtn').innerHTML = '<i class="bi-cloud-download me-2"></i>Import Sekarang';
 };
 
@@ -2957,7 +2957,7 @@ async function importUsersFromSheets(password) {
         const response = await fetch(GOOGLE_SCRIPT_URL, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json',
+                'Content-Type': 'text/plain;charset=utf-8',
             },
             body: JSON.stringify({
                 action: 'importUserData',
@@ -3014,7 +3014,7 @@ async function importServerFromSheets(password) {
         const response = await fetch(GOOGLE_SCRIPT_URL, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json',
+                'Content-Type': 'text/plain;charset=utf-8',
             },
             body: JSON.stringify({
                 action: 'importServerData',
