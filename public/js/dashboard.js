@@ -2865,10 +2865,15 @@ window.importServerDataFromSheets = function () {
  */
 window.handleImportConfirmClick = function () {
     importClickCount++;
-    document.getElementById('importClickCounter').textContent = importClickCount;
-    document.getElementById('importClickCountDisplay').textContent = 10 - importClickCount;
+
+    const counterEl = document.getElementById('importClickCounter');
+    if (counterEl) counterEl.textContent = importClickCount;
+
+    const displayEl = document.getElementById('importClickCountDisplay');
+    if (displayEl) displayEl.textContent = 10 - importClickCount;
 
     const btn = document.getElementById('importConfirmClickBtn');
+    if (!btn) return;
 
     // Change button color as progress
     if (importClickCount >= 5 && importClickCount < 10) {
@@ -2883,12 +2888,15 @@ window.handleImportConfirmClick = function () {
         btn.innerHTML = '<i class="bi-check-circle-fill"></i> Konfirmasi Selesai!';
 
         // Enable password input
-        document.getElementById('importPasswordInput').disabled = false;
-        document.querySelector('#importPasswordInput').nextElementSibling.disabled = false;
-        document.getElementById('submitImportBtn').disabled = false;
+        const passInput = document.getElementById('importPasswordInput');
+        if (passInput) {
+            passInput.disabled = false;
+            if (passInput.nextElementSibling) passInput.nextElementSibling.disabled = false;
+            passInput.focus();
+        }
 
-        // Focus
-        document.getElementById('importPasswordInput').focus();
+        const submitBtn = document.getElementById('submitImportBtn');
+        if (submitBtn) submitBtn.disabled = false;
     }
 };
 
@@ -2932,20 +2940,33 @@ window.submitImport = async function () {
 window.resetImportModal = function () {
     importClickCount = 0;
     currentImportType = null;
-    document.getElementById('importClickCounter').textContent = '0';
-    document.getElementById('importClickCountDisplay').textContent = '10';
-    document.getElementById('importPasswordInput').value = '';
-    document.getElementById('importPasswordInput').disabled = true;
-    document.querySelector('#importPasswordInput').nextElementSibling.disabled = true;
-    document.getElementById('submitImportBtn').disabled = true;
+
+    const counterEl = document.getElementById('importClickCounter');
+    if (counterEl) counterEl.textContent = '0';
+
+    const displayEl = document.getElementById('importClickCountDisplay');
+    if (displayEl) displayEl.textContent = '10';
+
+    const passInput = document.getElementById('importPasswordInput');
+    if (passInput) {
+        passInput.value = '';
+        passInput.disabled = true;
+        if (passInput.nextElementSibling) passInput.nextElementSibling.disabled = true;
+    }
+
+    const submitBtn = document.getElementById('submitImportBtn');
+    if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="bi-cloud-download me-2"></i>Import Sekarang';
+    }
 
     const btn = document.getElementById('importConfirmClickBtn');
-    btn.disabled = false;
-    btn.classList.remove('custom-btn', 'btn-outline-dark');
-    btn.classList.add('custom-border-btn');
-    btn.innerHTML = '<i class="bi-hand-index-thumb"></i> Klik Saya (<span id="importClickCounter">0</span>/10)';
-
-    document.getElementById('submitImportBtn').innerHTML = '<i class="bi-cloud-download me-2"></i>Import Sekarang';
+    if (btn) {
+        btn.disabled = false;
+        btn.classList.remove('custom-btn', 'btn-outline-dark');
+        btn.classList.add('custom-border-btn');
+        btn.innerHTML = '<i class="bi-hand-index-thumb"></i> Klik Saya (<span id="importClickCounter">0</span>/10)';
+    }
 };
 
 /**
