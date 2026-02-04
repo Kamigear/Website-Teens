@@ -2977,6 +2977,8 @@ async function importUsersFromSheets(password) {
         // Fetch data from Google Sheets
         const response = await fetch(GOOGLE_SCRIPT_URL, {
             method: 'POST',
+            mode: 'cors',
+            redirect: 'follow',
             headers: {
                 'Content-Type': 'text/plain;charset=utf-8',
             },
@@ -3034,6 +3036,8 @@ async function importServerFromSheets(password) {
         // Fetch data from Google Sheets
         const response = await fetch(GOOGLE_SCRIPT_URL, {
             method: 'POST',
+            mode: 'cors',
+            redirect: 'follow',
             headers: {
                 'Content-Type': 'text/plain;charset=utf-8',
             },

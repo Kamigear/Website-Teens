@@ -423,7 +423,7 @@
                                     <h5 class="mb-0">Import User Data</h5>
                                 </div>
                                 <p class="text-muted small">Restore data user dari Google Sheets ke Firestore.</p>
-                                <button class="btn custom-btn btn-sm w-100 mt-auto"
+                                <button type="button" class="btn custom-btn btn-sm w-100 mt-auto"
                                     onclick="importUserDataFromSheets()">
                                     <i class="bi-cloud-download me-2"></i>Import Users
                                 </button>
@@ -442,7 +442,7 @@
                                 </div>
                                 <p class="text-muted small">Restore konfigurasi server dari Google Sheets ke Firestore.
                                 </p>
-                                <button class="btn custom-btn btn-sm w-100 mt-auto"
+                                <button type="button" class="btn custom-btn btn-sm w-100 mt-auto"
                                     onclick="importServerDataFromSheets()">
                                     <i class="bi-cloud-download me-2"></i>Import Settings
                                 </button>
@@ -913,7 +913,7 @@
                         </button>
                     </div>
 
-                    <form id="exportPasswordForm">
+                    <form id="exportPasswordForm" onsubmit="return false;">
                         <div class="mb-3">
                             <label class="form-label">Masukkan Password Admin:</label>
                             <div class="input-group">
@@ -968,7 +968,7 @@
                         </button>
                     </div>
 
-                    <form id="importPasswordForm">
+                    <form id="importPasswordForm" onsubmit="return false;">
                         <div class="mb-3">
                             <label class="form-label">Masukkan Password Admin:</label>
                             <div class="input-group">
