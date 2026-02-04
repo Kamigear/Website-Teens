@@ -74,7 +74,7 @@ function exportServerData(data) {
 
             if (docIds.length === 0) {
                 // Just text title for empty collection
-                sheet.getRange(1, currentCol).setValue('--- ' + collectionName + ' (Empty) ---');
+                sheet.getRange(1, currentCol).setValue("'--- " + collectionName + " (Empty) ---");
                 currentCol += 2;
                 return;
             }
@@ -110,7 +110,7 @@ function exportServerData(data) {
             });
 
             // Write Section Name Header (Row 1) - Plain Text
-            sheet.getRange(1, currentCol).setValue('=== ' + collectionName + ' (' + docIds.length + ' docs) ===');
+            sheet.getRange(1, currentCol).setValue("'=== " + collectionName + " (" + docIds.length + " docs) ===");
 
             // Bulk Write Table (Row 2 onwards) - Plain Text
             sheet.getRange(2, currentCol, tableValues.length, headers.length).setValues(tableValues);

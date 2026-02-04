@@ -4419,3 +4419,17 @@ nav[aria-label="breadcrumb"] {
 .alert-warning-custom strong {
   font-weight: var(--font-weight-bold);
 }
+
+/*---------------------------------------
+  FOOTER CREDIT FIX             
+-----------------------------------------*/
+.sponsored-link {
+  color: var(--white-color) !important;
+  cursor: default;
+  font-weight: var(--font-weight-bold);
+  text-decoration: none;
+}
+
+.sponsored-link:hover {
+  color: var(--secondary-color) !important;
+}
