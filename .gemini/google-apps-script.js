@@ -223,23 +223,32 @@ function importServerData(data) {
         const allValues = sheet.getRange(1, 1, lastRow, lastCol).getValues();
         const rawData = {};
 
+        console.log('Starting importScan: Rows=' + lastRow + ', Cols=' + lastCol);
+
         // Parse horizontal tables
         let currentCol = 0;
         while (currentCol < lastCol) {
-            const sectionHeader = allValues[0][currentCol];
-            if (!sectionHeader) {
+            const sectionHeader = String(allValues[0][currentCol] || '');
+
+            if (!sectionHeader || !sectionHeader.startsWith('===')) {
                 currentCol++;
                 continue;
             }
+
+            console.log('Found potential header at col ' + currentCol + ': ' + sectionHeader);
 
             // Extract collection name from header like "=== events (4 docs) ==="
-            const match = sectionHeader.match(/===\s*(\w+)\s*\(/);
+            // Looser regex to assume anything between "=== " and " (" is the name
+            const match = sectionHeader.match(/===\s*(.+?)\s*\(/);
             if (!match) {
+                console.log('Regex failed for header: ' + sectionHeader);
                 currentCol++;
                 continue;
             }
 
-            const collectionName = match[1];
+            const collectionName = match[1].trim();
+            console.log('Processing collection: ' + collectionName);
+
             const columnHeaders = [];
             let colCount = 0;
 
@@ -259,6 +268,8 @@ function importServerData(data) {
             // Read data rows (row 3 onwards)
             rawData[collectionName] = {};
             for (let r = 2; r < lastRow; r++) {
+                // Determine docId. If the header says "Document ID", use that column.
+                // Otherwise use the first column of the section.
                 const docId = allValues[r][currentCol];
                 if (!docId) continue;
 
@@ -291,6 +302,8 @@ function importServerData(data) {
         const totalDocs = Object.values(rawData).reduce(function (sum, coll) {
             return sum + Object.keys(coll).length;
         }, 0);
+
+        console.log('Total identified docs: ' + totalDocs);
 
         return createResponse(true, 'Found ' + totalDocs + ' documents', { rawData: rawData });
     } catch (e) {
