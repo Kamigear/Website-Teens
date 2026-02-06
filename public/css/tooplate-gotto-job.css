@@ -1787,9 +1787,9 @@ nav[aria-label="breadcrumb"] {
 
 .site-footer-bottom .footer-credit .sponsored-link {
   color: var(--pure-white-color) !important;
-  font-weight: var(--font-weight-bold);
+  font-weight: var(--font-weight-normal);
   text-transform: none;
-  display: inline-flex;
+  display: inline-flex !important;
   align-items: baseline;
   text-decoration: none;
   border-bottom: 1px solid transparent;
