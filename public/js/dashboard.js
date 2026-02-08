@@ -564,7 +564,7 @@ window.logoutUser = async function () {
             window.location.href = 'login.html';
         } catch (error) {
             console.error('Logout error:', error);
-            alert('Gagal logout: ' + error.message);
+            showToast('Error', 'Gagal logout: ' + error.message, 'error');
         }
     }
 }
@@ -576,7 +576,7 @@ async function submitCode() {
     const code = codeInput.value.trim();
 
     if (!code) {
-        alert("Silakan masukkan kode terlebih dahulu.");
+        showToast('Input Error', 'Silakan masukkan kode terlebih dahulu.', 'error');
         return;
     }
 
@@ -584,7 +584,7 @@ async function submitCode() {
         const codeData = activeCodesData.find(c => c.code === code);
 
         if (!codeData) {
-            alert(`Kode "${code}" tidak valid atau sudah expired.`);
+            showToast('Error', `Kode "${code}" tidak valid atau sudah expired.`, 'error');
             return;
         }
 
@@ -602,11 +602,11 @@ async function submitCode() {
         });
 
         codeInput.value = '';
-        alert(`✅ Kode "${code}" berhasil disubmit!\nAnda mendapatkan ${codeData.points} point.`);
+        showToast('Berhasil', `Kode "${code}" berhasil disubmit! Anda mendapatkan ${codeData.points} point.`, 'success');
 
     } catch (error) {
         console.error('Error submitting code:', error);
-        alert('Gagal submit kode: ' + error.message);
+        showToast('Error', 'Gagal submit kode: ' + error.message, 'error');
     }
 }
 
@@ -835,7 +835,7 @@ window.submitCode = async function () {
 
     const rawCode = codeInput.value.trim();
     if (!rawCode) {
-        alert('Masukkan kode terlebih dahulu!');
+        showToast('Input Error', 'Masukkan kode terlebih dahulu!', 'error');
         return;
     }
 
@@ -869,7 +869,7 @@ window.submitCode = async function () {
                 const historySnap = await getDocs(qCheck);
 
                 if (!historySnap.empty) {
-                    alert(`Anda sudah absen untuk minggu ini (${tokenData.week})!`);
+                    showToast('Info', `Anda sudah absen untuk minggu ini (${tokenData.week})!`, 'info');
                     codeInput.value = '';
                     return;
                 }
@@ -926,7 +926,7 @@ window.submitCode = async function () {
 
             await batch.commit();
             codeInput.value = '';
-            alert(`✅ Absensi Berhasil!\npoint: +${earnedPoints}`);
+            showToast('Berhasil', `Absensi berhasil! point: +${earnedPoints}`, 'success');
             return;
         }
 
@@ -982,15 +982,15 @@ window.submitCode = async function () {
                     });
 
                     codeInput.value = '';
-                    alert(`✅ Kode "${rawCode}" berhasil diklaim!\nPoint: +${codeData.points}\n\n⚠️ Kode ini hanya bisa diklaim sekali dan sekarang sudah tidak bisa digunakan lagi.`);
+                    showToast('Berhasil', `Kode "${rawCode}" berhasil diklaim! Point: +${codeData.points}. Kode ini hanya bisa diklaim sekali dan sekarang sudah tidak bisa digunakan lagi.`, 'success');
                     return;
 
                 } catch (transactionError) {
                     codeInput.value = '';
                     if (transactionError.message.includes('diklaim')) {
-                        alert('❌ ' + transactionError.message);
+                        showToast('Error', transactionError.message, 'error');
                     } else {
-                        alert('❌ Gagal mengklaim kode: ' + transactionError.message);
+                        showToast('Error', 'Gagal mengklaim kode: ' + transactionError.message, 'error');
                     }
                     return;
                 }
@@ -1006,7 +1006,7 @@ window.submitCode = async function () {
                 const historySnap = await getDocs(qHistory);
 
                 if (!historySnap.empty) {
-                    alert('Anda sudah menukarkan kode ini!');
+                    showToast('Info', 'Anda sudah menukarkan kode ini!', 'info');
                     codeInput.value = '';
                     return;
                 }
@@ -1030,16 +1030,16 @@ window.submitCode = async function () {
 
                 await batch.commit();
                 codeInput.value = '';
-                alert(`✅ Kode "${rawCode}" berhasil disubmit!\nPoint: +${codeData.points}`);
+                showToast('Berhasil', `Kode "${rawCode}" berhasil disubmit! Point: +${codeData.points}`, 'success');
                 return;
             }
         }
 
         // --- IF NEITHER ---
-        alert('Kode tidak valid atau sudah expired!');
+        showToast('Error', 'Kode tidak valid atau sudah expired!', 'error');
     } catch (error) {
         console.error('Error submitting code:', error);
-        alert('Terjadi kesalahan: ' + error.message);
+        showToast('Error', 'Terjadi kesalahan: ' + error.message, 'error');
     }
 }
 
@@ -1376,7 +1376,7 @@ window.editAccount = async function (id) {
         const docSnap = await getDoc(docRef);
 
         if (!docSnap.exists()) {
-            alert("Data user tidak ditemukan di Firebase.");
+            showToast('Error', 'Data user tidak ditemukan di Firebase.', 'error');
             return;
         }
 
@@ -1452,6 +1452,9 @@ window.editAccount = async function (id) {
         html += `<div class="row g-2">
                     <div class="col-md-6">${createFieldHTML('Username', data.username || '', 'text', false, 'editUsername')}</div>
                     <div class="col-md-6">${createFieldHTML('Email', data.email || '', 'email', true)}</div> 
+                 </div>`;
+        html += `<div class="row g-2">
+                    <div class="col-md-6">${createFieldHTML('Birthdate', data.birthdate || '', 'date', false, 'editBirthdate')}</div>
                  </div>`;
 
         // SECTION 2: ACCESS & ROLES
@@ -1596,7 +1599,7 @@ window.editAccount = async function (id) {
 
     } catch (error) {
         console.error("Edit account fetch error:", error);
-        alert("Gagal mengambil data user: " + error.message);
+        showToast('Error', 'Gagal mengambil data user: ' + error.message, 'error');
     }
 }
 
@@ -1613,7 +1616,7 @@ window.updatePointHistoryItem = async function (docId, field, value) {
         // Admin should manually adjust "Current Points" if they change history numbers significantly.
     } catch (e) {
         console.error("Update history failed", e);
-        alert("Gagal update history item");
+        showToast('Error', 'Gagal update history item', 'error');
     }
 }
 
@@ -1637,7 +1640,7 @@ window.deletePointHistoryItem = async function (docId, userId, pointsValue) {
 
     } catch (e) {
         console.error("Delete history failed", e);
-        alert("Gagal menghapus item: " + e.message);
+        showToast('Error', 'Gagal menghapus item: ' + e.message, 'error');
     }
 }
 
@@ -1688,17 +1691,34 @@ window.saveUserChanges = async function () {
         const totalAttendance = parseInt(document.getElementById('editTotalAttendance').value) || 0;
         const isAdmin = document.getElementById('editIsAdmin').checked;
         const firstLogin = document.getElementById('editFirstLogin').checked;
+        const birthdateInput = document.getElementById('editBirthdate');
+        const birthdate = birthdateInput ? birthdateInput.value.trim() : '';
+        let age = null;
+        if (birthdate) {
+            const birth = new Date(birthdate);
+            if (!Number.isNaN(birth.getTime())) {
+                const today = new Date();
+                let calculatedAge = today.getFullYear() - birth.getFullYear();
+                const m = today.getMonth() - birth.getMonth();
+                if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) {
+                    calculatedAge--;
+                }
+                age = calculatedAge;
+            }
+        }
 
         const updates = {
             username: username,
             points: points,
             totalAttendance: totalAttendance,
             isAdmin: isAdmin,
-            firstLogin: firstLogin
+            firstLogin: firstLogin,
+            birthdate: birthdate || '',
+            age: Number.isFinite(age) ? age : null
         };
 
         await updateDoc(doc(db, "users", id), updates);
-        alert("✅ Data user berhasil diupdate!");
+        showToast('Berhasil', 'Data user berhasil diupdate!', 'success');
 
         const modalEl = document.getElementById('editUserModal');
         const modal = bootstrap.Modal.getInstance(modalEl);
@@ -1706,7 +1726,7 @@ window.saveUserChanges = async function () {
 
     } catch (error) {
         console.error("Update user error:", error);
-        alert("Gagal update user: " + error.message);
+        showToast('Error', 'Gagal update user: ' + error.message, 'error');
     }
 }
 
@@ -1714,22 +1734,64 @@ window.deleteAccount = async function (id) {
     if (confirm("Apakah anda yakin ingin menghapus akun ini?")) {
         try {
             await deleteDoc(doc(db, "users", id));
-            alert("Akun berhasil dihapus!");
+            showToast('Berhasil', 'Akun berhasil dihapus!', 'success');
         } catch (error) {
             console.error("Error deleting account:", error);
-            alert("Gagal menghapus akun: " + error.message);
+            showToast('Error', 'Gagal menghapus akun: ' + error.message, 'error');
         }
     }
 }
 
-window.addNewAccount = async function () {
-    const username = prompt("Masukkan username:");
-    if (!username) return;
+window.addNewAccount = function () {
+    const modalEl = document.getElementById('createUserModal');
+    if (!modalEl) return;
 
-    const temporaryPassword = prompt("Masukkan password sementara (min 6 karakter):");
-    if (!temporaryPassword || temporaryPassword.length < 6) {
-        alert("Password minimal 6 karakter!");
+    const usernameInput = document.getElementById('createUsernameInput');
+    const passwordInput = document.getElementById('createTempPasswordInput');
+    const birthdateInput = document.getElementById('createBirthdateInput');
+    if (usernameInput) usernameInput.value = '';
+    if (passwordInput) passwordInput.value = '';
+    if (birthdateInput) birthdateInput.value = '';
+
+    const modal = new bootstrap.Modal(modalEl);
+    modal.show();
+}
+
+window.submitNewAccount = async function () {
+    const usernameInput = document.getElementById('createUsernameInput');
+    const passwordInput = document.getElementById('createTempPasswordInput');
+    const birthdateInput = document.getElementById('createBirthdateInput');
+
+    if (!usernameInput || !passwordInput) {
+        showToast('Error', 'Input fields tidak ditemukan!', 'error');
         return;
+    }
+
+    const username = usernameInput.value.trim();
+    const temporaryPassword = passwordInput.value.trim();
+    const birthdate = birthdateInput ? birthdateInput.value.trim() : '';
+
+    if (!username) {
+        showToast('Input Error', 'Username harus diisi!', 'error');
+        return;
+    }
+    if (!temporaryPassword || temporaryPassword.length < 6) {
+        showToast('Input Error', 'Password minimal 6 karakter!', 'error');
+        return;
+    }
+
+    let age = null;
+    if (birthdate) {
+        const birth = new Date(birthdate);
+        if (!Number.isNaN(birth.getTime())) {
+            const today = new Date();
+            let calculatedAge = today.getFullYear() - birth.getFullYear();
+            const m = today.getMonth() - birth.getMonth();
+            if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) {
+                calculatedAge--;
+            }
+            age = calculatedAge;
+        }
     }
 
     const cleanUsername = username.replace(/\s+/g, '').toLowerCase();
@@ -1756,18 +1818,33 @@ window.addNewAccount = async function () {
             isAdmin: false,
             points: 0,
             totalAttendance: 0,
+            birthdate: birthdate || '',
+            age: Number.isFinite(age) ? age : null,
             createdAt: serverTimestamp()
         });
 
         await signOut(secondaryAuth);
-        alert(`✅ User "${username}" berhasil dibuat!\n\nUsername: ${cleanUsername}\nPassword: ${temporaryPassword}`);
+
+        const modalEl = document.getElementById('createUserModal');
+        if (modalEl) {
+            const modal = bootstrap.Modal.getInstance(modalEl);
+            if (modal) modal.hide();
+        }
+
+        showToast('Berhasil', `User "${username}" berhasil dibuat! Username: ${cleanUsername}. Password: ${temporaryPassword}`, 'success');
+
+        // Refresh list if modal exists
+        if (typeof renderAccountsTable === 'function') {
+            // accountsData will update via snapshot; this is just a safe refresh hook
+            renderAccountsTable();
+        }
 
     } catch (error) {
         console.error('Error creating user:', error);
         if (error.code === 'auth/email-already-in-use') {
-            alert('Gagal: Username ini sudah digunakan. Silakan gunakan username lain.');
+            showToast('Error', 'Username ini sudah digunakan. Silakan gunakan username lain.', 'error');
         } else {
-            alert('Gagal membuat user: ' + error.message);
+            showToast('Error', 'Gagal membuat user: ' + error.message, 'error');
         }
     }
 }
@@ -1787,7 +1864,7 @@ window.saveAttendanceConfig = async function () {
 
     // Validate
     if (!slot1Time || !slot2Time || isNaN(slot1Points) || isNaN(slot2Points) || isNaN(defaultPoints) || isNaN(tokenInterval) || isNaN(tokenValidity)) {
-        alert("Mohon lengkapi semua field dengan benar.");
+        showToast('Input Error', 'Mohon lengkapi semua field dengan benar.', 'error');
         return;
     }
 
@@ -1804,13 +1881,13 @@ window.saveAttendanceConfig = async function () {
             updatedBy: currentUser.uid
         });
 
-        alert("✅ Pengaturan berhasil disimpan!");
+        showToast('Berhasil', 'Pengaturan berhasil disimpan!', 'success');
         const modalEl = document.getElementById('attendanceConfigModal');
         const modal = bootstrap.Modal.getInstance(modalEl);
         if (modal) modal.hide();
     } catch (error) {
         console.error("Save config error:", error);
-        alert("Gagal menyimpan pengaturan: " + error.message);
+        showToast('Error', 'Gagal menyimpan pengaturan: ' + error.message, 'error');
     }
 }
 
@@ -1933,7 +2010,7 @@ async function generateAndSaveToken() {
         updateTokenDisplay(code, intervalSeconds);
     } catch (error) {
         console.error('Error generating token:', error);
-        alert('Gagal generate token: ' + error.message);
+        showToast('Error', 'Gagal generate token: ' + error.message, 'error');
     }
 }
 
@@ -1989,14 +2066,14 @@ async function cleanupOldTokens() {
 window.claimAttendance = async function () {
     const codeInput = document.getElementById('attendanceCodeInput');
     if (!codeInput) {
-        alert('Input kode tidak ditemukan!');
+        showToast('Error', 'Input kode tidak ditemukan!', 'error');
         return;
     }
 
     const code = codeInput.value.trim().toUpperCase();
 
     if (!code || code.length !== 5) {
-        alert('Kode harus 5 huruf!');
+        showToast('Input Error', 'Kode harus 5 huruf!', 'error');
         return;
     }
 
@@ -2007,7 +2084,7 @@ window.claimAttendance = async function () {
 
         const snapshot = await getDocs(q);
         if (snapshot.empty) {
-            alert('Kode tidak valid!');
+            showToast('Error', 'Kode tidak valid!', 'error');
             return;
         }
 
@@ -2019,7 +2096,7 @@ window.claimAttendance = async function () {
         });
 
         if (validDocs.length === 0) {
-            alert('Kode sudah expired! Minta kode baru dari admin.');
+            showToast('Error', 'Kode sudah expired! Minta kode baru dari admin.', 'error');
             return;
         }
 
@@ -2076,6 +2153,14 @@ window.claimAttendance = async function () {
             week: tokenData.week,
             points: earnedPoints,
             status: 'hadir'
+        });
+        // Send to Google Sheets immediately so every user submission is recorded
+        recordAttendanceToSheets({
+            uid: currentUser.uid,
+            username: userData.username || currentUser.email,
+            email: userData.email || currentUser.email || '',
+            points: earnedPoints,
+            week: tokenData.week
         });
 
         // 5. Update user stats
@@ -2206,7 +2291,7 @@ function showTokenFullscreen() {
                     <i class="bi-arrow-left me-2"></i>Kembali
                 </button>
                 <div class="token-content">
-                    <h2 class="token-title">Kode Mingguan Kehadiran</h2>
+                    <h2 class="token-title">Kode Kehadiran Mingguan</h2>
                     <h1 id="fullscreenCodeDisplay" class="token-code">-----</h1>
                     <div class="token-timer-section">
                         <h3 class="token-timer-label">Kode Valid Untuk:</h3>
@@ -2315,7 +2400,11 @@ window.startAdminScanner = function () {
 
     // Check if library is loaded
     if (typeof Html5QrcodeScanner === 'undefined') {
-        document.getElementById('reader').innerHTML = '<div class="alert alert-danger">Library Scanner belum termuat. Periksa koneksi internet atau reload halaman.</div>';
+        const readerEl = document.getElementById('reader');
+        if (readerEl) {
+            readerEl.innerHTML = '<div class="text-danger small">Library Scanner belum termuat. Periksa koneksi internet atau reload halaman.</div>';
+        }
+        showToast('Error', 'Library Scanner belum termuat. Periksa koneksi internet atau reload halaman.', 'error');
         return;
     }
 
@@ -2703,6 +2792,8 @@ async function exportUsersToSheets(password) {
                 points: data.points || 0,
                 totalAttendance: data.totalAttendance || 0,
                 isAdmin: data.isAdmin || false,
+                birthdate: data.birthdate || '',
+                age: data.age ?? null,
                 createdAt: data.createdAt ? data.createdAt.toDate().toISOString() : ''
             };
         });
@@ -3013,6 +3104,8 @@ async function importUsersFromSheets(password) {
                     points: user.points,
                     totalAttendance: user.totalAttendance,
                     isAdmin: user.isAdmin,
+                    birthdate: user.birthdate || '',
+                    age: typeof user.age === 'number' ? user.age : null,
                     createdAt: user.createdAt
                 }, { merge: true }); // merge: true to update existing or create new
                 importCount++;
@@ -3106,31 +3199,4 @@ window.submitCode = async function () {
     // and send them to Google Sheets
 }
 
-// Listen for new attendance records and send to Google Sheets
-if (isAdmin) {
-    const attendanceRef = collection(db, 'attendanceHistory');
-    const currentWeek = getWeekIdentifier();
-    const qAttendance = query(attendanceRef, where('week', '==', currentWeek));
-
-    let isFirstLoad = true;
-    onSnapshot(qAttendance, (snapshot) => {
-        if (isFirstLoad) {
-            isFirstLoad = false;
-            return; // Skip initial load
-        }
-
-        // Process new documents
-        snapshot.docChanges().forEach(change => {
-            if (change.type === 'added') {
-                const data = change.doc.data();
-                recordAttendanceToSheets({
-                    uid: data.userId,
-                    username: data.username,
-                    email: '', // Email not stored in attendance history
-                    points: data.points,
-                    week: data.week
-                });
-            }
-        });
-    });
-}
+// Note: Attendance is now recorded to Google Sheets at submission time

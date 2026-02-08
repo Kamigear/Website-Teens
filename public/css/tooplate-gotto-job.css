@@ -3690,8 +3690,22 @@ nav[aria-label="breadcrumb"] {
 .chart-container-wrapper {
   position: relative;
   width: 100%;
-  height: 100px;
-  overflow: hidden;
+  height: 220px;
+  min-height: 180px;
+  overflow: visible;
+}
+
+.chart-container-wrapper canvas {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+@media (max-width: 576px) {
+  .chart-container-wrapper {
+    height: 190px;
+    min-height: 170px;
+  }
 }
 
 /* Login Page Optimization */

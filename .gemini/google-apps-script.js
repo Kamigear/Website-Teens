@@ -118,10 +118,7 @@ function exportServerData(data) {
             currentCol += headers.length + 1;
         });
 
-        // Optional: Auto resize only for readability, NO styling/colors
-        if (currentCol > 1) {
-            sheet.autoResizeColumns(1, Math.min(sheet.getLastColumn(), 50));
-        }
+        // Keep column widths as-is (no auto-resize)
 
         return createResponse(true, 'Success! Backed up ' + totalDocs + ' documents.');
     } catch (error) {
@@ -154,7 +151,7 @@ function exportUserData(data) {
         });
 
         sheet.getRange(1, 1, values.length, headers.length).setValues(values);
-        sheet.autoResizeColumns(1, headers.length);
+        // Keep column widths as-is (no auto-resize)
 
         return createResponse(true, 'Exported ' + users.length + ' users');
     } catch (e) {

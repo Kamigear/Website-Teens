@@ -216,7 +216,7 @@
                                     <hr class="border-color-var">
                                     <div class="input-group mt-2">
                                         <input type="text" class="form-control" id="codeInput"
-                                            placeholder="Masukkan CODE Event" aria-label="My Code">
+                                            placeholder="Masukkan Kode Unik" aria-label="My Code">
                                         <button class="btn custom-btn" type="button" id="submitCodeBtn">Submit</button>
                                     </div>
                                 </div>
@@ -436,7 +436,7 @@
                                 <div class="d-flex align-items-center mb-3">
                                     <div
                                         class="icon-box me-3 d-flex align-items-center justify-content-center rounded-circle">
-                                        <i class="bi-database-fill-down"></i>
+                                        <i class="bi-server"></i>
                                     </div>
                                     <h5 class="mb-0">Import Server Data</h5>
                                 </div>
@@ -728,6 +728,42 @@
                             </tbody>
                         </table>
                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create User Modal -->
+    <div class="modal fade" id="createUserModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header border-0 bg-secondary-theme">
+                    <h5 class="modal-title">
+                        <i class="bi-person-plus-fill me-2"></i>Tambah Akun
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="createUserForm" onsubmit="return false;">
+                        <div class="mb-3">
+                            <label class="form-label">Username</label>
+                            <input type="text" class="form-control" id="createUsernameInput" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Password Sementara</label>
+                            <input type="password" class="form-control" id="createTempPasswordInput" minlength="6"
+                                required>
+                            <div class="form-text">Minimal 6 karakter.</div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Tanggal Lahir</label>
+                            <input type="date" class="form-control" id="createBirthdateInput">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="button" class="btn custom-btn" onclick="submitNewAccount()">Buat Akun</button>
                 </div>
             </div>
         </div>
