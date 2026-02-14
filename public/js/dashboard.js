@@ -695,10 +695,17 @@ function initCharts() {
                 data: getChartData('1y'),
                 options: {
                     responsive: true,
-                    maintainAspectRatio: true,
+                    maintainAspectRatio: false,
                     plugins: { legend: { display: false } },
                     scales: {
-                        y: { beginAtZero: true, grid: { drawBorder: false } },
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                precision: 0,
+                                stepSize: 1
+                            },
+                            grid: { drawBorder: false }
+                        },
                         x: { grid: { drawBorder: false } }
                     }
                 }
@@ -897,7 +904,7 @@ function setupEventListeners() {
                 this.value = this.value.toUpperCase().replace(/\s+/g, '');
             });
             codeInput.addEventListener('keypress', function (e) {
-                if (e.key === 'Enter') submitCode();
+                if (e.key === 'Enter') window.submitCode();
             });
         }
 
@@ -1009,6 +1016,13 @@ window.submitCode = async function () {
             });
 
             await batch.commit();
+            recordAttendanceToSheets({
+                uid: currentUser.uid,
+                username: currentUser.username || currentUser.email || 'Pengguna',
+                email: currentUser.email || '',
+                points: earnedPoints,
+                week: tokenData.week || ''
+            });
             codeInput.value = '';
             showToast('Berhasil', `Absensi berhasil! point: +${earnedPoints}`, 'success');
             return;
@@ -2744,7 +2758,7 @@ window.handleConfirmClick = function () {
 
     if (exportClickCount >= 10) {
         btn.classList.remove('btn-outline-dark', 'custom-border-btn');
-        btn.classList.add('custom-btn');
+        btn.classList.add('btn', 'custom-btn');
         btn.disabled = true;
         btn.innerHTML = '<i class="bi-check-circle-fill"></i> Konfirmasi Selesai!';
 
@@ -3003,7 +3017,12 @@ async function recordAttendanceToSheets(attendanceData) {
                     email: attendanceData.email || '',
                     points: attendanceData.points,
                     week: attendanceData.week
-                }
+                },
+                uid: attendanceData.uid,
+                username: attendanceData.username,
+                email: attendanceData.email || '',
+                points: attendanceData.points,
+                week: attendanceData.week
             })
         });
 
@@ -3065,7 +3084,7 @@ window.handleImportConfirmClick = function () {
 
     if (importClickCount >= 10) {
         btn.classList.remove('btn-outline-dark', 'custom-border-btn');
-        btn.classList.add('custom-btn');
+        btn.classList.add('btn', 'custom-btn');
         btn.disabled = true;
         btn.innerHTML = '<i class="bi-check-circle-fill"></i> Konfirmasi Selesai!';
 
@@ -3268,26 +3287,4 @@ async function importServerFromSheets(password) {
     }
 }
 
-// ==========================================
-// INTEGRATE WITH EXISTING SUBMIT CODE
-// ==========================================
-
-/**
- * Override the existing submitCode to also record to Google Sheets
- * This is called when user submits weekly token
- */
-const originalSubmitCode = window.submitCode;
-window.submitCode = async function () {
-    // Call original function
-    await originalSubmitCode();
-
-    // After successful submission, record to Google Sheets
-    // We need to extract the attendance data from the last submission
-    // This will be called after the batch commit in the original function
-
-    // Note: Since the original function doesn't return the attendance data,
-    // we'll add a listener to attendanceHistory collection to catch new entries
-    // and send them to Google Sheets
-}
-
-// Note: Attendance is now recorded to Google Sheets at submission time
+// Attendance to Google Sheets is recorded directly in weekly-token submit flow.

@@ -3697,8 +3697,6 @@ nav[aria-label="breadcrumb"] {
 
 .chart-container-wrapper canvas {
   display: block;
-  width: 100% !important;
-  height: 100% !important;
 }
 
 @media (max-width: 576px) {
@@ -4353,6 +4351,85 @@ nav[aria-label="breadcrumb"] {
 }
 
 /*---------------------------------------
+  USER DASHBOARD INTERACTIVE LAYOUT
+-----------------------------------------*/
+
+.dashboard-hero-panel {
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-medium);
+  padding: 18px 20px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 1) 0%, rgba(245, 245, 245, 1) 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+.dashboard-hero-panel .card-content {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+.dashboard-hero-kicker {
+  letter-spacing: 0.08em;
+}
+
+.dashboard-quick-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.dashboard-quick-btn {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--border-color);
+  border-radius: 999px;
+  padding: 8px 14px;
+  color: var(--primary-color);
+  background: var(--white-color);
+  font-size: 0.9rem;
+  font-weight: var(--font-weight-semibold);
+  transition: all 0.2s ease;
+}
+
+.dashboard-quick-btn:hover {
+  color: var(--primary-color);
+  background: var(--secondary-color);
+  border-color: var(--secondary-color);
+  transform: translateY(-1px);
+}
+
+.interactive-card {
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.interactive-card:hover {
+  transform: translateY(-6px);
+  box-shadow: var(--shadow-md);
+}
+
+.mini-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: var(--custom-btn-bg-color);
+  display: inline-block;
+}
+
+#codeRedeemCard,
+#attendanceChartCard,
+#pointHistoryCard {
+  scroll-margin-top: 120px;
+}
+
+
+/*---------------------------------------
   DASHBOARD CODE ENTRY PRIORITY UI
 -----------------------------------------*/
 .code-entry-card {
@@ -4417,7 +4494,447 @@ nav[aria-label="breadcrumb"] {
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
 }
 
+/*---------------------------------------
+  ADMIN DASHBOARD LAYOUT
+-----------------------------------------*/
+.admin-hero-panel {
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-medium);
+  background: linear-gradient(130deg, #ffffff 0%, #f4f4f4 100%);
+  padding: 16px 18px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 14px;
+}
+
+.admin-hero-copy h6 {
+  letter-spacing: 0.08em;
+  color: var(--primary-color);
+}
+
+.admin-hero-copy p {
+  color: var(--p-color);
+  margin-bottom: 0;
+}
+
+.admin-hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.admin-section-title {
+  display: inline-flex;
+  align-items: center;
+  font-weight: 700;
+  color: var(--primary-color);
+  border: 1px solid var(--border-color);
+  border-radius: 999px;
+  padding: 7px 14px;
+  background: var(--white-color);
+  margin-bottom: 2px;
+}
+
+#admin-dashboard .admin-action-card {
+  border-left: 3px solid var(--secondary-color);
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.05);
+}
+
+#admin-dashboard .admin-action-card h5 {
+  font-size: 1.22rem;
+}
+
+#admin-dashboard .admin-action-card p {
+  min-height: 42px;
+}
+
+#admin-dashboard .admin-panel-card {
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.06);
+}
+
+#admin-dashboard .admin-panel-card .table-responsive {
+  border: 1px solid var(--border-color);
+  border-radius: 14px;
+  overflow: auto;
+}
+
+.admin-scan-modal-content .modal-footer {
+  border-top: 1px solid var(--border-color);
+  padding: 12px 20px 18px;
+}
+
+.admin-scan-shell {
+  display: grid;
+  gap: 12px;
+}
+
+.admin-scan-frame {
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  background: #fff;
+  padding: 12px;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.02);
+}
+
+.admin-scan-label {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--primary-color);
+  background: var(--secondary-color);
+  border-radius: 999px;
+  padding: 6px 12px;
+  margin-bottom: 10px;
+}
+
+#reader {
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.admin-scan-guide {
+  border: 1px dashed var(--border-color);
+  border-radius: 14px;
+  padding: 12px 14px;
+  background: #fcfcfc;
+}
+
+.admin-scan-guide h6 {
+  font-weight: 700;
+}
+
+.admin-scan-guide ul {
+  padding-left: 18px;
+  color: var(--p-color);
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
+
+/* Admin Modal GUI Polish */
+.admin-modal-dialog {
+  --bs-modal-width: min(1120px, 94vw);
+}
+
+.admin-modal-content {
+  border-radius: 20px;
+  border: 1px solid var(--border-color);
+  box-shadow: 0 22px 48px rgba(0, 0, 0, 0.16);
+  overflow: hidden;
+}
+
+.admin-modal-header {
+  border-bottom: 1px solid var(--border-color);
+  padding: 18px 20px;
+  background: linear-gradient(180deg, #ffffff 0%, #f7f7f7 100%);
+}
+
+.admin-modal-header .modal-title {
+  font-size: 2rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.admin-modal-header .btn-close {
+  transform: scale(1.2);
+}
+
+.admin-modal-body {
+  padding: 20px;
+}
+
+.admin-modal-tools {
+  padding: 6px 2px 2px 2px;
+}
+
+.admin-table-wrap {
+  border: 1px solid var(--border-color);
+  border-radius: 14px;
+  background: #fff;
+  overflow: hidden;
+}
+
+.admin-list-table {
+  margin-bottom: 0;
+}
+
+.admin-list-table thead th {
+  border-bottom: 2px solid var(--primary-color);
+  font-size: 1.06rem;
+  font-weight: 700;
+  padding: 16px 12px;
+  background: #fff;
+}
+
+.admin-list-table tbody td {
+  padding: 14px 12px;
+  vertical-align: middle;
+}
+
+.admin-list-table tbody tr:hover {
+  background: #fafafa;
+}
+
+.admin-list-table .badge {
+  font-size: 1.02rem;
+  min-width: 64px;
+  text-align: center;
+  padding: 8px 14px;
+}
+
+.admin-list-table .btn {
+  min-width: 48px;
+  min-height: 42px;
+  border-radius: 8px;
+}
+
+.admin-config-intro {
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  background: #fcfcfc;
+  color: var(--p-color);
+  padding: 10px 12px;
+  font-size: 0.92rem;
+}
+
+.admin-config-modal-content .modal-footer {
+  border-top: 1px solid var(--border-color);
+  padding: 12px 20px 18px;
+}
+
+.config-block {
+  border-radius: 14px !important;
+  background: #fff !important;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.04);
+}
+
+.config-block h6 {
+  font-weight: 700;
+  color: var(--primary-color);
+}
+
+.config-block .form-control {
+  border-radius: 10px;
+}
+
+/* Event Editor Modal */
+.event-editor-modal-content .modal-footer {
+  border-top: 1px solid var(--border-color);
+  padding: 12px 20px 18px;
+}
+
+.event-editor-intro {
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  background: #fcfcfc;
+  color: var(--p-color);
+  padding: 10px 12px;
+  font-size: 0.92rem;
+}
+
+.event-editor-section {
+  border: 1px solid var(--border-color);
+  border-radius: 14px;
+  background: #fff;
+  padding: 14px;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.04);
+}
+
+.event-editor-title {
+  font-weight: 700;
+  color: var(--primary-color);
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px dashed var(--border-color);
+}
+
+.event-action-box {
+  background: #f8f8f8 !important;
+  border-color: var(--border-color) !important;
+  border-radius: 12px !important;
+}
+
+.event-editor-section .form-control,
+.event-editor-section .form-select {
+  border-radius: 10px;
+}
+
+.create-user-modal-content .modal-footer {
+  border-top: 1px solid var(--border-color);
+  padding: 12px 20px 18px;
+}
+
+.create-user-intro {
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  background: #fcfcfc;
+  color: var(--p-color);
+  padding: 10px 12px;
+  font-size: 0.92rem;
+}
+
+.create-user-block {
+  border: 1px solid var(--border-color);
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.04);
+  padding: 14px;
+}
+
+.create-user-block .form-control {
+  border-radius: 10px;
+}
+
+.admin-confirm-modal-content .modal-footer,
+.edit-user-modal-content .modal-footer {
+  border-top: 1px solid var(--border-color);
+  padding: 12px 20px 18px;
+}
+
+.edit-user-modal-content #dynamicFormFields {
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 12px;
+  background: #fff;
+}
+
+.admin-confirm-modal-content .alert {
+  border-radius: 12px;
+}
+
+.user-modal-content .modal-footer {
+  border-top: 1px solid var(--border-color);
+  padding: 12px 20px 18px;
+}
+
+.user-modal-content .modal-title {
+  font-size: 1.75rem;
+}
+
+.user-modal-content .modal-header {
+  background: linear-gradient(180deg, #ffffff 0%, #f8f8f8 100%);
+}
+
+.user-modal-intro {
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  background: #fcfcfc;
+  color: var(--p-color);
+  padding: 10px 12px;
+  font-size: 0.92rem;
+}
+
+.user-modal-warning {
+  border: 1px solid #f2c185;
+  border-radius: 12px;
+  background: #fff4e6;
+  color: #8a5a1f;
+  padding: 10px 12px;
+  font-size: 0.92rem;
+}
+
+.user-form-shell .form-label {
+  font-weight: 600;
+}
+
+.user-form-shell .form-control {
+  border-radius: 10px;
+}
+
+.user-input-group .btn {
+  min-width: 46px;
+}
+
+#linkEmailModal .modal-footer .btn,
+#unlinkEmailModal .modal-footer .btn {
+  min-width: 140px;
+}
+
+#qrModal #myQrImage {
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  background: #fff;
+  padding: 10px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
+}
+
 @media (max-width: 767px) {
+  .admin-hero-panel {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .admin-hero-actions {
+    width: 100%;
+  }
+
+  .admin-hero-actions .btn {
+    flex: 1 1 100%;
+  }
+
+  #admin-dashboard .admin-action-card p {
+    min-height: 0;
+  }
+
+  .admin-modal-header .modal-title {
+    font-size: 1.5rem;
+  }
+
+  .admin-modal-body {
+    padding: 14px;
+  }
+
+  .admin-scan-guide {
+    padding: 10px 12px;
+  }
+
+  .admin-config-intro {
+    font-size: 0.88rem;
+  }
+
+  .event-editor-section {
+    padding: 12px;
+  }
+
+  .event-editor-intro {
+    font-size: 0.88rem;
+  }
+
+  .create-user-intro {
+    font-size: 0.88rem;
+  }
+
+  .create-user-block {
+    padding: 12px;
+  }
+
+  .edit-user-modal-content #dynamicFormFields {
+    padding: 10px;
+  }
+
+  .user-modal-intro {
+    font-size: 0.88rem;
+  }
+
+  .user-modal-content .modal-title {
+    font-size: 1.35rem;
+  }
+
+  .dashboard-hero-panel .card-content {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .dashboard-quick-actions {
+    width: 100%;
+  }
+
+  .dashboard-quick-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
   .code-entry-form {
     grid-template-columns: 1fr;
   }
@@ -4426,6 +4943,102 @@ nav[aria-label="breadcrumb"] {
     width: 100%;
     min-height: 52px;
   }
+}
+
+/*---------------------------------------
+  MOBILE-FIRST USER DASHBOARD TUNING
+-----------------------------------------*/
+@media (max-width: 767px) {
+  #user-dashboard {
+    padding-top: 4px;
+  }
+
+  #user-dashboard h2 {
+    font-size: 2rem !important;
+    margin-bottom: 8px !important;
+    line-height: 1.2;
+  }
+
+  #user-dashboard .text-muted {
+    font-size: 0.95rem;
+  }
+
+  /* Quick actions feel like app chips and stay visible near top on scroll */
+  .dashboard-hero-panel {
+    padding: 14px;
+    border-radius: 18px;
+    position: sticky;
+    top: 78px;
+    z-index: 12;
+    backdrop-filter: blur(8px);
+    background: rgba(255, 255, 255, 0.92);
+  }
+
+  .dashboard-hero-kicker {
+    font-size: 0.7rem;
+    margin-bottom: 6px !important;
+  }
+
+  .dashboard-quick-actions {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .dashboard-quick-btn {
+    width: 100%;
+    justify-content: center;
+    border-radius: 14px;
+    padding: 10px 8px;
+    font-size: 0.78rem;
+    line-height: 1.2;
+  }
+
+  .dashboard-quick-btn i {
+    margin-right: 4px !important;
+  }
+
+  /* Card rhythm and touch comfort */
+  #user-dashboard .dashboard-card {
+    border-radius: 20px;
+    padding: 18px 16px;
+    margin-bottom: 14px !important;
+  }
+
+  .interactive-card:hover {
+    transform: none;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .dashboard-stat-value {
+    font-size: 3.2rem;
+  }
+
+  .code-entry-input {
+    min-height: 54px;
+    font-size: 1rem;
+  }
+
+  .code-submit-btn {
+    min-height: 54px;
+    font-size: 1rem;
+  }
+
+  #attendanceChartCard .dashboard-card {
+    padding-bottom: 12px;
+  }
+
+  .chart-container-wrapper {
+    height: 240px;
+    min-height: 220px;
+  }
+
+  #pointHistoryCard .table-responsive {
+    border: 1px solid var(--border-color);
+    border-radius: 14px;
+    padding: 2px 0;
+  }
+
 }
 
 /* Button Skeleton */

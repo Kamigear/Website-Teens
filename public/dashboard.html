@@ -9,7 +9,7 @@
     <meta name="author" content="">
     <link rel="icon" type="image/png" href="images/web-logo.png">
 
-    <title>Dashboard - VDR Teens</title>
+    <title>Dasbor - VDR Teens</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -84,7 +84,7 @@
         <a href="dashboard.html"
             class="mobile-nav-item active d-flex flex-column align-items-center justify-content-center text-decoration-none">
             <i class="bi-grid"></i>
-            <span>Dashboard</span>
+            <span>Dasbor</span>
         </a>
         <a href="events.html"
             class="mobile-nav-item d-flex flex-column align-items-center justify-content-center text-decoration-none">
@@ -106,28 +106,97 @@
                 <div id="user-dashboard">
                     <div class="row">
                         <div class="col-12 mb-4">
-                            <h2>Halo, <span class="user-name text-primary-var">User</span>!</h2>
-                            <p class="text-muted">Selamat datang kembali di dashboard point kamu.</p>
+                            <h2>Halo, <span class="user-name text-primary-var">Pengguna</span>!</h2>
+                            <p class="text-muted">Selamat datang kembali di dasbor poin kamu.</p>
+                        </div>
+                    </div>
+
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <div class="dashboard-hero-panel">
+                                <div class="card-skeleton"></div>
+                                <div class="card-content">
+                                    <div>
+                                        <h6 class="mb-2 text-uppercase fw-bold text-muted dashboard-hero-kicker">Akses Cepat
+                                        </h6>
+                                        <p class="mb-0 text-muted">Pilih aksi yang ingin kamu lakukan sekarang.</p>
+                                    </div>
+                                    <div class="dashboard-quick-actions">
+                                        <a href="#codeRedeemCard" class="dashboard-quick-btn">
+                                            <i class="bi-ticket-perforated me-2"></i>Input Kode
+                                        </a>
+                                        <a href="#attendanceChartCard" class="dashboard-quick-btn">
+                                            <i class="bi-bar-chart-line me-2"></i>Statistik
+                                        </a>
+                                        <a href="#pointHistoryCard" class="dashboard-quick-btn">
+                                            <i class="bi-clock-history me-2"></i>Riwayat
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
                     <div class="row">
                         <!-- Point Balance -->
-                        <div class="col-lg-4 col-12 mb-4">
-                            <div class="dashboard-card h-100 text-center d-flex flex-column justify-content-center">
+                        <div class="col-lg-5 col-12 mb-4">
+                            <div
+                                class="card dashboard-card interactive-card h-100 text-center d-flex flex-column justify-content-center">
                                 <div class="card-skeleton"></div>
                                 <div class="card-content">
-                                    <h3 class="dashboard-stat-title text-center fw-normal mb-3">Point Kebajikan</h3>
+                                    <div class="d-flex align-items-center justify-content-center mb-3">
+                                        <span class="mini-dot me-2"></span>
+                                        <h3 class="dashboard-stat-title text-center fw-normal mb-0">Poin Kebajikan</h3>
+                                    </div>
                                     <div class="dashboard-stat-value fw-bold lh-1" id="userPointBalance">
                                         0
                                     </div>
-                                    <small class="text-muted mt-2">Points Anda</small>
+                                    <small class="text-muted mt-2">Poin Anda</small>
                                 </div>
                             </div>
                         </div>
+
+                        <!-- My QR & Code -->
+                        <div class="col-lg-7 col-12 mb-4" id="codeRedeemCard">
+                            <div
+                                class="card dashboard-card interactive-card code-entry-card h-100 d-flex flex-column justify-content-center">
+                                <div class="card-skeleton"></div>
+                                <div class="card-content">
+                                    <div class="d-flex align-items-center justify-content-between mb-3">
+                                        <h5 class="mb-0 fw-bold">Tukar Kode Poin</h5>
+                                        <i class="bi-qr-code fs-2 text-primary-var"></i>
+                                    </div>
+                                    <p class="small text-muted mb-3">Masukkan kode kegiatan untuk klaim point secara
+                                        cepat.</p>
+
+                                    <div class="d-flex flex-wrap gap-2 mb-3">
+                                        <button class="btn custom-btn" data-bs-toggle="modal" data-bs-target="#qrModal">
+                                            <i class="bi-person-vcard me-2"></i>Tampilkan QR Saya
+                                        </button>
+                                        <a href="#pointHistoryCard" class="btn btn-outline-dark">
+                                            <i class="bi-list-check me-2"></i>Lihat Riwayat
+                                        </a>
+                                    </div>
+
+                                    <div class="code-entry-form mt-1">
+                                        <label for="codeInput" class="visually-hidden">Masukkan Kode Unik</label>
+                                        <div class="code-input-wrap">
+                                            <i class="bi-ticket-perforated code-input-icon"></i>
+                                            <input type="text" class="form-control code-entry-input" id="codeInput"
+                                                placeholder="Masukkan Kode Unik" aria-label="Kode Saya" autocomplete="off"
+                                                autocapitalize="characters" spellcheck="false">
+                                        </div>
+                                        <button class="btn code-submit-btn" type="button" id="submitCodeBtn">
+                                            <i class="bi-send-fill me-1"></i>Submit
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                         <!-- Email Status Card -->
                         <div class="col-lg-4 col-12 mb-4">
-                            <div class="dashboard-card h-100">
+                            <div class="card dashboard-card interactive-card h-100">
                                 <div class="card-skeleton"></div>
                                 <div class="card-content">
                                     <div class="d-flex mb-3">
@@ -150,7 +219,7 @@
                                             </div>
                                             <p class="text-muted small mb-3">Hubungkan email untuk reset password &
                                                 keamanan.</p>
-                                            <button class="custom-btn btn-sm w-100 border-0" data-bs-toggle="modal"
+                                            <button class="btn custom-btn btn-sm w-100 border-0" data-bs-toggle="modal"
                                                 data-bs-target="#linkEmailModal">
                                                 Hubungkan Email
                                             </button>
@@ -198,44 +267,12 @@
                             </div>
                         </div>
 
-                        <!-- My QR & Code -->
-                        <div class="col-lg-4 col-12 mb-4">
-                            <div class="dashboard-card code-entry-card h-100 d-flex flex-column justify-content-center">
-                                <div class="card-skeleton"></div>
-                                <div class="card-content">
-                                    <div class="d-flex align-items-center justify-content-between mb-3">
-                                        <h5 class="mb-0 fw-bold">Tukar Kode Point</h5>
-                                        <i class="bi-qr-code fs-2 text-primary-var"></i>
-                                    </div>
-                                    <p class="small text-muted mb-3">Masukkan kode kegiatan untuk klaim point secara
-                                        cepat.</p>
-
-                                    <button class="btn custom-btn mb-3" data-bs-toggle="modal" data-bs-target="#qrModal">
-                                        <i class="bi-person-vcard me-2"></i>Tampilkan QR Saya
-                                    </button>
-
-                                    <div class="code-entry-form mt-1">
-                                        <label for="codeInput" class="visually-hidden">Masukkan Kode Unik</label>
-                                        <div class="code-input-wrap">
-                                            <i class="bi-ticket-perforated code-input-icon"></i>
-                                            <input type="text" class="form-control code-entry-input" id="codeInput"
-                                                placeholder="Masukkan Kode Unik" aria-label="My Code" autocomplete="off"
-                                                autocapitalize="characters" spellcheck="false">
-                                        </div>
-                                        <button class="btn code-submit-btn" type="button" id="submitCodeBtn">
-                                            <i class="bi-send-fill me-1"></i>Submit
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
                         <!-- Attendance Chart -->
-                        <div class="col-lg-4 col-12 mb-4">
-                            <div class="dashboard-card">
+                        <div class="col-lg-8 col-12 mb-4" id="attendanceChartCard">
+                            <div class="card dashboard-card interactive-card">
                                 <div class="card-skeleton"></div>
                                 <div class="card-content">
-                                    <div class="d-flex justify-content-between align-items-center mb-4">
+                                    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
                                         <h5 class="mb-0">Statistik Kehadiran</h5>
                                         <select class="form-select form-select-sm w-auto border-secondary"
                                             id="chartFilter">
@@ -246,19 +283,19 @@
                                         </select>
                                     </div>
                                     <div id="chartContainer" class="chart-container-wrapper">
-                                        <canvas id="userPointsChart" width="400" height="200"></canvas>
+                                        <canvas id="userPointsChart"></canvas>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <div class="row mt-4">
+                    <div class="row mt-1">
                         <div class="col-12">
-                            <div class="dashboard-card">
+                            <div class="card dashboard-card interactive-card" id="pointHistoryCard">
                                 <div class="card-skeleton"></div>
                                 <div class="card-content">
-                                    <h4 class="mb-4">Riwayat Point</h4>
+                                    <h4 class="mb-4">Riwayat Poin</h4>
                                     <div class="table-responsive">
                                         <table class="table table-hover">
                                             <thead>
@@ -266,7 +303,7 @@
                                                     <th>Tanggal</th>
                                                     <th>Kegiatan</th>
                                                     <th>Tipe</th>
-                                                    <th>Point</th>
+                                                    <th>Poin</th>
                                                     <th>Status</th>
                                                 </tr>
                                             </thead>
@@ -285,15 +322,34 @@
                 <div id="admin-dashboard" class="d-none">
                     <div class="row mb-4">
                         <div class="col-12">
-                            <h2 class="mb-2">Admin <span class="text-second-white">Dashboard</span></h2>
-                            <p class="text-muted">Manage users, events, and points system.</p>
+                            <h2 class="mb-2">Admin <span class="text-second-white">Dasbor</span></h2>
+                            <p class="text-muted">Kelola pengguna, kegiatan, dan sistem poin.</p>
                         </div>
                     </div>
 
-                    <div class="row">
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <div class="admin-hero-panel">
+                                <div class="admin-hero-copy">
+                                    <h6 class="mb-1 text-uppercase fw-bold">Pusat Kontrol</h6>
+                                    <p class="mb-0">Kelola operasional dasbor dari satu tempat.</p>
+                                </div>
+                                <div class="admin-hero-actions">
+                                    <a href="#adminCoreActions" class="btn btn-outline-dark btn-sm rounded-pill px-3">Aksi
+                                        Utama</a>
+                                    <a href="#adminDataTools" class="btn btn-outline-dark btn-sm rounded-pill px-3">Alat
+                                        Data</a>
+                                    <a href="#adminCodeTools" class="btn btn-outline-dark btn-sm rounded-pill px-3">Kode
+                                        Kegiatan</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row g-4" id="adminCoreActions">
                         <!-- Admin Actions -->
                         <div class="col-lg-4 mb-4">
-                            <div class="dashboard-card h-100">
+                            <div class="card dashboard-card admin-action-card h-100">
                                 <div class="d-flex align-items-center mb-3">
                                     <div
                                         class="icon-box me-3 d-flex align-items-center justify-content-center rounded-circle">
@@ -305,7 +361,7 @@
                                 <div class="d-flex gap-2 mt-auto">
                                     <button class="btn btn-outline-dark btn-sm flex-grow-1" data-bs-toggle="modal"
                                         data-bs-target="#manageAccountsModal">Lihat Semua</button>
-                                    <button class="custom-btn btn-sm flex-grow-1" onclick="addNewAccount()">Buat
+                                    <button class="btn custom-btn btn-sm flex-grow-1" onclick="addNewAccount()">Buat
                                         Akun</button>
                                 </div>
                             </div>
@@ -313,7 +369,7 @@
 
                         <!-- Kelola Kegiatan -->
                         <div class="col-lg-4 mb-4">
-                            <div class="dashboard-card h-100">
+                            <div class="card dashboard-card admin-action-card h-100">
                                 <div class="d-flex align-items-center mb-3">
                                     <div
                                         class="icon-box me-3 d-flex align-items-center justify-content-center rounded-circle">
@@ -325,32 +381,32 @@
                                 <div class="d-flex gap-2 mt-auto">
                                     <button class="btn btn-outline-dark btn-sm flex-grow-1" data-bs-toggle="modal"
                                         data-bs-target="#manageEventsModal">Lihat Semua</button>
-                                    <button class="custom-btn btn-sm flex-grow-1" data-bs-toggle="modal"
-                                        data-bs-target="#addEventModal">Buat Event</button>
+                                    <button class="btn custom-btn btn-sm flex-grow-1" data-bs-toggle="modal"
+                                        data-bs-target="#addEventModal">Buat Kegiatan</button>
                                 </div>
                             </div>
                         </div>
 
                         <!-- Scan User QR Action -->
                         <div class="col-lg-4 mb-4">
-                            <div class="dashboard-card h-100">
+                            <div class="card dashboard-card admin-action-card h-100">
                                 <div class="d-flex align-items-center mb-3">
                                     <div
                                         class="icon-box me-3 d-flex align-items-center justify-content-center rounded-circle">
                                         <i class="bi-qr-code-scan"></i>
                                     </div>
-                                    <h5 class="mb-0">Scan & Beri Point</h5>
+                                    <h5 class="mb-0">Pindai & Atur Poin</h5>
                                 </div>
-                                <p class="text-muted small">Scan QR Code member untuk memberikan poin langsung.</p>
+                                <p class="text-muted small">Pindai kode QR anggota untuk memberikan poin langsung.</p>
                                 <button class="btn custom-btn btn-sm w-100 mt-auto" onclick="startAdminScanner()">
-                                    <i class="bi-camera-fill me-2"></i>Mulai Scan
+                                    <i class="bi-camera-fill me-2"></i>Mulai Pindai
                                 </button>
                             </div>
                         </div>
 
 
                         <div class="col-lg-4 mb-4">
-                            <div class="dashboard-card h-100 bg-primary-var text-white-var">
+                            <div class="card dashboard-card admin-action-card h-100 bg-primary-var text-white-var">
                                 <div class="d-flex align-items-center mb-3">
                                     <i class="bi-clock-history fs-1 me-3 text-secondary-var"></i>
                                     <h5 class="mb-0 text-white">Token Mingguan</h5>
@@ -370,7 +426,7 @@
                         </div>
 
                         <div class="col-lg-4 mb-4">
-                            <div class="dashboard-card h-100">
+                            <div class="card dashboard-card admin-action-card h-100">
                                 <div class="d-flex align-items-center mb-3">
                                     <div
                                         class="icon-box me-3 d-flex align-items-center justify-content-center rounded-circle">
@@ -384,81 +440,93 @@
                             </div>
                         </div>
 
+                        <div class="col-12 mt-0">
+                            <div class="admin-section-title" id="adminDataTools">
+                                <i class="bi-cloud-arrow-up me-2"></i>Sinkronisasi & Cadangan Data
+                            </div>
+                        </div>
+
                         <!-- Export UserData Card -->
                         <div class="col-lg-4 mb-4">
-                            <div class="dashboard-card h-100">
+                            <div class="card dashboard-card admin-action-card h-100">
                                 <div class="d-flex align-items-center mb-3">
                                     <div
                                         class="icon-box me-3 d-flex align-items-center justify-content-center rounded-circle">
                                         <i class="bi-people-fill"></i>
                                     </div>
-                                    <h5 class="mb-0">Export User Data</h5>
+                                    <h5 class="mb-0">Ekspor Data Pengguna</h5>
                                 </div>
-                                <p class="text-muted small">Backup semua data user ke Google Sheets.</p>
+                                <p class="text-muted small">Cadangkan semua data pengguna ke Google Sheets.</p>
                                 <button class="btn custom-btn btn-sm w-100 mt-auto" onclick="exportUserDataToSheets()">
-                                    <i class="bi-cloud-upload me-2"></i>Export Users
+                                    <i class="bi-cloud-upload me-2"></i>Ekspor Pengguna
                                 </button>
                             </div>
                         </div>
 
                         <!-- Export ServerData Card -->
                         <div class="col-lg-4 mb-4">
-                            <div class="dashboard-card h-100">
+                            <div class="card dashboard-card admin-action-card h-100">
                                 <div class="d-flex align-items-center mb-3">
                                     <div
                                         class="icon-box me-3 d-flex align-items-center justify-content-center rounded-circle">
                                         <i class="bi-server"></i>
                                     </div>
-                                    <h5 class="mb-0">Export Server Data</h5>
+                                    <h5 class="mb-0">Ekspor Data Server</h5>
                                 </div>
-                                <p class="text-muted small">Backup konfigurasi server ke Google Sheets.</p>
+                                <p class="text-muted small">Cadangkan konfigurasi server ke Google Sheets.</p>
                                 <button class="btn custom-btn btn-sm w-100 mt-auto"
                                     onclick="exportServerDataToSheets()">
-                                    <i class="bi-cloud-upload me-2"></i>Export Settings
+                                    <i class="bi-cloud-upload me-2"></i>Ekspor Pengaturan
                                 </button>
                             </div>
                         </div>
 
                         <!-- Import UserData Card -->
                         <div class="col-lg-4 mb-4">
-                            <div class="dashboard-card h-100">
+                            <div class="card dashboard-card admin-action-card h-100">
                                 <div class="d-flex align-items-center mb-3">
                                     <div
                                         class="icon-box me-3 d-flex align-items-center justify-content-center rounded-circle">
                                         <i class="bi-cloud-download-fill"></i>
                                     </div>
-                                    <h5 class="mb-0">Import User Data</h5>
+                                    <h5 class="mb-0">Impor Data Pengguna</h5>
                                 </div>
-                                <p class="text-muted small">Restore data user dari Google Sheets ke Firestore.</p>
+                                <p class="text-muted small">Pulihkan data pengguna dari Google Sheets ke Firestore.</p>
                                 <button type="button" class="btn custom-btn btn-sm w-100 mt-auto"
                                     onclick="importUserDataFromSheets()">
-                                    <i class="bi-cloud-download me-2"></i>Import Users
+                                    <i class="bi-cloud-download me-2"></i>Impor Pengguna
                                 </button>
                             </div>
                         </div>
 
                         <!-- Import ServerData Card -->
                         <div class="col-lg-4 mb-4">
-                            <div class="dashboard-card h-100">
+                            <div class="card dashboard-card admin-action-card h-100">
                                 <div class="d-flex align-items-center mb-3">
                                     <div
                                         class="icon-box me-3 d-flex align-items-center justify-content-center rounded-circle">
                                         <i class="bi-server"></i>
                                     </div>
-                                    <h5 class="mb-0">Import Server Data</h5>
+                                    <h5 class="mb-0">Impor Data Server</h5>
                                 </div>
-                                <p class="text-muted small">Restore konfigurasi server dari Google Sheets ke Firestore.
+                                <p class="text-muted small">Pulihkan konfigurasi server dari Google Sheets ke Firestore.
                                 </p>
                                 <button type="button" class="btn custom-btn btn-sm w-100 mt-auto"
                                     onclick="importServerDataFromSheets()">
-                                    <i class="bi-cloud-download me-2"></i>Import Settings
+                                    <i class="bi-cloud-download me-2"></i>Impor Pengaturan
                                 </button>
                             </div>
                         </div>
 
+                        <div class="col-12 mt-0">
+                            <div class="admin-section-title" id="adminCodeTools">
+                                <i class="bi-ticket-perforated me-2"></i>Kode Kegiatan Kustom
+                            </div>
+                        </div>
+
                         <div class="col-12 mb-4">
-                            <div class="dashboard-card">
-                                <h5 class="mb-3">Buat Kode Event Unik</h5>
+                            <div class="card dashboard-card admin-panel-card">
+                                <h5 class="mb-3">Buat Kode Kegiatan Unik</h5>
                                 <form class="row g-3">
                                     <div class="col-lg-6">
                                         <input type="text" class="form-control"
@@ -466,12 +534,12 @@
                                             id="eventNameInput">
                                     </div>
                                     <div class="col-lg-4">
-                                        <input type="number" class="form-control" placeholder="Jumlah Point"
+                                        <input type="number" class="form-control" placeholder="Jumlah Poin"
                                             id="pointsInput" min="1">
                                     </div>
                                     <div class="col-lg-2">
                                         <button type="button" class="btn custom-btn w-100"
-                                            onclick="generateCustomCode()">Generate</button>
+                                            onclick="generateCustomCode()">Buat Kode</button>
                                     </div>
                                 </form>
                                 <div class="mt-4">
@@ -483,7 +551,7 @@
                                                     <th>Kode</th>
                                                     <th>Tipe</th>
                                                     <th>Status</th>
-                                                    <th>Point</th>
+                                                    <th>Poin</th>
                                                     <th>Aksi</th>
                                                 </tr>
                                             </thead>
@@ -519,11 +587,11 @@
     <div class="toast-container position-fixed bottom-0 end-0 p-3">
         <div id="liveToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
             <div class="toast-header">
-                <strong class="me-auto" id="toastTitle">Notification</strong>
+                <strong class="me-auto" id="toastTitle">Notifikasi</strong>
                 <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
             </div>
             <div class="toast-body" id="toastMessage">
-                Message goes here.
+                Pesan muncul di sini.
             </div>
         </div>
     </div>
@@ -614,16 +682,17 @@
 
     <!-- Qr Modal (User Side) -->
     <div class="modal fade" id="qrModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content text-center p-4">
-                <div class="modal-header border-0">
+        <div class="modal-dialog modal-dialog-centered admin-modal-dialog">
+            <div class="modal-content admin-modal-content user-modal-content">
+                <div class="modal-header admin-modal-header border-0">
+                    <h5 class="modal-title"><i class="bi-qr-code me-2"></i>Kode QR Saya</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="modal-body">
-                    <h4 class="mb-4">QR Code Saya</h4>
-                    <img id="myQrImage" src="https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=Loading"
-                        class="img-fluid mb-3" alt="QR Code" loading="lazy">
-                    <p class="text-muted">Tunjukkan QR ini kepada Admin untuk discan.</p>
+                <div class="modal-body admin-modal-body text-center">
+                    <div class="user-modal-intro mb-3">Tunjukkan kode ini kepada admin untuk proses pemindaian.</div>
+                    <img id="myQrImage" src="https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=Memuat"
+                        class="img-fluid mb-3" alt="Kode QR" loading="lazy">
+                    <p class="text-muted mb-0">Pastikan layar terang agar mudah dipindai.</p>
                 </div>
             </div>
         </div>
@@ -631,16 +700,34 @@
 
     <!-- Admin Scan QR Modal -->
     <div class="modal fade" id="adminScanModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Scan User QR</h5>
+        <div class="modal-dialog modal-lg modal-dialog-centered admin-modal-dialog">
+            <div class="modal-content admin-modal-content admin-scan-modal-content">
+                <div class="modal-header admin-modal-header">
+                    <h5 class="modal-title"><i class="bi-qr-code-scan me-2"></i>Pindai QR Pengguna</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"
                         onclick="stopScannerLabel()"></button>
                 </div>
-                <div class="modal-body text-center">
-                    <div id="reader" width="100%"></div>
-                    <p class="mt-3 text-muted">Arahkan kamera ke QR Code User</p>
+                <div class="modal-body admin-modal-body">
+                    <div class="admin-scan-shell">
+                        <div class="admin-scan-frame">
+                            <div class="admin-scan-label">
+                                <i class="bi-camera-video me-2"></i>Kamera Aktif
+                            </div>
+                            <div id="reader" width="100%"></div>
+                        </div>
+                        <div class="admin-scan-guide">
+                            <h6 class="mb-2">Panduan Cepat</h6>
+                            <ul class="mb-0">
+                                <li>Arahkan kamera ke kode QR pengguna.</li>
+                                <li>Pastikan kode berada di tengah bingkai.</li>
+                                <li>Hindari kondisi cahaya terlalu gelap.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-dark" data-bs-dismiss="modal"
+                        onclick="stopScannerLabel()">Tutup</button>
                 </div>
             </div>
         </div>
@@ -648,29 +735,32 @@
 
     <!-- SCANNER RESULT MODAL (NEW REPLACEMENT FOR PROMPT) -->
     <div class="modal fade" id="scanResultModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header bg-secondary-theme">
-                    <h5 class="modal-title">Hasil Scan</h5>
+        <div class="modal-dialog modal-dialog-centered admin-modal-dialog">
+            <div class="modal-content admin-modal-content">
+                <div class="modal-header admin-modal-header">
+                    <h5 class="modal-title"><i class="bi-clipboard-check me-2"></i>Hasil Pindai</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="modal-body">
+                <div class="modal-body admin-modal-body">
+                    <div class="create-user-intro mb-3">
+                        <i class="bi-info-circle me-2"></i>Atur poin dan simpan hasil pemindaian pengguna.
+                    </div>
                     <input type="hidden" id="scannedUserId">
                     <div class="mb-3 text-center">
-                        <h6>User Ditemukan:</h6>
-                        <h4 id="scannedUserName" class="text-primary">User</h4>
+                        <h6>Pengguna Ditemukan:</h6>
+                        <h4 id="scannedUserName" class="text-primary">Pengguna</h4>
                     </div>
 
                     <form id="scanResultForm">
                         <div class="mb-3">
-                            <label class="form-label">Jumlah Point</label>
+                            <label class="form-label">Jumlah Poin</label>
                             <input type="number" class="form-control" id="scanPointsInput" value="10" required>
                             <div class="form-text">Gunakan negatif (contoh: -5) untuk mengurangi.</div>
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Keterangan / Alasan</label>
                             <input type="text" class="form-control" id="scanDescInput"
-                                value="Diberikan oleh Admin (Scan QR)" required>
+                                value="Diberikan oleh Admin (Pemindaian QR)" required>
                         </div>
                     </form>
                 </div>
@@ -685,24 +775,25 @@
 
     <!-- Manage Accounts Modal -->
     <div class="modal fade" id="manageAccountsModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-lg modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Kelola Akun</h5>
+        <div class="modal-dialog modal-xl modal-dialog-centered admin-modal-dialog">
+            <div class="modal-content admin-modal-content">
+                <div class="modal-header admin-modal-header">
+                    <h5 class="modal-title"><i class="bi-people me-2"></i>Kelola Akun</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="modal-body">
-                    <div class="d-flex justify-content-end mb-3">
-                        <button class="btn custom-btn btn-sm" onclick="addNewAccount()"><i
+                <div class="modal-body admin-modal-body">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-3 admin-modal-tools">
+                        <p class="mb-0 text-muted small">Daftar anggota dan pengelolaan akun.</p>
+                        <button class="btn custom-btn btn-sm rounded-pill px-4" onclick="addNewAccount()"><i
                                 class="bi-plus-circle me-2"></i>Tambah Akun</button>
                     </div>
-                    <div class="table-responsive">
-                        <table class="table table-hover align-middle">
+                    <div class="table-responsive admin-table-wrap">
+                        <table class="table table-hover align-middle admin-list-table">
                             <thead>
                                 <tr>
                                     <th>Nama</th>
                                     <th>Email</th>
-                                    <th>Point</th>
+                                    <th>Poin</th>
                                     <th>Aksi</th>
                                 </tr>
                             </thead>
@@ -742,29 +833,34 @@
 
     <!-- Create User Modal -->
     <div class="modal fade" id="createUserModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header border-0 bg-secondary-theme">
+        <div class="modal-dialog modal-dialog-centered admin-modal-dialog">
+            <div class="modal-content admin-modal-content create-user-modal-content">
+                <div class="modal-header admin-modal-header">
                     <h5 class="modal-title">
                         <i class="bi-person-plus-fill me-2"></i>Tambah Akun
                     </h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="modal-body">
+                <div class="modal-body admin-modal-body">
+                    <div class="create-user-intro mb-3">
+                        <i class="bi-info-circle me-2"></i>Isi data dasar untuk membuat akun anggota baru.
+                    </div>
                     <form id="createUserForm" onsubmit="return false;">
-                        <div class="mb-3">
-                            <label class="form-label">Username</label>
-                            <input type="text" class="form-control" id="createUsernameInput" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Password Sementara</label>
-                            <input type="password" class="form-control" id="createTempPasswordInput" minlength="6"
-                                required>
-                            <div class="form-text">Minimal 6 karakter.</div>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Tanggal Lahir</label>
-                            <input type="date" class="form-control" id="createBirthdateInput">
+                        <div class="create-user-block">
+                            <div class="mb-3">
+                                <label class="form-label">Nama Pengguna</label>
+                                <input type="text" class="form-control" id="createUsernameInput" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Kata Sandi Sementara</label>
+                                <input type="password" class="form-control" id="createTempPasswordInput" minlength="6"
+                                    required>
+                                <div class="form-text">Minimal 6 karakter.</div>
+                            </div>
+                            <div class="mb-0">
+                                <label class="form-label">Tanggal Lahir</label>
+                                <input type="date" class="form-control" id="createBirthdateInput">
+                            </div>
                         </div>
                     </form>
                 </div>
@@ -778,39 +874,42 @@
 
     <!-- Attendance Config Modal -->
     <div class="modal fade" id="attendanceConfigModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Konfigurasi Poin Absensi</h5>
+        <div class="modal-dialog modal-lg modal-dialog-centered admin-modal-dialog">
+            <div class="modal-content admin-modal-content admin-config-modal-content">
+                <div class="modal-header admin-modal-header">
+                    <h5 class="modal-title"><i class="bi-sliders me-2"></i>Konfigurasi Poin Absensi</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="modal-body">
+                <div class="modal-body admin-modal-body">
+                    <div class="admin-config-intro mb-3">
+                        <i class="bi-info-circle me-2"></i>Atur rentang waktu dan perolehan poin absensi.
+                    </div>
                     <form id="attendanceConfigForm">
-                        <div class="mb-3 p-3 rounded border bg-white-var">
+                        <div class="mb-3 p-3 rounded border bg-white-var config-block">
                             <h6 class="mb-3">Slot Waktu 1 (Tepat Waktu)</h6>
                             <div class="row g-2 align-items-center">
                                 <div class="col-auto">Sampai jam:</div>
                                 <div class="col"><input type="time" class="form-control" id="slot1Time" required
                                         value="09:05"></div>
-                                <div class="col-auto">Point:</div>
+                                <div class="col-auto">Poin:</div>
                                 <div class="col"><input type="number" class="form-control" id="slot1Points" required
                                         value="3"></div>
                             </div>
                         </div>
 
-                        <div class="mb-3 p-3 rounded border bg-white-var"> <!-- Updated -->
+                        <div class="mb-3 p-3 rounded border bg-white-var config-block"> <!-- Updated -->
                             <h6 class="mb-3">Slot Waktu 2 (Terlambat)</h6>
                             <div class="row g-2 align-items-center">
                                 <div class="col-auto">Sampai jam:</div>
                                 <div class="col"><input type="time" class="form-control" id="slot2Time" required
                                         value="09:20"></div>
-                                <div class="col-auto">Point:</div>
+                                <div class="col-auto">Poin:</div>
                                 <div class="col"><input type="number" class="form-control" id="slot2Points" required
                                         value="2"></div>
                             </div>
                         </div>
 
-                        <div class="mb-3 p-3 rounded border bg-white-var">
+                        <div class="mb-3 p-3 rounded border bg-white-var config-block">
                             <h6 class="mb-3">Lewat dari itu</h6>
                             <div class="row g-2 align-items-center">
                                 <div class="col-auto">Dapat Poin:</div>
@@ -819,7 +918,7 @@
                             </div>
                         </div>
 
-                        <div class="mb-3 p-3 rounded border bg-white-var">
+                        <div class="mb-3 p-3 rounded border bg-white-var config-block">
                             <h6 class="mb-3">Pengaturan Token</h6>
                             <div class="row g-2">
                                 <div class="col-6">
@@ -849,9 +948,9 @@
             <i class="bi-arrow-left me-2"></i>Kembali
         </button>
         <h2 class="mb-4 text-primary-var">Kode Mingguan:</h2>
-        <h1 class="display-1 fw-bold mb-5 text-primary-var" id="tokenDisplayValue">CODE</h1>
+        <h1 class="display-1 fw-bold mb-5 text-primary-var" id="tokenDisplayValue">KODE</h1>
         <div class="text-center">
-            <h3 class="mb-3 text-p-color">Token Valid Untuk:</h3>
+            <h3 class="mb-3 text-p-color">Token Berlaku Selama:</h3>
             <div class="display-4 fw-bold text-custom-btn" id="tokenTimer">60</div>
             <small class="text-muted">Detik</small>
         </div>
@@ -859,21 +958,22 @@
 
     <!-- Link Email Modal -->
     <div class="modal fade" id="linkEmailModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header border-0 bg-secondary-theme">
-                    <h5 class="modal-title">Hubungkan Email</h5>
+        <div class="modal-dialog modal-dialog-centered admin-modal-dialog">
+            <div class="modal-content admin-modal-content user-modal-content">
+                <div class="modal-header admin-modal-header border-0">
+                    <h5 class="modal-title"><i class="bi-envelope-plus me-2"></i>Hubungkan Email</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="modal-body">
-                    <form id="linkEmailForm">
+                <div class="modal-body admin-modal-body">
+                    <div class="user-modal-intro mb-3">Hubungkan email untuk keamanan akun dan pemulihan kata sandi.</div>
+                    <form id="linkEmailForm" class="user-form-shell">
                         <div class="mb-3">
                             <label class="form-label">Email</label>
                             <input type="email" class="form-control" id="linkEmailInput" required>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">Konfirmasi Password</label>
-                            <div class="input-group">
+                            <label class="form-label">Konfirmasi Kata Sandi</label>
+                            <div class="input-group user-input-group">
                                 <input type="password" class="form-control" id="confirmPasswordInput" required>
                                 <button class="btn btn-outline-secondary" type="button"
                                     onclick="togglePassword('confirmPasswordInput', 'icon-confirmPassword')">
@@ -893,21 +993,24 @@
 
     <!-- Unlink Email Modal (Confirmation) -->
     <div class="modal fade" id="unlinkEmailModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header border-0 bg-danger text-white">
-                    <h5 class="modal-title">Putuskan Koneksi Email?</h5>
+        <div class="modal-dialog modal-dialog-centered admin-modal-dialog">
+            <div class="modal-content admin-modal-content user-modal-content">
+                <div class="modal-header admin-modal-header border-0">
+                    <h5 class="modal-title"><i class="bi-shield-exclamation me-2"></i>Putuskan Koneksi Email</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="modal-body">
+                <div class="modal-body admin-modal-body">
+                    <div class="user-modal-warning mb-3">
+                        <i class="bi-exclamation-triangle me-2"></i>Tindakan ini akan mengubah metode login akun Anda.
+                    </div>
                     <p class="text-muted small mb-3">
                         Akun Anda akan dikembalikan ke mode tanpa email (dummy).
-                        Anda akan login menggunakan <b>Username</b> setelah ini.
+                        Anda akan login menggunakan <strong>nama pengguna</strong> setelah ini.
                     </p>
-                    <form id="unlinkEmailForm">
+                    <form id="unlinkEmailForm" class="user-form-shell">
                         <div class="mb-3">
-                            <label class="form-label">Masukkan Password untuk Verifikasi</label>
-                            <div class="input-group">
+                            <label class="form-label">Masukkan Kata Sandi untuk Verifikasi</label>
+                            <div class="input-group user-input-group">
                                 <input type="password" class="form-control" id="unlinkConfirmPasswordInput" required>
                                 <button class="btn btn-outline-secondary" type="button"
                                     onclick="togglePassword('unlinkConfirmPasswordInput', 'icon-unlinkPassword')">
@@ -927,21 +1030,21 @@
 
     <!-- Export Confirmation Modal -->
     <div class="modal fade" id="exportConfirmModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header border-0 bg-secondary-theme">
+        <div class="modal-dialog modal-dialog-centered admin-modal-dialog">
+            <div class="modal-content admin-modal-content admin-confirm-modal-content">
+                <div class="modal-header admin-modal-header">
                     <h5 class="modal-title">
-                        <i class="bi-exclamation-triangle-fill me-2"></i>Konfirmasi Export
+                        <i class="bi-exclamation-triangle-fill me-2"></i>Konfirmasi Ekspor
                     </h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="modal-body">
+                <div class="modal-body admin-modal-body">
                     <div class="alert alert-warning-custom">
-                        <strong>Perhatian!</strong> Anda akan mengexport data ke Google Sheets.
+                        <strong>Perhatian!</strong> Anda akan mengekspor data ke Google Sheets.
                     </div>
 
                     <p class="text-muted small mb-3" id="exportModalMessage">
-                        Data akan dikirim ke spreadsheet backup.
+                        Data akan dikirim ke spreadsheet cadangan.
                     </p>
 
                     <!-- 10-Click Confirmation -->
@@ -956,10 +1059,10 @@
 
                     <form id="exportPasswordForm" onsubmit="return false;">
                         <div class="mb-3">
-                            <label class="form-label">Masukkan Password Admin:</label>
+                            <label class="form-label">Masukkan Kata Sandi Admin:</label>
                             <div class="input-group">
                                 <input type="password" class="form-control" id="exportPasswordInput"
-                                    placeholder="Password" required disabled>
+                                    placeholder="Kata sandi" required disabled>
                                 <button class="btn btn-outline-dark" type="button" disabled
                                     onclick="togglePassword('exportPasswordInput', 'icon-exportPassword')">
                                     <i class="bi bi-eye" id="icon-exportPassword"></i>
@@ -972,7 +1075,7 @@
                     <button type="button" class="btn btn-outline-dark" data-bs-dismiss="modal"
                         onclick="resetExportModal()">Batal</button>
                     <button type="button" class="btn custom-btn" id="submitExportBtn" disabled onclick="submitExport()">
-                        <i class="bi-cloud-upload me-2"></i>Export Sekarang
+                        <i class="bi-cloud-upload me-2"></i>Ekspor Sekarang
                     </button>
                 </div>
             </div>
@@ -981,17 +1084,17 @@
 
     <!-- Import Confirmation Modal -->
     <div class="modal fade" id="importConfirmModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header border-0 bg-secondary-theme">
+        <div class="modal-dialog modal-dialog-centered admin-modal-dialog">
+            <div class="modal-content admin-modal-content admin-confirm-modal-content">
+                <div class="modal-header admin-modal-header">
                     <h5 class="modal-title">
-                        <i class="bi-exclamation-triangle-fill me-2"></i>Konfirmasi Import
+                        <i class="bi-exclamation-triangle-fill me-2"></i>Konfirmasi Impor
                     </h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="modal-body">
+                <div class="modal-body admin-modal-body">
                     <div class="alert alert-warning-custom">
-                        <strong>Perhatian!</strong> Anda akan mengimport data dari Google Sheets ke Firestore.
+                        <strong>Perhatian!</strong> Anda akan mengimpor data dari Google Sheets ke Firestore.
                     </div>
 
                     <p class="text-muted small mb-3" id="importModalMessage">
@@ -1011,10 +1114,10 @@
 
                     <form id="importPasswordForm" onsubmit="return false;">
                         <div class="mb-3">
-                            <label class="form-label">Masukkan Password Admin:</label>
+                            <label class="form-label">Masukkan Kata Sandi Admin:</label>
                             <div class="input-group">
                                 <input type="password" class="form-control" id="importPasswordInput"
-                                    placeholder="Password" required disabled>
+                                    placeholder="Kata sandi" required disabled>
                                 <button class="btn btn-outline-dark" type="button" disabled
                                     onclick="togglePassword('importPasswordInput', 'icon-importPassword')">
                                     <i class="bi bi-eye" id="icon-importPassword"></i>
@@ -1027,7 +1130,7 @@
                     <button type="button" class="btn btn-outline-dark" data-bs-dismiss="modal"
                         onclick="resetImportModal()">Batal</button>
                     <button type="button" class="btn custom-btn" id="submitImportBtn" disabled onclick="submitImport()">
-                        <i class="bi-cloud-download me-2"></i>Import Sekarang
+                        <i class="bi-cloud-download me-2"></i>Impor Sekarang
                     </button>
                 </div>
             </div>
@@ -1036,20 +1139,20 @@
 
     <!-- Edit User Modal -->
     <div class="modal fade" id="editUserModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
-        <div class="modal-dialog modal-dialog-centered modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Edit User Data</h5>
+        <div class="modal-dialog modal-dialog-centered modal-lg admin-modal-dialog">
+            <div class="modal-content admin-modal-content edit-user-modal-content">
+                <div class="modal-header admin-modal-header">
+                    <h5 class="modal-title"><i class="bi-pencil-square me-2"></i>Edit Data Pengguna</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="modal-body">
+                <div class="modal-body admin-modal-body">
                     <form id="editUserForm">
                         <div id="dynamicFormFields"></div>
                     </form>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="button" class="btn custom-btn" onclick="saveUserChanges()">Update Firebase</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="button" class="btn custom-btn" onclick="saveUserChanges()">Perbarui Firebase</button>
                 </div>
             </div>
         </div>
@@ -1057,20 +1160,20 @@
 
     <!-- Manage Events Modal -->
     <div class="modal fade" id="manageEventsModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Kelola Kegiatan</h5>
+        <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable admin-modal-dialog">
+            <div class="modal-content admin-modal-content">
+                <div class="modal-header admin-modal-header">
+                    <h5 class="modal-title"><i class="bi-calendar-event me-2"></i>Kelola Kegiatan</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="modal-body">
+                <div class="modal-body admin-modal-body">
                     <div class="d-flex justify-content-end mb-3">
-                        <button class="btn custom-btn btn-sm" data-bs-toggle="modal" data-bs-target="#addEventModal">
+                        <button class="btn custom-btn btn-sm rounded-pill px-4" data-bs-toggle="modal" data-bs-target="#addEventModal">
                             <i class="bi-plus-circle me-2"></i>Tambah Kegiatan
                         </button>
                     </div>
-                    <div class="table-responsive">
-                        <table class="table table-hover align-middle">
+                    <div class="table-responsive admin-table-wrap">
+                        <table class="table table-hover align-middle admin-list-table">
                             <thead>
                                 <tr>
                                     <th>Judul</th>
@@ -1113,65 +1216,74 @@
 
     <!-- Add/Edit Event Modal -->
     <div class="modal fade" id="addEventModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="eventModalTitle">Tambah Kegiatan Baru</h5>
+        <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable admin-modal-dialog">
+            <div class="modal-content admin-modal-content event-editor-modal-content">
+                <div class="modal-header admin-modal-header">
+                    <h5 class="modal-title" id="eventModalTitle"><i class="bi-calendar2-plus me-2"></i>Tambah Kegiatan Baru</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="modal-body">
+                <div class="modal-body admin-modal-body">
+                    <div class="event-editor-intro mb-3">
+                        <i class="bi-info-circle me-2"></i>Lengkapi detail kegiatan agar tampil rapi di halaman publik.
+                    </div>
                     <form id="eventForm">
                         <input type="hidden" id="eventId">
 
-                        <!-- Event Title -->
-                        <div class="mb-3">
-                            <label for="eventTitle" class="form-label">Judul Kegiatan <span
-                                    class="text-danger">*</span></label>
-                            <input type="text" class="form-control" id="eventTitle" required>
-                        </div>
+                        <div class="event-editor-section mb-3">
+                            <h6 class="event-editor-title">Informasi Inti</h6>
+                            <!-- Event Title -->
+                            <div class="mb-3">
+                                <label for="eventTitle" class="form-label">Judul Kegiatan <span
+                                        class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="eventTitle" required>
+                            </div>
 
-                        <!-- Event Description -->
-                        <div class="mb-3">
-                            <label for="eventDescription" class="form-label">Deskripsi <span
-                                    class="text-danger">*</span></label>
-                            <textarea class="form-control" id="eventDescription" rows="3" required></textarea>
-                        </div>
+                            <!-- Event Description -->
+                            <div class="mb-3">
+                                <label for="eventDescription" class="form-label">Deskripsi <span
+                                        class="text-danger">*</span></label>
+                                <textarea class="form-control" id="eventDescription" rows="3" required></textarea>
+                            </div>
 
-                        <!-- Event Type -->
-                        <div class="mb-3">
-                            <label for="eventType" class="form-label">Tipe Kegiatan <span
-                                    class="text-danger">*</span></label>
-                            <select class="form-select" id="eventType" required>
-                                <option value="">Pilih Tipe</option>
-                                <option value="featured">Event Utama</option>
-                                <option value="regular">Event Reguler</option>
-                            </select>
+                            <!-- Event Type -->
+                            <div class="mb-0">
+                                <label for="eventType" class="form-label">Tipe Kegiatan <span
+                                        class="text-danger">*</span></label>
+                                <select class="form-select" id="eventType" required>
+                                    <option value="">Pilih Tipe</option>
+                                    <option value="featured">Kegiatan Utama</option>
+                                    <option value="regular">Kegiatan Reguler</option>
+                                </select>
+                            </div>
                         </div>
 
                         <!-- Date and Time -->
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="eventDate" class="form-label">Tanggal <span
-                                        class="text-danger">*</span></label>
-                                <input type="date" class="form-control" id="eventDate" required>
+                        <div class="event-editor-section mb-3">
+                            <h6 class="event-editor-title">Jadwal & Lokasi</h6>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="eventDate" class="form-label">Tanggal <span
+                                            class="text-danger">*</span></label>
+                                    <input type="date" class="form-control" id="eventDate" required>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="eventTime" class="form-label">Waktu <span
+                                            class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="eventTime" placeholder="08:00 - 20:00 WIB"
+                                        required>
+                                </div>
                             </div>
-                            <div class="col-md-6 mb-3">
-                                <label for="eventTime" class="form-label">Waktu <span
+                            <!-- Location -->
+                            <div class="mb-0">
+                                <label for="eventLocation" class="form-label">Lokasi <span
                                         class="text-danger">*</span></label>
-                                <input type="text" class="form-control" id="eventTime" placeholder="08:00 - 20:00 WIB"
-                                    required>
+                                <input type="text" class="form-control" id="eventLocation" required>
                             </div>
-                        </div>
-
-                        <!-- Location -->
-                        <div class="mb-3">
-                            <label for="eventLocation" class="form-label">Lokasi <span
-                                    class="text-danger">*</span></label>
-                            <input type="text" class="form-control" id="eventLocation" required>
                         </div>
 
                         <!-- Image URL -->
-                        <div class="mb-3">
+                        <div class="event-editor-section mb-3">
+                            <h6 class="event-editor-title">Media & Kategori</h6>
                             <label class="form-label">Gambar Kegiatan</label>
 
                             <!-- File Upload Option -->
@@ -1187,52 +1299,52 @@
                             <input type="url" class="form-control" id="eventImage"
                                 placeholder="https://example.com/image.jpg">
                             <small class="text-muted">Opsional. Kosongkan untuk menggunakan gambar default.</small>
-                        </div>
 
-                        <!-- Category/Badge -->
-                        <div class="mb-3">
-                            <label for="eventCategory" class="form-label">Kategori/Badge</label>
-                            <input type="text" class="form-control" id="eventCategory"
-                                placeholder="RETREAT, MEDITASI, dll">
-                        </div>
-
-                        <!-- Action Button Settings -->
-                        <div class="mb-3">
-                            <label for="eventCategory" class="form-label">Tombol Aksi</label>
-                        </div>
-                        <div class="mb-3 p-3 bg-light rounded border">
-                            <div class="form-check form-switch mb-2">
-                                <input class="form-check-input" type="checkbox" id="enableActionButton"
-                                    onchange="toggleActionButtonFields()">
-                                <label class="form-check-label fw-bold" for="enableActionButton">Tambahkan Action Button
-                                    (Opsional)</label>
+                            <!-- Category/Badge -->
+                            <div class="mt-3">
+                                <label for="eventCategory" class="form-label">Kategori/Badge</label>
+                                <input type="text" class="form-control" id="eventCategory"
+                                    placeholder="RETREAT, MEDITASI, dll">
                             </div>
+                        </div>
 
-                            <div id="actionButtonFields" class="d-none">
-                                <div class="row g-2">
-                                    <div class="col-md-5">
-                                        <label class="form-label small">Teks Tombol</label>
-                                        <input type="text" class="form-control form-control-sm" id="actionButtonText"
-                                            placeholder="Contoh: Daftar Sekarang">
-                                    </div>
-                                    <div class="col-md-7">
-                                        <label class="form-label small">Link URL</label>
-                                        <input type="url" class="form-control form-control-sm" id="actionButtonLink"
-                                            placeholder="https://forms.google.com/...">
+                        <!-- Pengaturan Tombol Aksi -->
+                        <div class="event-editor-section mb-3">
+                            <h6 class="event-editor-title">Tombol Aksi</h6>
+                            <div class="mb-3 p-3 bg-light rounded border event-action-box">
+                                <div class="form-check form-switch mb-2">
+                                    <input class="form-check-input" type="checkbox" id="enableActionButton"
+                                        onchange="toggleActionButtonFields()">
+                                    <label class="form-check-label fw-bold" for="enableActionButton">Tambahkan Tombol Aksi
+                                        (Opsional)</label>
+                                </div>
+
+                                <div id="actionButtonFields" class="d-none">
+                                    <div class="row g-2">
+                                        <div class="col-md-5">
+                                            <label class="form-label small">Teks Tombol</label>
+                                            <input type="text" class="form-control form-control-sm" id="actionButtonText"
+                                                placeholder="Contoh: Daftar Sekarang">
+                                        </div>
+                                        <div class="col-md-7">
+                                            <label class="form-label small">Link URL</label>
+                                            <input type="url" class="form-control form-control-sm" id="actionButtonLink"
+                                                placeholder="https://forms.google.com/...">
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
 
-                        <!-- Status -->
-                        <div class="mb-3">
-                            <label for="eventStatus" class="form-label">Status <span
-                                    class="text-danger">*</span></label>
-                            <select class="form-select" id="eventStatus" required>
-                                <option value="upcoming">Akan Datang</option>
-                                <option value="ongoing">Sedang Berlangsung</option>
-                                <option value="completed">Selesai</option>
-                            </select>
+                            <!-- Status -->
+                            <div class="mb-0">
+                                <label for="eventStatus" class="form-label">Status <span
+                                        class="text-danger">*</span></label>
+                                <select class="form-select" id="eventStatus" required>
+                                    <option value="upcoming">Akan Datang</option>
+                                    <option value="ongoing">Sedang Berlangsung</option>
+                                    <option value="completed">Selesai</option>
+                                </select>
+                            </div>
                         </div>
                     </form>
                 </div>
@@ -1247,7 +1359,7 @@
 
 
 
-    <!-- TOAST CONTAINER for Unified Notifications -->
+    <!-- TOAST CONTAINER for Unified Notifikasis -->
     <div class="toast-container position-fixed bottom-0 end-0 p-3" id="toastContainer" style="z-index: 10000;"></div>
 
     <script src="js/bootstrap.min.js"></script>

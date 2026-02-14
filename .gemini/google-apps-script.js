@@ -38,7 +38,10 @@ function doPost(e) {
         const action = data.action;
 
         switch (action) {
-            case 'recordAttendance': return recordAttendance(data);
+            case 'recordAttendance':
+            case 'recordAbsence':
+            case 'recordAttendanceData':
+                return recordAttendance(data);
             case 'exportUserData': return exportUserData(data);
             case 'exportServerData': return exportServerData(data);
             case 'importUserData': return importUserData(data);
@@ -315,8 +318,12 @@ function importServerData(data) {
 function recordAttendance(data) {
     try {
         const sheet = getOrCreateSheet(SHEET_NAMES.ABSENCE);
-        const att = data.attendance;
+        const att = data.attendance || data || {};
         const now = new Date();
+
+        if (!att.uid && !att.username && !att.email) {
+            return createResponse(false, 'Attendance payload is empty');
+        }
 
         if (sheet.getLastRow() === 0) {
             sheet.appendRow(['uid', 'username', 'email', 'date', 'time', 'points', 'week']);
