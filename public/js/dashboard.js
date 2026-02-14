@@ -45,6 +45,9 @@ let isAdmin = false;
 let userChartInstance = null;
 let tokenGeneratorInterval = null;
 let currentWeeklyToken = null;
+let chartJsLoadPromise = null;
+let html5QrLoadPromise = null;
+let deferredListenersStarted = false;
 
 // --- Loading State ---
 let isInitialLoad = true;
@@ -82,6 +85,102 @@ let activeCodesData = [];
 let pointHistory = [];
 let attendanceList = [];
 let attendanceConfig = null; // Stores time rules
+
+function loadExternalScript(src) {
+    return new Promise((resolve, reject) => {
+        const existing = document.querySelector(`script[data-dynamic-src="${src}"]`);
+        if (existing) {
+            if (existing.dataset.loaded === 'true') {
+                resolve();
+                return;
+            }
+            existing.addEventListener('load', () => resolve(), { once: true });
+            existing.addEventListener('error', () => reject(new Error(`Failed to load ${src}`)), { once: true });
+            return;
+        }
+
+        const script = document.createElement('script');
+        script.src = src;
+        script.async = true;
+        script.dataset.dynamicSrc = src;
+        script.addEventListener('load', () => {
+            script.dataset.loaded = 'true';
+            resolve();
+        }, { once: true });
+        script.addEventListener('error', () => reject(new Error(`Failed to load ${src}`)), { once: true });
+        document.head.appendChild(script);
+    });
+}
+
+function ensureChartJsLoaded() {
+    if (typeof Chart !== 'undefined') return Promise.resolve();
+    if (!chartJsLoadPromise) {
+        chartJsLoadPromise = loadExternalScript('https://cdn.jsdelivr.net/npm/chart.js');
+    }
+    return chartJsLoadPromise;
+}
+
+function ensureHtml5QrLoaded() {
+    if (typeof Html5QrcodeScanner !== 'undefined') return Promise.resolve();
+    if (!html5QrLoadPromise) {
+        html5QrLoadPromise = loadExternalScript('https://unpkg.com/html5-qrcode');
+    }
+    return html5QrLoadPromise;
+}
+
+function startDeferredListeners() {
+    if (deferredListenersStarted) return;
+    deferredListenersStarted = true;
+
+    // 1b. Global Settings Listener (Attendance Rules)
+    const configRef = doc(db, 'settings', 'attendanceConfig');
+    onSnapshot(configRef, (docSnap) => {
+        if (docSnap.exists()) {
+            attendanceConfig = docSnap.data();
+            updateAttendanceConfigUI();
+        } else {
+            attendanceConfig = {
+                slot1Time: "09:05",
+                slot1Points: 3,
+                slot2Time: "09:20",
+                slot2Points: 2,
+                defaultPoints: 0
+            };
+        }
+    });
+
+    // 3. Admin Listeners
+    if (isAdmin) {
+        const qUsers = query(collection(db, "users"), orderBy("points", "desc"));
+        onSnapshot(qUsers, (snapshot) => {
+            accountsData = snapshot.docs.map(doc => ({
+                id: doc.id,
+                ...doc.data()
+            }));
+            renderAccountsTable();
+        });
+
+        const qCodes = query(collection(db, "codes"), orderBy("createdAt", "desc"));
+        onSnapshot(qCodes, (snapshot) => {
+            activeCodesData = snapshot.docs.map(doc => ({
+                id: doc.id,
+                ...doc.data()
+            }));
+            renderActiveCodesTable();
+        });
+
+        const currentWeek = getWeekIdentifier();
+        const attendanceRef = collection(db, 'attendanceHistory');
+        const qAttendance = query(attendanceRef, where('week', '==', currentWeek));
+
+        onSnapshot(qAttendance, (snapshot) => {
+            attendanceList = snapshot.docs.map(doc => ({
+                id: doc.id,
+                ...doc.data()
+            }));
+        });
+    }
+}
 
 // --- Initialize Firebase Persistence ---
 try {
@@ -398,25 +497,6 @@ function setupFirestoreListeners() {
             }
         });
 
-        // 1b. Global Settings Listener (Attendance Rules)
-        const configRef = doc(db, 'settings', 'attendanceConfig');
-        onSnapshot(configRef, (docSnap) => {
-            if (docSnap.exists()) {
-                attendanceConfig = docSnap.data();
-                // Update UI if admin modal is open (optional but good)
-                updateAttendanceConfigUI();
-            } else {
-                // Default fallback if not set
-                attendanceConfig = {
-                    slot1Time: "09:05",
-                    slot1Points: 3,
-                    slot2Time: "09:20",
-                    slot2Points: 2,
-                    defaultPoints: 0
-                };
-            }
-        });
-
         // 2. Point History Listener
         const historyRef = collection(db, 'pointHistory');
         const qHistory = query(
@@ -441,43 +521,22 @@ function setupFirestoreListeners() {
             updateChartWithRealData();
 
             // Mark history data as loaded
-            loadStatus.history = true;
-            checkInitialLoadComplete();
-        });
-
-        // 3. Admin Listeners
-        if (isAdmin) {
-            // Users List
-            const qUsers = query(collection(db, "users"), orderBy("points", "desc"));
-            onSnapshot(qUsers, (snapshot) => {
-                accountsData = snapshot.docs.map(doc => ({
-                    id: doc.id,
-                    ...doc.data()
-                }));
-                renderAccountsTable();
+                loadStatus.history = true;
+                checkInitialLoadComplete();
             });
 
-            // Codes List
-            const qCodes = query(collection(db, "codes"), orderBy("createdAt", "desc"));
-            onSnapshot(qCodes, (snapshot) => {
-                activeCodesData = snapshot.docs.map(doc => ({
-                    id: doc.id,
-                    ...doc.data()
-                }));
-                renderActiveCodesTable();
-            });
-
-            // Attendance List (Current Week)
-            const currentWeek = getWeekIdentifier();
-            const attendanceRef = collection(db, 'attendanceHistory');
-            const qAttendance = query(attendanceRef, where('week', '==', currentWeek));
-
-            onSnapshot(qAttendance, (snapshot) => {
-                attendanceList = snapshot.docs.map(doc => ({
-                    id: doc.id,
-                    ...doc.data()
-                }));
-            });
+        // Defer non-critical listeners to improve first paint and interaction.
+        const scheduleDeferred = () => {
+            try {
+                startDeferredListeners();
+            } catch (deferredError) {
+                console.error("Deferred listeners setup error:", deferredError);
+            }
+        };
+        if ('requestIdleCallback' in window) {
+            window.requestIdleCallback(scheduleDeferred, { timeout: 2000 });
+        } else {
+            setTimeout(scheduleDeferred, 1200);
         }
     } catch (error) {
         console.error("Firestore listeners setup error:", error);
@@ -545,8 +604,18 @@ function updateViewMode() {
         if (isAdmin) {
             userDashboard.classList.add('d-none');
             adminDashboard.classList.remove('d-none');
-            // Load events table for admin
-            loadEventsTable();
+            const loadAdminEvents = () => {
+                try {
+                    loadEventsTable();
+                } catch (error) {
+                    console.error("Load events table error:", error);
+                }
+            };
+            if ('requestIdleCallback' in window) {
+                window.requestIdleCallback(loadAdminEvents, { timeout: 1500 });
+            } else {
+                setTimeout(loadAdminEvents, 600);
+            }
         } else {
             userDashboard.classList.remove('d-none');
             adminDashboard.classList.add('d-none');
@@ -613,8 +682,14 @@ async function submitCode() {
 // --- Charts ---
 function initCharts() {
     try {
-        const userCtx = document.getElementById('userPointsChart')?.getContext('2d');
-        if (userCtx) {
+        const chartCanvas = document.getElementById('userPointsChart');
+        if (!chartCanvas || userChartInstance) return;
+
+        ensureChartJsLoaded().then(() => {
+            if (userChartInstance) return;
+            const userCtx = chartCanvas.getContext('2d');
+            if (!userCtx) return;
+
             userChartInstance = new Chart(userCtx, {
                 type: 'line',
                 data: getChartData('1y'),
@@ -628,7 +703,9 @@ function initCharts() {
                     }
                 }
             });
-        }
+        }).catch((error) => {
+            console.error("Load chart library error:", error);
+        });
         // Admin Chart Removed
     } catch (error) {
         console.error("Init charts error:", error);
@@ -765,11 +842,13 @@ function getChartData(period) {
 
 function updateChartWithRealData() {
     try {
-        if (userChartInstance) {
-            const currentPeriod = document.getElementById('chartFilter')?.value || '1y';
-            userChartInstance.data = getChartData(currentPeriod);
-            userChartInstance.update();
+        if (!userChartInstance) {
+            initCharts();
+            return;
         }
+        const currentPeriod = document.getElementById('chartFilter')?.value || '1y';
+        userChartInstance.data = getChartData(currentPeriod);
+        userChartInstance.update();
     } catch (error) {
         console.error("Update chart error:", error);
     }
@@ -781,10 +860,12 @@ function setupEventListeners() {
         const chartFilter = document.getElementById('chartFilter');
         if (chartFilter) {
             chartFilter.addEventListener('change', function () {
-                if (userChartInstance) {
-                    userChartInstance.data = getChartData(this.value);
-                    userChartInstance.update();
+                if (!userChartInstance) {
+                    initCharts();
+                    return;
                 }
+                userChartInstance.data = getChartData(this.value);
+                userChartInstance.update();
             });
         }
 
@@ -1548,6 +1629,8 @@ window.editAccount = async function (id) {
         // HIDDEN ID & RENDER
         container.dataset.targetId = id;
         container.innerHTML = html;
+
+        await ensureChartJsLoaded();
 
         // RENDER CHARTS
 
@@ -2388,7 +2471,7 @@ function handleFullscreenChange() {
 // --- Admin QR Scanner Logic ---
 let html5QrcodeScanner = null;
 
-window.startAdminScanner = function () {
+window.startAdminScanner = async function () {
     const modalEl = document.getElementById('adminScanModal');
     // Ensure modal exists
     if (!modalEl) {
@@ -2398,13 +2481,18 @@ window.startAdminScanner = function () {
     const modal = new bootstrap.Modal(modalEl);
     modal.show();
 
-    // Check if library is loaded
-    if (typeof Html5QrcodeScanner === 'undefined') {
-        const readerEl = document.getElementById('reader');
+    const readerEl = document.getElementById('reader');
+    if (readerEl) {
+        readerEl.innerHTML = '<div class="text-muted small">Memuat scanner...</div>';
+    }
+
+    try {
+        await ensureHtml5QrLoaded();
+    } catch (error) {
         if (readerEl) {
-            readerEl.innerHTML = '<div class="text-danger small">Library Scanner belum termuat. Periksa koneksi internet atau reload halaman.</div>';
+            readerEl.innerHTML = '<div class="text-danger small">Library Scanner gagal dimuat. Periksa koneksi internet.</div>';
         }
-        showToast('Error', 'Library Scanner belum termuat. Periksa koneksi internet atau reload halaman.', 'error');
+        showToast('Error', 'Library Scanner gagal dimuat. Periksa koneksi internet.', 'error');
         return;
     }
 
