@@ -200,19 +200,35 @@
 
                         <!-- My QR & Code -->
                         <div class="col-lg-4 col-12 mb-4">
-                            <div class="dashboard-card h-100 d-flex flex-column justify-content-center text-center">
+                            <div class="dashboard-card code-entry-card h-100 d-flex flex-column justify-content-center">
                                 <div class="card-skeleton"></div>
                                 <div class="card-content">
-                                    <div class="mb-3">
-                                        <i class="bi-qr-code fs-3rem text-primary-var"></i>
+                                    <div class="d-flex align-items-center justify-content-between mb-3">
+                                        <span class="code-priority-badge">
+                                            <i class="bi-lightning-charge-fill me-1"></i>Fitur Utama
+                                        </span>
+                                        <i class="bi-qr-code fs-2 text-primary-var"></i>
                                     </div>
-                                    <button class="btn custom-btn mb-3" data-bs-toggle="modal"
-                                        data-bs-target="#qrModal">Tampilkan QR Saya</button>
-                                    <hr class="border-color-var">
-                                    <div class="input-group mt-2">
-                                        <input type="text" class="form-control" id="codeInput"
-                                            placeholder="Masukkan Kode Unik" aria-label="My Code">
-                                        <button class="btn custom-btn" type="button" id="submitCodeBtn">Submit</button>
+
+                                    <h5 class="mb-2 fw-bold">Tukar Kode Point</h5>
+                                    <p class="small text-muted mb-3">Masukkan kode kegiatan untuk klaim point secara
+                                        cepat.</p>
+
+                                    <button class="btn custom-btn mb-3" data-bs-toggle="modal" data-bs-target="#qrModal">
+                                        <i class="bi-person-vcard me-2"></i>Tampilkan QR Saya
+                                    </button>
+
+                                    <div class="code-entry-form mt-1">
+                                        <label for="codeInput" class="visually-hidden">Masukkan Kode Unik</label>
+                                        <div class="code-input-wrap">
+                                            <i class="bi-ticket-perforated code-input-icon"></i>
+                                            <input type="text" class="form-control code-entry-input" id="codeInput"
+                                                placeholder="Masukkan Kode Unik" aria-label="My Code" autocomplete="off"
+                                                autocapitalize="characters" spellcheck="false">
+                                        </div>
+                                        <button class="btn code-submit-btn" type="button" id="submitCodeBtn">
+                                            <i class="bi-send-fill me-1"></i>Submit
+                                        </button>
                                     </div>
                                 </div>
                             </div>

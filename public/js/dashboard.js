@@ -893,6 +893,9 @@ function setupEventListeners() {
 
         const codeInput = document.getElementById('codeInput');
         if (codeInput) {
+            codeInput.addEventListener('input', function () {
+                this.value = this.value.toUpperCase().replace(/\s+/g, '');
+            });
             codeInput.addEventListener('keypress', function (e) {
                 if (e.key === 'Enter') submitCode();
             });

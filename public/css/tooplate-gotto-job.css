@@ -4352,6 +4352,109 @@ nav[aria-label="breadcrumb"] {
   display: none;
 }
 
+/*---------------------------------------
+  DASHBOARD CODE ENTRY PRIORITY UI
+-----------------------------------------*/
+.code-entry-card {
+  border: 1.5px solid var(--primary-color);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.08);
+  background: linear-gradient(180deg, #ffffff 0%, #f7f7f7 100%);
+}
+
+.code-entry-card:hover {
+  transform: translateY(-7px);
+}
+
+.code-priority-badge {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--white-color);
+  background: var(--primary-color);
+  border-radius: 999px;
+  padding: 6px 12px;
+  animation: pulsePriority 1.8s ease-in-out infinite;
+}
+
+@keyframes pulsePriority {
+  0% {
+    box-shadow: 0 0 0 0 rgba(0, 0, 0, 0.25);
+  }
+
+  70% {
+    box-shadow: 0 0 0 10px rgba(0, 0, 0, 0);
+  }
+
+  100% {
+    box-shadow: 0 0 0 0 rgba(0, 0, 0, 0);
+  }
+}
+
+.code-entry-form {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+  align-items: stretch;
+}
+
+.code-input-wrap {
+  position: relative;
+}
+
+.code-input-icon {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--p-color);
+  pointer-events: none;
+}
+
+.code-entry-input {
+  height: 56px;
+  border-radius: 16px !important;
+  border: 1px solid var(--border-color);
+  padding-left: 42px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.code-entry-input:focus {
+  border-color: var(--custom-btn-bg-color);
+  box-shadow: 0 0 0 0.2rem rgba(128, 128, 128, 0.2);
+}
+
+.code-submit-btn {
+  min-width: 132px;
+  border-radius: 16px;
+  border: 0;
+  font-weight: 700;
+  color: var(--white-color);
+  background: var(--custom-btn-bg-color);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.code-submit-btn:hover {
+  color: var(--white-color);
+  background: var(--custom-btn-bg-color);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+}
+
+@media (max-width: 767px) {
+  .code-entry-form {
+    grid-template-columns: 1fr;
+  }
+
+  .code-submit-btn {
+    width: 100%;
+    min-height: 52px;
+  }
+}
+
 /* Button Skeleton */
 .btn-skeleton {
   position: relative;
