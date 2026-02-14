@@ -4356,40 +4356,13 @@ nav[aria-label="breadcrumb"] {
   DASHBOARD CODE ENTRY PRIORITY UI
 -----------------------------------------*/
 .code-entry-card {
-  border: 1.5px solid var(--primary-color);
-  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.08);
-  background: linear-gradient(180deg, #ffffff 0%, #f7f7f7 100%);
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-sm);
+  background: var(--white-color);
 }
 
 .code-entry-card:hover {
-  transform: translateY(-7px);
-}
-
-.code-priority-badge {
-  display: inline-flex;
-  align-items: center;
-  font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-  color: var(--white-color);
-  background: var(--primary-color);
-  border-radius: 999px;
-  padding: 6px 12px;
-  animation: pulsePriority 1.8s ease-in-out infinite;
-}
-
-@keyframes pulsePriority {
-  0% {
-    box-shadow: 0 0 0 0 rgba(0, 0, 0, 0.25);
-  }
-
-  70% {
-    box-shadow: 0 0 0 10px rgba(0, 0, 0, 0);
-  }
-
-  100% {
-    box-shadow: 0 0 0 0 rgba(0, 0, 0, 0);
-  }
+  transform: translateY(-5px);
 }
 
 .code-entry-form {
@@ -4423,8 +4396,8 @@ nav[aria-label="breadcrumb"] {
 }
 
 .code-entry-input:focus {
-  border-color: var(--custom-btn-bg-color);
-  box-shadow: 0 0 0 0.2rem rgba(128, 128, 128, 0.2);
+  border-color: var(--border-color);
+  box-shadow: 0 0 0 0.2rem rgba(0, 0, 0, 0.08);
 }
 
 .code-submit-btn {
