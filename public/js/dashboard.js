@@ -85,6 +85,7 @@ let activeCodesData = [];
 let pointHistory = [];
 let attendanceList = [];
 let attendanceConfig = null; // Stores time rules
+let isSubmittingCode = false;
 
 function loadExternalScript(src) {
     return new Promise((resolve, reject) => {
@@ -126,6 +127,21 @@ function ensureHtml5QrLoaded() {
         html5QrLoadPromise = loadExternalScript('https://unpkg.com/html5-qrcode');
     }
     return html5QrLoadPromise;
+}
+
+function setSubmitCodeLoading(isLoading) {
+    const submitBtn = document.getElementById('submitCodeBtn');
+    if (!submitBtn) return;
+
+    if (isLoading) {
+        submitBtn.disabled = true;
+        submitBtn.dataset.prevHtml = submitBtn.innerHTML;
+        submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Memproses...';
+        return;
+    }
+
+    submitBtn.disabled = false;
+    submitBtn.innerHTML = submitBtn.dataset.prevHtml || '<i class="bi-send-fill me-1"></i>Submit';
 }
 
 function startDeferredListeners() {
@@ -923,12 +939,16 @@ function setupEventListeners() {
 window.submitCode = async function () {
     const codeInput = document.getElementById('codeInput');
     if (!codeInput) return;
+    if (isSubmittingCode) return;
 
     const rawCode = codeInput.value.trim();
     if (!rawCode) {
         showToast('Input Error', 'Masukkan kode terlebih dahulu!', 'error');
         return;
     }
+
+    isSubmittingCode = true;
+    setSubmitCodeLoading(true);
 
     // Attempt to match Weekly Token first
     try {
@@ -1138,6 +1158,9 @@ window.submitCode = async function () {
     } catch (error) {
         console.error('Error submitting code:', error);
         showToast('Error', 'Terjadi kesalahan: ' + error.message, 'error');
+    } finally {
+        isSubmittingCode = false;
+        setSubmitCodeLoading(false);
     }
 }
 
@@ -2691,6 +2714,8 @@ const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxsDO2DRqWJpC
 // Export modal state
 let exportClickCount = 0;
 let exportType = null; // 'users' or 'server'
+const EXPORT_SUBMIT_DEFAULT_HTML = '<i class="bi-cloud-upload me-2"></i>Ekspor Sekarang';
+const IMPORT_SUBMIT_DEFAULT_HTML = '<i class="bi-cloud-download me-2"></i>Impor Sekarang';
 
 /**
  * Export User Data to Google Sheets
@@ -2813,6 +2838,7 @@ window.resetExportModal = function () {
 
     if (submitBtn) {
         submitBtn.disabled = true;
+        submitBtn.innerHTML = EXPORT_SUBMIT_DEFAULT_HTML;
     }
 
     if (btn) {
@@ -2848,7 +2874,7 @@ window.submitExport = async function () {
     }
 
     const submitBtn = document.getElementById('submitExportBtn');
-    const originalHTML = submitBtn.innerHTML;
+    if (!submitBtn) return;
 
     try {
         submitBtn.disabled = true;
@@ -2874,7 +2900,14 @@ window.submitExport = async function () {
         // Reset button on error
         if (submitBtn) {
             submitBtn.disabled = false;
-            submitBtn.innerHTML = originalHTML;
+            submitBtn.innerHTML = EXPORT_SUBMIT_DEFAULT_HTML;
+        }
+    } finally {
+        // Safety net: if modal is still open, ensure spinner is not stuck
+        const exportModalEl = document.getElementById('exportConfirmModal');
+        const isShown = exportModalEl && exportModalEl.classList.contains('show');
+        if (isShown && submitBtn.innerHTML.includes('spinner-border')) {
+            submitBtn.innerHTML = EXPORT_SUBMIT_DEFAULT_HTML;
         }
     }
 }
@@ -3113,6 +3146,7 @@ window.submitImport = async function () {
     }
 
     const submitBtn = document.getElementById('submitImportBtn');
+    if (!submitBtn) return;
     submitBtn.disabled = true;
     submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Importing...';
 
@@ -3124,14 +3158,22 @@ window.submitImport = async function () {
         }
 
         // Close modal
-        bootstrap.Modal.getInstance(document.getElementById('importConfirmModal')).hide();
+        const importModal = bootstrap.Modal.getInstance(document.getElementById('importConfirmModal'));
+        if (importModal) importModal.hide();
         resetImportModal();
 
     } catch (error) {
         console.error('Import error:', error);
         showToast('Error', error.message || 'Gagal mengimport data', 'error');
         submitBtn.disabled = false;
-        submitBtn.innerHTML = '<i class="bi-cloud-download me-2"></i>Import Sekarang';
+        submitBtn.innerHTML = IMPORT_SUBMIT_DEFAULT_HTML;
+    } finally {
+        // Safety net: if modal is still open, ensure spinner is not stuck
+        const importModalEl = document.getElementById('importConfirmModal');
+        const isShown = importModalEl && importModalEl.classList.contains('show');
+        if (isShown && submitBtn.innerHTML.includes('spinner-border')) {
+            submitBtn.innerHTML = IMPORT_SUBMIT_DEFAULT_HTML;
+        }
     }
 };
 
@@ -3158,7 +3200,7 @@ window.resetImportModal = function () {
     const submitBtn = document.getElementById('submitImportBtn');
     if (submitBtn) {
         submitBtn.disabled = true;
-        submitBtn.innerHTML = '<i class="bi-cloud-download me-2"></i>Import Sekarang';
+        submitBtn.innerHTML = IMPORT_SUBMIT_DEFAULT_HTML;
     }
 
     const btn = document.getElementById('importConfirmClickBtn');
