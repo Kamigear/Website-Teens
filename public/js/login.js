@@ -16,6 +16,29 @@ import {
     getDocs
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
+async function getSystemControlsForLogin() {
+    try {
+        const snap = await getDoc(doc(db, 'settings', 'systemControls'));
+        if (!snap.exists()) {
+            return {
+                disableLogin: false,
+                maintenanceMessage: ''
+            };
+        }
+        const data = snap.data();
+        return {
+            disableLogin: Boolean(data.disableLogin),
+            maintenanceMessage: String(data.maintenanceMessage || '').trim()
+        };
+    } catch (error) {
+        console.warn('Failed to read system controls:', error);
+        return {
+            disableLogin: false,
+            maintenanceMessage: ''
+        };
+    }
+}
+
 // Check if user is already logged in
 // Check if user is already logged in
 onAuthStateChanged(auth, async (user) => {
@@ -156,6 +179,12 @@ document.addEventListener('DOMContentLoaded', function () {
 
         if (!identifier || !password) {
             showLoginError('Mohon isi username/email dan password');
+            return;
+        }
+
+        const controls = await getSystemControlsForLogin();
+        if (controls.disableLogin) {
+            showLoginError(controls.maintenanceMessage || 'Login sedang dinonaktifkan oleh admin. Coba lagi nanti.');
             return;
         }
 

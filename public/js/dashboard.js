@@ -85,7 +85,37 @@ let activeCodesData = [];
 let pointHistory = [];
 let attendanceList = [];
 let attendanceConfig = null; // Stores time rules
+let systemControls = getDefaultSystemControls_();
+let dashboardBlockedBySystem = false;
 let isSubmittingCode = false;
+
+function getDefaultSystemControls_() {
+    return {
+        disableLogin: false,
+        disableDashboard: false,
+        disableAttendance: false,
+        disableCodeRedeem: false,
+        maintenanceMessage: '',
+        attendanceAllowedDays: [0] // Default: Minggu
+    };
+}
+
+function normalizeSystemControls_(raw) {
+    const defaults = getDefaultSystemControls_();
+    const allowedRaw = Array.isArray(raw?.attendanceAllowedDays) ? raw.attendanceAllowedDays : defaults.attendanceAllowedDays;
+    const allowedDays = allowedRaw
+        .map((d) => Number(d))
+        .filter((d) => Number.isInteger(d) && d >= 0 && d <= 6);
+
+    return {
+        disableLogin: Boolean(raw?.disableLogin),
+        disableDashboard: Boolean(raw?.disableDashboard),
+        disableAttendance: Boolean(raw?.disableAttendance),
+        disableCodeRedeem: Boolean(raw?.disableCodeRedeem),
+        maintenanceMessage: String(raw?.maintenanceMessage || '').trim(),
+        attendanceAllowedDays: allowedDays.length ? Array.from(new Set(allowedDays)) : defaults.attendanceAllowedDays
+    };
+}
 
 function loadExternalScript(src) {
     return new Promise((resolve, reject) => {
@@ -142,6 +172,104 @@ function setSubmitCodeLoading(isLoading) {
 
     submitBtn.disabled = false;
     submitBtn.innerHTML = submitBtn.dataset.prevHtml || '<i class="bi-send-fill me-1"></i>Submit';
+}
+
+function getAttendanceRestrictionMessage_() {
+    if (systemControls.disableAttendance) {
+        return systemControls.maintenanceMessage || 'Absensi sedang dinonaktifkan oleh admin.';
+    }
+
+    const allowedDays = Array.isArray(systemControls.attendanceAllowedDays)
+        ? systemControls.attendanceAllowedDays
+        : [0];
+    const currentDay = new Date().getDay();
+    if (!allowedDays.includes(currentDay)) {
+        const dayNames = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+        const allowedText = allowedDays
+            .slice()
+            .sort((a, b) => a - b)
+            .map((d) => dayNames[d])
+            .join(', ');
+        return `Absensi hanya dibuka pada: ${allowedText}.`;
+    }
+
+    return '';
+}
+
+function applyUserAccessState_() {
+    const userDashboard = document.getElementById('user-dashboard');
+    const adminDashboard = document.getElementById('admin-dashboard');
+    const submitBtn = document.getElementById('submitCodeBtn');
+    const codeInput = document.getElementById('codeInput');
+    const noticeEl = document.getElementById('attendanceSystemNotice');
+    const isUserBlocked = !isAdmin && systemControls.disableDashboard;
+
+    if (isUserBlocked) {
+        if (adminDashboard) adminDashboard.classList.add('d-none');
+        if (userDashboard) {
+            userDashboard.innerHTML = `
+                <div class="row">
+                    <div class="col-12">
+                        <div class="alert alert-warning mt-2">
+                            <h5 class="mb-2"><i class="bi-exclamation-triangle me-2"></i>Dashboard Sementara Ditutup</h5>
+                            <p class="mb-0">${systemControls.maintenanceMessage || 'Akses dashboard pengguna sedang dinonaktifkan oleh admin.'}</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        dashboardBlockedBySystem = true;
+        return;
+    }
+
+    if (dashboardBlockedBySystem) {
+        window.location.reload();
+        return;
+    }
+
+    const attendanceBlockedMessage = getAttendanceRestrictionMessage_();
+    const redeemBlocked = systemControls.disableCodeRedeem === true;
+
+    if (submitBtn) submitBtn.disabled = redeemBlocked;
+    if (codeInput) codeInput.disabled = redeemBlocked;
+
+    if (noticeEl) {
+        if (redeemBlocked) {
+            noticeEl.innerHTML = `<i class="bi-info-circle me-1"></i>${systemControls.maintenanceMessage || 'Tukar kode event sedang dinonaktifkan oleh admin.'}`;
+            noticeEl.classList.remove('text-success', 'text-muted');
+            noticeEl.classList.add('text-danger');
+        } else if (attendanceBlockedMessage) {
+            noticeEl.innerHTML = `<i class="bi-info-circle me-1"></i>${attendanceBlockedMessage}`;
+            noticeEl.classList.remove('text-success', 'text-danger');
+            noticeEl.classList.add('text-muted');
+        } else {
+            noticeEl.innerHTML = '<i class="bi-check-circle me-1"></i>Absensi aktif sesuai pengaturan admin.';
+            noticeEl.classList.remove('text-danger', 'text-muted');
+            noticeEl.classList.add('text-success');
+        }
+    }
+}
+
+function updateSystemControlsUI() {
+    const disableLogin = document.getElementById('settingDisableLogin');
+    const disableDashboard = document.getElementById('settingDisableDashboard');
+    const disableAttendance = document.getElementById('settingDisableAttendance');
+    const disableCodeRedeem = document.getElementById('settingDisableCodeRedeem');
+    const maintenanceMessage = document.getElementById('settingMaintenanceMessage');
+    const dayChecks = document.querySelectorAll('.attendance-day');
+
+    if (disableLogin) disableLogin.checked = systemControls.disableLogin;
+    if (disableDashboard) disableDashboard.checked = systemControls.disableDashboard;
+    if (disableAttendance) disableAttendance.checked = systemControls.disableAttendance;
+    if (disableCodeRedeem) disableCodeRedeem.checked = systemControls.disableCodeRedeem;
+    if (maintenanceMessage) maintenanceMessage.value = systemControls.maintenanceMessage || '';
+
+    if (dayChecks && dayChecks.length) {
+        dayChecks.forEach((checkbox) => {
+            const day = Number(checkbox.value);
+            checkbox.checked = systemControls.attendanceAllowedDays.includes(day);
+        });
+    }
 }
 
 function startDeferredListeners() {
@@ -250,6 +378,7 @@ function initDashboard() {
         initCharts();
         setupFirestoreListeners();
         setupEventListeners();
+        applyUserAccessState_();
 
         // Initial load of attendance stats for user
         if (!isAdmin) {
@@ -496,6 +625,18 @@ function setupEmailUnlinking() {
 // --- Firestore Real-time Listeners ---
 function setupFirestoreListeners() {
     try {
+        const systemControlsRef = doc(db, 'settings', 'systemControls');
+        onSnapshot(systemControlsRef, (docSnap) => {
+            if (docSnap.exists()) {
+                systemControls = normalizeSystemControls_(docSnap.data());
+            } else {
+                systemControls = getDefaultSystemControls_();
+            }
+
+            updateSystemControlsUI();
+            applyUserAccessState_();
+        });
+
         // 1. Current User Data Listener
         const userDocRef = doc(db, 'users', currentUser.uid);
         onSnapshot(userDocRef, (docSnap) => {
@@ -509,6 +650,7 @@ function setupFirestoreListeners() {
                 };
                 updateUserInfo();
                 updateChartWithRealData();
+                applyUserAccessState_();
                 if (!isAdmin) updateUserAttendanceDisplay();
             }
         });
@@ -947,6 +1089,11 @@ window.submitCode = async function () {
         return;
     }
 
+    if (systemControls.disableCodeRedeem) {
+        showToast('Fitur Nonaktif', systemControls.maintenanceMessage || 'Tukar kode sedang dinonaktifkan oleh admin.', 'warning');
+        return;
+    }
+
     isSubmittingCode = true;
     setSubmitCodeLoading(true);
 
@@ -967,6 +1114,13 @@ window.submitCode = async function () {
         });
 
         if (validWeeklyDocs.length > 0) {
+            const attendanceBlockReason = getAttendanceRestrictionMessage_();
+            if (attendanceBlockReason) {
+                showToast('Absensi Ditutup', attendanceBlockReason, 'warning');
+                codeInput.value = '';
+                return;
+            }
+
             const tokenData = validWeeklyDocs[0].data();
 
             // A. Check Frequency (Week ID)
@@ -1161,6 +1315,7 @@ window.submitCode = async function () {
     } finally {
         isSubmittingCode = false;
         setSubmitCodeLoading(false);
+        applyUserAccessState_();
     }
 }
 
@@ -2014,6 +2169,44 @@ window.saveAttendanceConfig = async function () {
     }
 }
 
+window.saveSystemControls = async function () {
+    const disableLogin = document.getElementById('settingDisableLogin')?.checked === true;
+    const disableDashboard = document.getElementById('settingDisableDashboard')?.checked === true;
+    const disableAttendance = document.getElementById('settingDisableAttendance')?.checked === true;
+    const disableCodeRedeem = document.getElementById('settingDisableCodeRedeem')?.checked === true;
+    const maintenanceMessage = String(document.getElementById('settingMaintenanceMessage')?.value || '').trim();
+
+    const selectedDays = Array.from(document.querySelectorAll('.attendance-day:checked'))
+        .map((el) => Number(el.value))
+        .filter((d) => Number.isInteger(d) && d >= 0 && d <= 6);
+
+    if (selectedDays.length === 0) {
+        showToast('Input Error', 'Pilih minimal satu hari untuk jadwal absensi.', 'error');
+        return;
+    }
+
+    try {
+        await setDoc(doc(db, 'settings', 'systemControls'), {
+            disableLogin,
+            disableDashboard,
+            disableAttendance,
+            disableCodeRedeem,
+            maintenanceMessage,
+            attendanceAllowedDays: selectedDays,
+            updatedAt: serverTimestamp(),
+            updatedBy: currentUser.uid
+        }, { merge: true });
+
+        showToast('Berhasil', 'Pengaturan sistem berhasil disimpan.', 'success');
+        const modalEl = document.getElementById('systemControlsModal');
+        const modal = bootstrap.Modal.getInstance(modalEl);
+        if (modal) modal.hide();
+    } catch (error) {
+        console.error("Save system controls error:", error);
+        showToast('Error', 'Gagal menyimpan pengaturan sistem: ' + error.message, 'error');
+    }
+}
+
 function updateAttendanceConfigUI() {
     if (!attendanceConfig) return;
     const s1t = document.getElementById('slot1Time');
@@ -2197,6 +2390,12 @@ window.claimAttendance = async function () {
 
     if (!code || code.length !== 5) {
         showToast('Input Error', 'Kode harus 5 huruf!', 'error');
+        return;
+    }
+
+    const attendanceBlockReason = getAttendanceRestrictionMessage_();
+    if (attendanceBlockReason) {
+        showToast('Absensi Ditutup', attendanceBlockReason, 'warning');
         return;
     }
 

@@ -190,6 +190,7 @@
                                             <i class="bi-send-fill me-1"></i>Submit
                                         </button>
                                     </div>
+                                    <div id="attendanceSystemNotice" class="small text-muted mt-2"></div>
                                 </div>
                             </div>
                         </div>
@@ -437,6 +438,21 @@
                                 <p class="text-muted small">Atur jadwal dan poin kehadiran.</p>
                                 <button class="btn btn-outline-dark btn-sm w-100 mt-auto" data-bs-toggle="modal"
                                     data-bs-target="#attendanceConfigModal">Konfigurasi</button>
+                            </div>
+                        </div>
+
+                        <div class="col-lg-4 mb-4">
+                            <div class="card dashboard-card admin-action-card h-100">
+                                <div class="d-flex align-items-center mb-3">
+                                    <div
+                                        class="icon-box me-3 d-flex align-items-center justify-content-center rounded-circle">
+                                        <i class="bi-toggles2"></i>
+                                    </div>
+                                    <h5 class="mb-0">Pengaturan Sistem</h5>
+                                </div>
+                                <p class="text-muted small">Kontrol login, akses dashboard, dan jadwal absensi.</p>
+                                <button class="btn btn-outline-dark btn-sm w-100 mt-auto" data-bs-toggle="modal"
+                                    data-bs-target="#systemControlsModal">Buka Pengaturan</button>
                             </div>
                         </div>
 
@@ -936,6 +952,81 @@
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
                     <button type="button" class="btn custom-btn" onclick="saveAttendanceConfig()">Simpan</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- System Controls Modal -->
+    <div class="modal fade" id="systemControlsModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered admin-modal-dialog">
+            <div class="modal-content admin-modal-content admin-config-modal-content">
+                <div class="modal-header admin-modal-header">
+                    <h5 class="modal-title"><i class="bi-toggles2 me-2"></i>Pengaturan Sistem</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body admin-modal-body">
+                    <div class="admin-config-intro mb-3">
+                        <i class="bi-info-circle me-2"></i>Atur fitur mana yang sedang aktif untuk semua pengguna.
+                    </div>
+
+                    <div class="mb-3 p-3 rounded border bg-white-var config-block">
+                        <h6 class="mb-3">Kontrol Akses</h6>
+                        <div class="form-check form-switch mb-2">
+                            <input class="form-check-input" type="checkbox" id="settingDisableLogin">
+                            <label class="form-check-label" for="settingDisableLogin">Nonaktifkan Login Pengguna</label>
+                        </div>
+                        <div class="form-check form-switch mb-2">
+                            <input class="form-check-input" type="checkbox" id="settingDisableDashboard">
+                            <label class="form-check-label" for="settingDisableDashboard">Nonaktifkan Dashboard Pengguna</label>
+                        </div>
+                        <div class="form-check form-switch mb-2">
+                            <input class="form-check-input" type="checkbox" id="settingDisableAttendance">
+                            <label class="form-check-label" for="settingDisableAttendance">Nonaktifkan Absensi</label>
+                        </div>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="settingDisableCodeRedeem">
+                            <label class="form-check-label" for="settingDisableCodeRedeem">Nonaktifkan Tukar Kode Event</label>
+                        </div>
+                    </div>
+
+                    <div class="mb-3 p-3 rounded border bg-white-var config-block">
+                        <h6 class="mb-3">Hari Absensi Yang Diizinkan</h6>
+                        <div class="row g-2">
+                            <div class="col-6 col-md-4">
+                                <div class="form-check"><input class="form-check-input attendance-day" type="checkbox" id="day0" value="0"><label class="form-check-label" for="day0">Minggu</label></div>
+                            </div>
+                            <div class="col-6 col-md-4">
+                                <div class="form-check"><input class="form-check-input attendance-day" type="checkbox" id="day1" value="1"><label class="form-check-label" for="day1">Senin</label></div>
+                            </div>
+                            <div class="col-6 col-md-4">
+                                <div class="form-check"><input class="form-check-input attendance-day" type="checkbox" id="day2" value="2"><label class="form-check-label" for="day2">Selasa</label></div>
+                            </div>
+                            <div class="col-6 col-md-4">
+                                <div class="form-check"><input class="form-check-input attendance-day" type="checkbox" id="day3" value="3"><label class="form-check-label" for="day3">Rabu</label></div>
+                            </div>
+                            <div class="col-6 col-md-4">
+                                <div class="form-check"><input class="form-check-input attendance-day" type="checkbox" id="day4" value="4"><label class="form-check-label" for="day4">Kamis</label></div>
+                            </div>
+                            <div class="col-6 col-md-4">
+                                <div class="form-check"><input class="form-check-input attendance-day" type="checkbox" id="day5" value="5"><label class="form-check-label" for="day5">Jumat</label></div>
+                            </div>
+                            <div class="col-6 col-md-4">
+                                <div class="form-check"><input class="form-check-input attendance-day" type="checkbox" id="day6" value="6"><label class="form-check-label" for="day6">Sabtu</label></div>
+                            </div>
+                        </div>
+                        <div class="form-text mt-2">Contoh: centang hanya Minggu jika absensi hanya dibuka hari Minggu.</div>
+                    </div>
+
+                    <div class="mb-0 p-3 rounded border bg-white-var config-block">
+                        <h6 class="mb-2">Pesan Sistem (Opsional)</h6>
+                        <textarea class="form-control" id="settingMaintenanceMessage" rows="2"
+                            placeholder="Contoh: Sistem sedang maintenance sampai jam 21:00"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+                    <button type="button" class="btn custom-btn" onclick="saveSystemControls()">Simpan Pengaturan</button>
                 </div>
             </div>
         </div>

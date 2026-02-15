@@ -626,11 +626,13 @@ function refreshStatisticsSheet_() {
     const pie = statsSheet.newChart()
         .setChartType(Charts.ChartType.PIE)
         .addRange(statsSheet.getRange(12, 4, Math.max(topUsers.length, 1) + 1, 2))
-        .setPosition(20, 8, 0, 0)
+        .setPosition(20, 15, 0, 0)
         .setOption('title', 'Distribusi Top Poin')
         .setOption('backgroundColor', THEME.pureWhite)
         .build();
     if (topUsers.length > 0) statsSheet.insertChart(pie);
+
+    renderAttendanceDatePanel_(statsSheet);
 
     statsSheet.setFrozenRows(2);
     statsSheet.setColumnWidths(1, 1, 170);
@@ -640,6 +642,16 @@ function refreshStatisticsSheet_() {
     statsSheet.setColumnWidths(5, 1, 120);
     statsSheet.setColumnWidths(6, 1, 25);
     statsSheet.setColumnWidths(7, 1, 25);
+    statsSheet.setColumnWidths(8, 1, 30);
+    statsSheet.setColumnWidths(9, 1, 135);
+    statsSheet.setColumnWidths(10, 1, 140);
+    statsSheet.setColumnWidths(11, 1, 135);
+    statsSheet.setColumnWidths(12, 1, 220);
+    statsSheet.setColumnWidths(13, 1, 110);
+    statsSheet.setColumnWidths(14, 1, 110);
+    statsSheet.setColumnWidths(15, 1, 100);
+    statsSheet.setColumnWidths(16, 1, 120);
+    statsSheet.setColumnWidths(17, 1, 120);
     statsSheet.autoResizeRows(1, 30);
 }
 
@@ -684,6 +696,69 @@ function setKpiCard_(sheet, a1, title, value, accentColor) {
         .setHorizontalAlignment('center')
         .setVerticalAlignment('middle')
         .setBackground(THEME.pureWhite);
+}
+
+function renderAttendanceDatePanel_(sheet) {
+    // Panel title
+    sheet.getRange('I1:M1')
+        .merge()
+        .setValue('Filter Absensi Berdasarkan Tanggal')
+        .setBackground(THEME.primary)
+        .setFontColor(THEME.pureWhite)
+        .setFontWeight('bold')
+        .setHorizontalAlignment('center')
+        .setVerticalAlignment('middle')
+        .setFontFamily('Calibri');
+
+    sheet.getRange('I2:M2')
+        .merge()
+        .setValue('Atur tanggal untuk melihat siapa yang absen pada hari/rentang tertentu')
+        .setFontColor(THEME.secondWhite)
+        .setFontStyle('italic')
+        .setHorizontalAlignment('center');
+
+    // Inputs
+    sheet.getRange('I4').setValue('Tanggal Mulai');
+    sheet.getRange('I5').setValue('Tanggal Akhir');
+    sheet.getRange('I6').setValue('Tanggal Spesifik');
+    sheet.getRange('I4:I6')
+        .setFontWeight('bold')
+        .setBackground(THEME.secondary)
+        .setFontColor(THEME.p)
+        .setHorizontalAlignment('left');
+
+    const today = new Date();
+    const start = new Date(today.getTime() - (7 * 24 * 60 * 60 * 1000));
+
+    sheet.getRange('J4').setValue(start);
+    sheet.getRange('J5').setValue(today);
+    sheet.getRange('J6').setValue(today);
+    sheet.getRange('J4:J6').setNumberFormat('yyyy-mm-dd').setBackground(THEME.pureWhite);
+
+    sheet.getRange('K4:M6')
+        .merge()
+        .setValue('Tip: untuk lihat tanggal tunggal (mis. 21 Januari), isi Tanggal Mulai dan Tanggal Akhir dengan tanggal yang sama.')
+        .setWrap(true)
+        .setFontColor(THEME.secondWhite)
+        .setBackground(THEME.white)
+        .setHorizontalAlignment('left')
+        .setVerticalAlignment('middle');
+
+    // Range result table header
+    sheet.getRange('I8:O8').setValues([['UID', 'Nama', 'Email', 'Tanggal', 'Jam', 'Poin', 'Minggu']]);
+    applyHeaderStyle_(sheet.getRange('I8:O8'));
+    sheet.getRange('I9').setFormula('=IFERROR(FILTER(AbsenceData!A2:G, AbsenceData!D2:D>=TEXT($J$4,\"yyyy-mm-dd\"), AbsenceData!D2:D<=TEXT($J$5,\"yyyy-mm-dd\")), \"Tidak ada data pada rentang tanggal ini\")');
+    sheet.getRange('I9').setFontColor(THEME.p);
+
+    // Specific-day result table header
+    sheet.getRange('I20:O20').setValues([['UID', 'Nama', 'Email', 'Tanggal', 'Jam', 'Poin', 'Minggu']]);
+    applyHeaderStyle_(sheet.getRange('I20:O20'));
+    sheet.getRange('I21').setFormula('=IFERROR(FILTER(AbsenceData!A2:G, AbsenceData!D2:D=TEXT($J$6,\"yyyy-mm-dd\")), \"Tidak ada data pada tanggal ini\")');
+    sheet.getRange('I21').setFontColor(THEME.p);
+
+    // Panel border frame
+    sheet.getRange('I1:O26')
+        .setBorder(true, true, true, true, true, true, THEME.border, SpreadsheetApp.BorderStyle.SOLID);
 }
 
 function renderBirthMonthSidebar_(sheet, users, startCol) {
