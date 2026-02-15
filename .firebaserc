@@ -1,6 +1,6 @@
 {
   "projects": {
-    "default": "gnosia-f1586"
+    "default": "teens-vdr"
   },
   "targets": {
     "teens-vdr": {
