@@ -82,6 +82,7 @@ function toggleSkeleton(show) {
 // --- Data State (Synced with Firestore) ---
 let accountsData = [];
 let activeCodesData = [];
+let contactMessagesData = [];
 let pointHistory = [];
 let attendanceList = [];
 let attendanceConfig = null; // Stores time rules
@@ -313,6 +314,15 @@ function startDeferredListeners() {
                 ...doc.data()
             }));
             renderActiveCodesTable();
+        });
+
+        const qContactMessages = query(collection(db, "contactMessages"), orderBy("createdAt", "desc"), limit(100));
+        onSnapshot(qContactMessages, (snapshot) => {
+            contactMessagesData = snapshot.docs.map(doc => ({
+                id: doc.id,
+                ...doc.data()
+            }));
+            renderContactMessagesTable();
         });
 
         const currentWeek = getWeekIdentifier();
@@ -1592,6 +1602,116 @@ function renderActiveCodesTable() {
         });
     } catch (error) {
         console.error('Render active codes table error:', error);
+    }
+}
+
+function renderContactMessagesTable() {
+    try {
+        const tbody = document.getElementById('contactMessagesTableBody');
+        const countEl = document.getElementById('contactMessagesCount');
+        if (!tbody) return;
+
+        tbody.innerHTML = '';
+
+        if (countEl) {
+            const total = contactMessagesData.length;
+            const unread = contactMessagesData.filter((item) => item.status !== 'read').length;
+            countEl.textContent = unread > 0 ? `${total} pesan (${unread} baru)` : `${total} pesan`;
+        }
+
+        if (contactMessagesData.length === 0) {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td colspan="6" class="text-center text-muted py-4">
+                    <i class="bi-inbox me-2"></i>Belum ada pesan masuk.
+                </td>
+            `;
+            tbody.appendChild(row);
+            return;
+        }
+
+        contactMessagesData.forEach((item) => {
+            const row = document.createElement('tr');
+            const isRead = item.status === 'read';
+            if (!isRead) row.classList.add('table-warning');
+
+            const dateCell = document.createElement('td');
+            const createdAtDate = item.createdAt?.toDate ? item.createdAt.toDate() : null;
+            dateCell.textContent = createdAtDate
+                ? createdAtDate.toLocaleString('id-ID', {
+                    day: '2-digit',
+                    month: 'short',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                })
+                : '-';
+
+            const nameCell = document.createElement('td');
+            nameCell.textContent = item.name || '-';
+
+            const emailCell = document.createElement('td');
+            const emailLink = document.createElement('a');
+            emailLink.href = `mailto:${item.email || ''}`;
+            emailLink.className = 'text-decoration-none';
+            emailLink.textContent = item.email || '-';
+            emailCell.appendChild(emailLink);
+
+            const messageCell = document.createElement('td');
+            const messageText = String(item.message || '-');
+            messageCell.textContent = messageText.length > 180 ? `${messageText.slice(0, 180)}...` : messageText;
+            messageCell.title = messageText;
+
+            const statusCell = document.createElement('td');
+            statusCell.innerHTML = isRead
+                ? '<span class="badge bg-success text-white">Dibaca</span>'
+                : '<span class="badge bg-dark text-white">Baru</span>';
+
+            const actionCell = document.createElement('td');
+            actionCell.className = 'text-nowrap';
+            actionCell.innerHTML = `
+                ${isRead ? '' : `<button class="btn btn-sm btn-outline-primary me-2" onclick="markContactMessageRead('${item.id}')">
+                    <i class="bi-check2-circle"></i>
+                </button>`}
+                <button class="btn btn-sm btn-outline-danger" onclick="deleteContactMessage('${item.id}')">
+                    <i class="bi-trash"></i>
+                </button>
+            `;
+
+            row.appendChild(dateCell);
+            row.appendChild(nameCell);
+            row.appendChild(emailCell);
+            row.appendChild(messageCell);
+            row.appendChild(statusCell);
+            row.appendChild(actionCell);
+            tbody.appendChild(row);
+        });
+    } catch (error) {
+        console.error('Render contact messages table error:', error);
+    }
+}
+
+window.markContactMessageRead = async function (messageId) {
+    try {
+        await updateDoc(doc(db, 'contactMessages', messageId), {
+            status: 'read',
+            readAt: serverTimestamp()
+        });
+        showToast('Berhasil', 'Pesan ditandai sebagai dibaca.', 'success');
+    } catch (error) {
+        console.error('Mark contact message read error:', error);
+        showToast('Error', 'Gagal memperbarui status pesan: ' + error.message, 'error');
+    }
+}
+
+window.deleteContactMessage = async function (messageId) {
+    if (!confirm('Hapus pesan ini?')) return;
+    try {
+        await deleteDoc(doc(db, 'contactMessages', messageId));
+        showToast('Berhasil', 'Pesan berhasil dihapus.', 'success');
+    } catch (error) {
+        console.error('Delete contact message error:', error);
+        showToast('Error', 'Gagal menghapus pesan: ' + error.message, 'error');
     }
 }
 

@@ -1,0 +1,114 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // =========================
+    // HELPER FUNCTION
+    // =========================
+    function isAdmin() {
+      return request.auth != null
+        && exists(/databases/$(database)/documents/users/$(request.auth.uid))
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;
+    }
+
+    // =========================
+    // USERS
+    // =========================
+    match /users/{userId} {
+      // Allow listing users (adjust if you want to restrict later)
+      allow list: if true;
+
+      // Users can read/write their own data, admins can do anything
+      allow get, create, update, delete:
+        if request.auth != null && (request.auth.uid == userId || isAdmin());
+    }
+
+    // =========================
+    // SETTINGS
+    // =========================
+    match /settings/{docId} {
+      allow read: if request.auth != null;
+      allow write: if isAdmin();
+    }
+
+    // =========================
+    // CODES
+    // =========================
+    match /codes/{codeId} {
+      allow read: if request.auth != null;
+      allow write: if isAdmin();
+    }
+
+    // =========================
+    // WEEKLY TOKENS
+    // =========================
+    match /weeklyTokens/{tokenId} {
+      allow read: if request.auth != null;
+      allow write: if isAdmin();
+    }
+
+    // =========================
+    // TOKENS (from second ruleset)
+    // =========================
+    match /tokens/{tokenId} {
+      allow read, write: if isAdmin();
+    }
+
+    // =========================
+    // ATTENDANCE HISTORY
+    // =========================
+    match /attendanceHistory/{docId} {
+      allow read: if request.auth != null
+        && (resource.data.userId == request.auth.uid || isAdmin());
+
+      allow create: if request.auth != null
+        && (request.resource.data.userId == request.auth.uid || isAdmin());
+
+      allow update, delete: if isAdmin();
+    }
+
+    // =========================
+    // POINT HISTORY
+    // =========================
+    match /pointHistory/{docId} {
+      allow read: if request.auth != null
+        && (resource.data.userId == request.auth.uid || isAdmin());
+
+      allow create: if request.auth != null
+        && (request.resource.data.userId == request.auth.uid || isAdmin());
+
+      allow update, delete: if isAdmin();
+    }
+
+    // =========================
+    // EVENTS (PUBLIC)
+    // =========================
+    match /events/{eventId} {
+      allow read: if true;          // Public website access
+      allow create, update, delete: if isAdmin();
+    }
+
+    // =========================
+    // CONTACT MESSAGES
+    // =========================
+    match /contactMessages/{messageId} {
+      // Public can submit contact form
+      allow create: if
+        request.resource.data.keys().hasOnly(['name', 'email', 'message', 'status', 'source', 'createdAt']) &&
+        request.resource.data.name is string &&
+        request.resource.data.email is string &&
+        request.resource.data.message is string &&
+        request.resource.data.name.size() > 0 &&
+        request.resource.data.email.size() > 0 &&
+        request.resource.data.message.size() > 0 &&
+        request.resource.data.name.size() <= 120 &&
+        request.resource.data.email.size() <= 190 &&
+        request.resource.data.message.size() <= 3000 &&
+        request.resource.data.status == 'new' &&
+        request.resource.data.source == 'contact.html';
+
+      // Only admins can read/manage incoming messages
+      allow read, update, delete: if isAdmin();
+    }
+  }
+}

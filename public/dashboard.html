@@ -342,6 +342,8 @@
                                         Utama</a>
                                     <a href="#adminDataTools" class="btn btn-outline-dark btn-sm rounded-pill px-3">Alat
                                         Data</a>
+                                    <a href="#adminContactTools" class="btn btn-outline-dark btn-sm rounded-pill px-3">Pesan
+                                        Kontak</a>
                                     <a href="#adminCodeTools" class="btn btn-outline-dark btn-sm rounded-pill px-3">Kode
                                         Kegiatan</a>
                                 </div>
@@ -522,6 +524,45 @@
                                     onclick="importServerDataFromSheets()">
                                     <i class="bi-cloud-download me-2"></i>Impor Pengaturan
                                 </button>
+                            </div>
+                        </div>
+
+                        <div class="col-12 mt-0">
+                            <div class="admin-section-title" id="adminContactTools">
+                                <i class="bi-envelope-paper me-2"></i>Pesan Kontak Pengunjung
+                            </div>
+                        </div>
+
+                        <div class="col-12 mb-4">
+                            <div class="card dashboard-card admin-panel-card">
+                                <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+                                    <h5 class="mb-0">Pesan Masuk Kontak</h5>
+                                    <span class="badge bg-dark text-white rounded-pill" id="contactMessagesCount">0 pesan</span>
+                                </div>
+                                <div class="table-responsive">
+                                    <table class="table table-sm table-hover">
+                                        <thead>
+                                            <tr>
+                                                <th>Waktu</th>
+                                                <th>Nama</th>
+                                                <th>Email</th>
+                                                <th>Pesan</th>
+                                                <th>Status</th>
+                                                <th>Aksi</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="contactMessagesTableBody">
+                                            <tr class="skeleton-row placeholder-glow">
+                                                <td><span class="placeholder col-8"></span></td>
+                                                <td><span class="placeholder col-6"></span></td>
+                                                <td><span class="placeholder col-8"></span></td>
+                                                <td><span class="placeholder col-11"></span></td>
+                                                <td><span class="placeholder col-6"></span></td>
+                                                <td><span class="placeholder col-8"></span></td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
                             </div>
                         </div>
 
