@@ -48,6 +48,7 @@ function doPost(e) {
             case 'exportServerData': return exportServerData(data);
             case 'importUserData': return importUserData(data);
             case 'importServerData': return importServerData(data);
+            case 'fixAttendanceHyperlinks': return fixAttendanceHyperlinks(data);
             default: return createResponse(false, 'Unknown action');
         }
     } catch (error) {
@@ -145,20 +146,22 @@ function exportUserData(data) {
         const users = data.users || [];
         if (users.length === 0) return createResponse(true, 'No users');
 
-        const headers = ['uid', 'username', 'email', 'points', 'totalAttendance', 'isAdmin', 'createdAt'];
+        const headers = ['uid', 'username', 'email', 'points', 'totalAttendance', 'isAdmin', 'createdAt', 'birthdate'];
         const values = [headers];
 
         users.forEach(function (u) {
             values.push([
                 u.uid || '', u.username || '', u.email || '',
                 u.points || 0, u.totalAttendance || 0,
-                u.isAdmin ? 'Yes' : 'No', u.createdAt || ''
+                u.isAdmin ? 'Yes' : 'No', u.createdAt || '', u.birthdate || ''
             ]);
         });
 
         sheet.getRange(1, 1, values.length, headers.length).setValues(values);
         applyUserSheetStyle_(sheet, values.length, headers.length);
-        renderBirthMonthSidebar_(sheet, users, 9); // Start from column I
+        // Start from column J and leave column I as spacing
+        sheet.setColumnWidth(9, 28);
+        renderBirthMonthSidebar_(sheet, users, 10);
         refreshStatisticsSheet_();
 
         return createResponse(true, 'Exported ' + users.length + ' users');
@@ -186,7 +189,7 @@ function importUserData(data) {
         if (lastRow < 2) return createResponse(false, 'No data in UserData sheet');
 
         // Get all data (skip header row)
-        const values = sheet.getRange(2, 1, lastRow - 1, 7).getValues();
+        const values = sheet.getRange(2, 1, lastRow - 1, 8).getValues();
         const users = [];
 
         values.forEach(function (row) {
@@ -198,7 +201,8 @@ function importUserData(data) {
                     points: Number(row[3]) || 0,
                     totalAttendance: Number(row[4]) || 0,
                     isAdmin: String(row[5]).toLowerCase() === 'yes',
-                    createdAt: String(row[6] || '')
+                    createdAt: String(row[6] || ''),
+                    birthdate: String(row[7] || '')
                 });
             }
         });
@@ -419,6 +423,80 @@ function createResponse(success, message, data) {
     return ContentService.createTextOutput(JSON.stringify(res)).setMimeType(ContentService.MimeType.JSON);
 }
 
+function fixAttendanceHyperlinks(data) {
+    try {
+        if (data.password !== ADMIN_PASSWORD) return createResponse(false, 'Invalid password');
+
+        const ss = SpreadsheetApp.getActiveSpreadsheet();
+        const absenceSheet = ss.getSheetByName(SHEET_NAMES.ABSENCE);
+        const usersSheet = ss.getSheetByName(SHEET_NAMES.USERS);
+
+        if (!absenceSheet) return createResponse(false, 'AbsenceData sheet not found');
+        if (!usersSheet) return createResponse(false, 'UserData sheet not found');
+
+        const absenceLastRow = absenceSheet.getLastRow();
+        if (absenceLastRow < 2) return createResponse(true, 'Tidak ada data absensi untuk diperbaiki');
+
+        const usersLastRow = usersSheet.getLastRow();
+        if (usersLastRow < 2) return createResponse(false, 'UserData belum memiliki data');
+
+        const userRows = usersSheet.getRange(2, 1, usersLastRow - 1, 2).getValues(); // uid, username
+        const uidToRow = {};
+        const usernameToRow = {};
+
+        userRows.forEach(function (row, idx) {
+            const rowNumber = idx + 2;
+            const uid = String(row[0] || '').trim();
+            const username = String(row[1] || '').trim();
+
+            if (uid && !uidToRow[uid]) uidToRow[uid] = rowNumber;
+            if (username && !usernameToRow[username]) usernameToRow[username] = rowNumber;
+        });
+
+        const absenceRows = absenceSheet.getRange(2, 1, absenceLastRow - 1, 2).getValues(); // uid, username
+        const baseUrl = ss.getUrl();
+        const usersGid = usersSheet.getSheetId();
+
+        let fixedCount = 0;
+
+        absenceRows.forEach(function (row, idx) {
+            const absenceRow = idx + 2;
+            const uid = String(row[0] || '').trim();
+            const username = String(row[1] || '').trim();
+            const userRow = (uid && uidToRow[uid]) || (username && usernameToRow[username]);
+
+            if (!userRow) return;
+
+            const targetUrl = baseUrl + '#gid=' + usersGid + '&range=A' + userRow;
+            let touched = false;
+
+            if (uid) {
+                const uidRich = SpreadsheetApp.newRichTextValue()
+                    .setText(uid)
+                    .setLinkUrl(targetUrl)
+                    .build();
+                absenceSheet.getRange(absenceRow, 1).setRichTextValue(uidRich);
+                touched = true;
+            }
+
+            if (username) {
+                const usernameRich = SpreadsheetApp.newRichTextValue()
+                    .setText(username)
+                    .setLinkUrl(targetUrl)
+                    .build();
+                absenceSheet.getRange(absenceRow, 2).setRichTextValue(usernameRich);
+                touched = true;
+            }
+
+            if (touched) fixedCount++;
+        });
+
+        return createResponse(true, 'Hyperlink diperbaiki: ' + fixedCount + ' baris');
+    } catch (e) {
+        return createResponse(false, 'Fix error: ' + e.toString());
+    }
+}
+
 function applyHeaderStyle_(range) {
     range
         .setBackground(THEME.primary)
@@ -449,6 +527,10 @@ function applyUserSheetStyle_(sheet, totalRows, totalCols) {
     sheet.setColumnWidths(4, 2, 130);
     sheet.setColumnWidths(6, 1, 100);
     sheet.setColumnWidths(7, 1, 180);
+    if (totalCols >= 8) {
+        sheet.setColumnWidths(8, 1, 140);
+        sheet.getRange(2, 8, Math.max(totalRows - 1, 1), 1).setNumberFormat('yyyy-mm-dd');
+    }
     sheet.getRange(2, 6, Math.max(totalRows - 1, 1), 1).setHorizontalAlignment('center');
     sheet.getRange(1, 1, totalRows, totalCols).setVerticalAlignment('middle');
 

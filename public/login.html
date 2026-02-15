@@ -6,10 +6,26 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description"
         content="VDR Teens adalah komunitas remaja Buddhis untuk belajar Dhamma, puja bakti, dan bertumbuh bersama melalui kegiatan positif dan inspiratif ">
-    <meta name="author" content="">
+    <meta name="author" content="VDR Teens">
     <link rel="icon" type="image/png" href="images/web-logo.png">
 
     <title>Login / Ganti Password - VDR Teens</title>
+    <meta name="keywords" content="Login VDR Teens, akun remaja Buddhis, akses dashboard VDR Teens">
+    <meta name="robots" content="noindex, nofollow, noarchive">
+    <meta name="theme-color" content="#f65129">
+    <link rel="canonical" href="https://teens-vdr.web.app/login.html">
+
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="VDR Teens">
+    <meta property="og:title" content="Login - VDR Teens">
+    <meta property="og:description" content="Halaman login resmi VDR Teens.">
+    <meta property="og:url" content="https://teens-vdr.web.app/login.html">
+    <meta property="og:image" content="https://teens-vdr.web.app/images/web-logo.png">
+
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="Login - VDR Teens">
+    <meta name="twitter:description" content="Akses akun VDR Teens Anda.">
+    <meta name="twitter:image" content="https://teens-vdr.web.app/images/web-logo.png">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -18,6 +34,11 @@
     <link href="css/bootstrap.min.css" rel="stylesheet">
     <link href="css/bootstrap-icons.css" rel="stylesheet">
     <link href="css/tooplate-gotto-job.css" rel="stylesheet">
+    <style>
+        #loginSkeleton .card-skeleton {
+            background-color: var(--bs-body-color);
+        }
+    </style>
 
 </head>
 
@@ -35,8 +56,27 @@
             <div class="container position-relative">
                 <div class="row justify-content-center">
                     <div class="col-lg-4 col-12">
+                        <!-- Initial Skeleton (shown by default before Firebase checks complete) -->
+                        <div class="custom-form hero-form p-4 p-lg-5 dashboard-card" id="loginSkeleton" aria-hidden="true">
+                            <div class="card-skeleton"></div>
+                            <div class="card-content visible">
+                                <div class="placeholder-glow">
+                                    <div class="placeholder rounded-circle mx-auto d-block mb-3"
+                                        style="width:72px;height:72px;"></div>
+                                    <span class="placeholder col-6 d-block mx-auto mb-4" style="height:28px;"></span>
+                                    <span class="placeholder col-12 d-block mb-3" style="height:44px;"></span>
+                                    <span class="placeholder col-12 d-block mb-3" style="height:44px;"></span>
+                                    <div class="d-flex justify-content-between mb-4">
+                                        <span class="placeholder col-4"></span>
+                                        <span class="placeholder col-3"></span>
+                                    </div>
+                                    <span class="placeholder col-12 d-block" style="height:44px;"></span>
+                                </div>
+                            </div>
+                        </div>
+
                         <!-- Login Form -->
-                        <form class="custom-form hero-form p-4 p-lg-5" id="loginForm" role="form">
+                        <form class="custom-form hero-form p-4 p-lg-5 d-none" id="loginForm" role="form">
                             <div class="text-center mb-3">
                                 <img src="images/logo.png" class="img-fluid mb-2 logo-sm" alt="Logo" loading="lazy">
                                 <h4 class="mb-3 text-white">Login Teens</h4>

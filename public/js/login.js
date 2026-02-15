@@ -39,37 +39,6 @@ async function getSystemControlsForLogin() {
     }
 }
 
-// Check if user is already logged in
-// Check if user is already logged in
-onAuthStateChanged(auth, async (user) => {
-    if (user) {
-        try {
-            // Check firstLogin status before redirecting
-            const userDocRef = doc(db, 'users', user.uid);
-            const userDocSnap = await getDoc(userDocRef);
-
-            if (userDocSnap.exists() && userDocSnap.data().firstLogin === true) {
-                // Stay on login page, switch to change password form
-                console.log("First login detected (Auto-Auth). Switching to password change.");
-                const loginForm = document.getElementById('loginForm');
-                const changePasswordForm = document.getElementById('changePasswordForm');
-
-                if (loginForm && changePasswordForm) {
-                    loginForm.classList.add('d-none');
-                    changePasswordForm.classList.remove('d-none');
-                }
-            } else {
-                // Normal user, redirect
-                window.location.href = 'dashboard.html';
-            }
-        } catch (error) {
-            console.error("Auth redirect check error:", error);
-            // If error (e.g. network), safe to stay or redirect? 
-            // Better to stay and let user try again or see error.
-        }
-    }
-});
-
 /**
  * Login function (Previously in auth.js)
  */
@@ -151,6 +120,40 @@ async function changePasswordFn(newPassword) {
 }
 
 document.addEventListener('DOMContentLoaded', function () {
+    let initialAuthResolved = false;
+
+    function showToast(title, message, type = 'info') {
+        const container = document.getElementById('toastContainer');
+        if (!container) return;
+
+        const typeMap = {
+            success: 'text-bg-success',
+            error: 'text-bg-danger',
+            warning: 'text-bg-warning',
+            info: 'text-bg-dark'
+        };
+        const toastClass = typeMap[type] || typeMap.info;
+
+        const toastEl = document.createElement('div');
+        toastEl.className = `toast align-items-center border-0 ${toastClass}`;
+        toastEl.setAttribute('role', 'alert');
+        toastEl.setAttribute('aria-live', 'assertive');
+        toastEl.setAttribute('aria-atomic', 'true');
+        toastEl.innerHTML = `
+            <div class="d-flex">
+                <div class="toast-body">
+                    <strong>${title}</strong><br>${message}
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        `;
+
+        container.appendChild(toastEl);
+        const toast = new bootstrap.Toast(toastEl, { delay: 2200 });
+        toast.show();
+        toastEl.addEventListener('hidden.bs.toast', () => toastEl.remove());
+    }
+
     // --- Login Form Elements ---
     const loginForm = document.getElementById('loginForm');
     const usernameInput = document.getElementById('usernameInput');
@@ -158,6 +161,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const loginError = document.getElementById('loginError');
     const loginSpinner = document.getElementById('loginSpinner');
     const loginSubmitBtn = loginForm.querySelector('button[type="submit"]');
+    const loginSkeleton = document.getElementById('loginSkeleton');
 
     // --- Change Password Form Elements ---
     const changePasswordForm = document.getElementById('changePasswordForm');
@@ -166,6 +170,65 @@ document.addEventListener('DOMContentLoaded', function () {
     const changePasswordError = document.getElementById('changePasswordError');
     const changePasswordSpinner = document.getElementById('changePasswordSpinner');
     const changePasswordSubmitBtn = changePasswordForm.querySelector('button[type="submit"]');
+
+    function setInitialLoadingState(isLoading) {
+        if (loginSkeleton) {
+            loginSkeleton.classList.toggle('d-none', !isLoading);
+            loginSkeleton.setAttribute('aria-hidden', String(!isLoading));
+        }
+    }
+
+    function showLoginForm() {
+        loginForm.classList.remove('d-none');
+        changePasswordForm.classList.add('d-none');
+    }
+
+    function showChangePasswordForm() {
+        loginForm.classList.add('d-none');
+        changePasswordForm.classList.remove('d-none');
+    }
+
+    async function handleInitialAuthState(user) {
+        if (!user) {
+            showLoginForm();
+            setInitialLoadingState(false);
+            return;
+        }
+
+        try {
+            const userDocRef = doc(db, 'users', user.uid);
+            const userDocSnap = await getDoc(userDocRef);
+
+            if (userDocSnap.exists() && userDocSnap.data().firstLogin === true) {
+                showChangePasswordForm();
+                setInitialLoadingState(false);
+                return;
+            }
+
+            window.location.href = 'dashboard.html';
+        } catch (error) {
+            console.error('Auth redirect check error:', error);
+            showLoginForm();
+            showLoginError('Gagal memuat data akun. Silakan coba login ulang.');
+            setInitialLoadingState(false);
+        }
+    }
+
+    // Default: keep skeleton visible until Firebase auth check is done.
+    setInitialLoadingState(true);
+
+    onAuthStateChanged(auth, async (user) => {
+        if (!initialAuthResolved) {
+            initialAuthResolved = true;
+            await handleInitialAuthState(user);
+            return;
+        }
+
+        // Subsequent state changes (after user actions in this page)
+        if (user && !changePasswordForm.classList.contains('d-none')) {
+            return;
+        }
+    });
 
     // --- Login Form Handler ---
     loginForm.addEventListener('submit', async function (e) {
@@ -263,8 +326,10 @@ document.addEventListener('DOMContentLoaded', function () {
             await changePasswordFn(newPassword);
 
             // Success! Show message and redirect
-            alert('✅ Password berhasil diubah! Anda akan diarahkan ke dashboard.');
-            window.location.href = 'dashboard.html';
+            showToast('Berhasil', 'Password berhasil diubah! Anda akan diarahkan ke dashboard.', 'success');
+            setTimeout(() => {
+                window.location.href = 'dashboard.html';
+            }, 1000);
 
         } catch (error) {
             // Show error message
@@ -302,11 +367,8 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function switchToPasswordChange() {
-        // Hide login form
-        loginForm.classList.add('d-none');
-
-        // Show password change form
-        changePasswordForm.classList.remove('d-none');
+        showChangePasswordForm();
+        setInitialLoadingState(false);
 
         // Clear login form
         usernameInput.value = '';
@@ -386,3 +448,4 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 });
+

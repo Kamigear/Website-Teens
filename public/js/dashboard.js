@@ -88,6 +88,8 @@ let attendanceConfig = null; // Stores time rules
 let systemControls = getDefaultSystemControls_();
 let dashboardBlockedBySystem = false;
 let isSubmittingCode = false;
+let createUserNestedBackdrop = null;
+let nestedCreateUserHooksBound = false;
 
 function getDefaultSystemControls_() {
     return {
@@ -243,7 +245,7 @@ function applyUserAccessState_() {
             noticeEl.classList.remove('text-success', 'text-danger');
             noticeEl.classList.add('text-muted');
         } else {
-            noticeEl.innerHTML = '<i class="bi-check-circle me-1"></i>Absensi aktif sesuai pengaturan admin.';
+            noticeEl.innerHTML = '<i class="bi-check-circle me-1"></i>Absensi aktif';
             noticeEl.classList.remove('text-danger', 'text-muted');
             noticeEl.classList.add('text-success');
         }
@@ -2023,6 +2025,31 @@ window.deleteAccount = async function (id) {
 window.addNewAccount = function () {
     const modalEl = document.getElementById('createUserModal');
     if (!modalEl) return;
+    const manageModalEl = document.getElementById('manageAccountsModal');
+
+    if (!nestedCreateUserHooksBound) {
+        nestedCreateUserHooksBound = true;
+
+        modalEl.addEventListener('show.bs.modal', () => {
+            const openedFromManage = manageModalEl && manageModalEl.classList.contains('show');
+            if (!openedFromManage) return;
+
+            modalEl.style.zIndex = '1080';
+            const backdrop = document.createElement('div');
+            backdrop.className = 'modal-backdrop fade show';
+            backdrop.style.zIndex = '1070';
+            document.body.appendChild(backdrop);
+            createUserNestedBackdrop = backdrop;
+        });
+
+        modalEl.addEventListener('hidden.bs.modal', () => {
+            modalEl.style.zIndex = '';
+            if (createUserNestedBackdrop) {
+                createUserNestedBackdrop.remove();
+                createUserNestedBackdrop = null;
+            }
+        });
+    }
 
     const usernameInput = document.getElementById('createUsernameInput');
     const passwordInput = document.getElementById('createTempPasswordInput');
@@ -2915,6 +2942,32 @@ let exportClickCount = 0;
 let exportType = null; // 'users' or 'server'
 const EXPORT_SUBMIT_DEFAULT_HTML = '<i class="bi-cloud-upload me-2"></i>Ekspor Sekarang';
 const IMPORT_SUBMIT_DEFAULT_HTML = '<i class="bi-cloud-download me-2"></i>Impor Sekarang';
+let modalResetHooksBound = false;
+
+function bindExportImportModalResetHooks_() {
+    if (modalResetHooksBound) return;
+    modalResetHooksBound = true;
+
+    const exportModalEl = document.getElementById('exportConfirmModal');
+    if (exportModalEl) {
+        exportModalEl.addEventListener('hidden.bs.modal', () => {
+            window.resetExportModal();
+        });
+        exportModalEl.addEventListener('show.bs.modal', () => {
+            window.resetExportModal();
+        });
+    }
+
+    const importModalEl = document.getElementById('importConfirmModal');
+    if (importModalEl) {
+        importModalEl.addEventListener('hidden.bs.modal', () => {
+            window.resetImportModal();
+        });
+        importModalEl.addEventListener('show.bs.modal', () => {
+            window.resetImportModal();
+        });
+    }
+}
 
 /**
  * Export User Data to Google Sheets
@@ -2926,6 +2979,8 @@ window.exportUserDataToSheets = function () {
         return;
     }
 
+    bindExportImportModalResetHooks_();
+    resetExportModal();
     exportType = 'users';
     const modal = new bootstrap.Modal(document.getElementById('exportConfirmModal'));
     document.getElementById('exportModalMessage').textContent =
@@ -2943,11 +2998,49 @@ window.exportServerDataToSheets = function () {
         return;
     }
 
+    bindExportImportModalResetHooks_();
+    resetExportModal();
     exportType = 'server';
     const modal = new bootstrap.Modal(document.getElementById('exportConfirmModal'));
     document.getElementById('exportModalMessage').textContent =
         'Konfigurasi server akan di-export ke ServerData sheet di Google Sheets.';
     modal.show();
+}
+
+window.fixAttendanceHyperlinksInSheets = async function () {
+    if (!isAdmin) {
+        showToast('Akses Ditolak', 'Hanya admin yang bisa menjalankan fitur ini!', 'error');
+        return;
+    }
+
+    if (GOOGLE_SCRIPT_URL === 'YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE') {
+        showToast('Konfigurasi Error', 'Google Apps Script URL belum dikonfigurasi.', 'error');
+        return;
+    }
+
+    const password = window.prompt('Masukkan password admin untuk menjalankan fix hyperlink absensi:');
+    if (!password) return;
+
+    try {
+        showToast('Proses', 'Menjalankan perbaikan hyperlink absensi...', 'info');
+
+        await fetch(GOOGLE_SCRIPT_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: {
+                'Content-Type': 'text/plain;charset=utf-8',
+            },
+            body: JSON.stringify({
+                action: 'fixAttendanceHyperlinks',
+                password: password
+            })
+        });
+
+        showToast('Berhasil', 'Perintah fix hyperlink sudah dikirim. Cek sheet AbsenceData.', 'success');
+    } catch (error) {
+        console.error('Fix hyperlink error:', error);
+        showToast('Error', 'Gagal menjalankan fix hyperlink: ' + error.message, 'error');
+    }
 }
 
 /**
@@ -3120,6 +3213,18 @@ async function exportUsersToSheets(password) {
         const usersRef = collection(db, 'users');
         const snapshot = await getDocs(usersRef);
 
+        const toIsoStringSafe = (value) => {
+            if (!value) return '';
+            if (typeof value?.toDate === 'function') {
+                return value.toDate().toISOString();
+            }
+            if (value instanceof Date) {
+                return value.toISOString();
+            }
+            const parsed = new Date(value);
+            return Number.isNaN(parsed.getTime()) ? String(value) : parsed.toISOString();
+        };
+
         const users = snapshot.docs.map(doc => {
             const data = doc.data();
             return {
@@ -3131,7 +3236,7 @@ async function exportUsersToSheets(password) {
                 isAdmin: data.isAdmin || false,
                 birthdate: data.birthdate || '',
                 age: data.age ?? null,
-                createdAt: data.createdAt ? data.createdAt.toDate().toISOString() : ''
+                createdAt: toIsoStringSafe(data.createdAt)
             };
         });
 
@@ -3277,6 +3382,8 @@ let currentImportType = null;
  * Import User Data from Google Sheets
  */
 window.importUserDataFromSheets = function () {
+    bindExportImportModalResetHooks_();
+    resetImportModal();
     currentImportType = 'users';
     const modal = new bootstrap.Modal(document.getElementById('importConfirmModal'));
     document.getElementById('importModalMessage').textContent = 'Data user dari Google Sheets akan ditambahkan/diupdate ke Firestore.';
@@ -3287,6 +3394,8 @@ window.importUserDataFromSheets = function () {
  * Import Server Data from Google Sheets
  */
 window.importServerDataFromSheets = function () {
+    bindExportImportModalResetHooks_();
+    resetImportModal();
     currentImportType = 'server';
     const modal = new bootstrap.Modal(document.getElementById('importConfirmModal'));
     document.getElementById('importModalMessage').textContent = 'Data server dari Google Sheets akan ditambahkan/diupdate ke Firestore.';

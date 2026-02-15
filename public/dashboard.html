@@ -6,10 +6,26 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description"
         content="VDR Teens adalah komunitas remaja Buddhis untuk belajar Dhamma, puja bakti, dan bertumbuh bersama melalui kegiatan positif dan inspiratif ">
-    <meta name="author" content="">
+    <meta name="author" content="VDR Teens">
     <link rel="icon" type="image/png" href="images/web-logo.png">
 
     <title>Dasbor - VDR Teens</title>
+    <meta name="keywords" content="Dashboard VDR Teens, poin kebajikan, akun remaja Buddhis">
+    <meta name="robots" content="noindex, nofollow, noarchive">
+    <meta name="theme-color" content="#f65129">
+    <link rel="canonical" href="https://teens-vdr.web.app/dashboard.html">
+
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="VDR Teens">
+    <meta property="og:title" content="Dasbor - VDR Teens">
+    <meta property="og:description" content="Halaman dasbor pengguna VDR Teens.">
+    <meta property="og:url" content="https://teens-vdr.web.app/dashboard.html">
+    <meta property="og:image" content="https://teens-vdr.web.app/images/web-logo.png">
+
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="Dasbor - VDR Teens">
+    <meta name="twitter:description" content="Akses dashboard akun VDR Teens.">
+    <meta name="twitter:image" content="https://teens-vdr.web.app/images/web-logo.png">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -433,26 +449,15 @@
                                         class="icon-box me-3 d-flex align-items-center justify-content-center rounded-circle">
                                         <i class="bi-sliders"></i>
                                     </div>
-                                    <h5 class="mb-0">Aturan Poin</h5>
+                                    <h5 class="mb-0">Aturan Poin & Sistem</h5>
                                 </div>
-                                <p class="text-muted small">Atur jadwal dan poin kehadiran.</p>
-                                <button class="btn btn-outline-dark btn-sm w-100 mt-auto" data-bs-toggle="modal"
-                                    data-bs-target="#attendanceConfigModal">Konfigurasi</button>
-                            </div>
-                        </div>
-
-                        <div class="col-lg-4 mb-4">
-                            <div class="card dashboard-card admin-action-card h-100">
-                                <div class="d-flex align-items-center mb-3">
-                                    <div
-                                        class="icon-box me-3 d-flex align-items-center justify-content-center rounded-circle">
-                                        <i class="bi-toggles2"></i>
-                                    </div>
-                                    <h5 class="mb-0">Pengaturan Sistem</h5>
+                                <p class="text-muted small mb-3">Atur jadwal dan poin kehadiran, sekaligus kontrol login, dashboard, dan absensi.</p>
+                                <div class="d-flex gap-2 mt-auto">
+                                    <button class="btn btn-outline-dark btn-sm flex-grow-1" data-bs-toggle="modal"
+                                        data-bs-target="#attendanceConfigModal">Aturan Poin</button>
+                                    <button class="btn btn-outline-dark btn-sm flex-grow-1" data-bs-toggle="modal"
+                                        data-bs-target="#systemControlsModal">Pengaturan Sistem</button>
                                 </div>
-                                <p class="text-muted small">Kontrol login, akses dashboard, dan jadwal absensi.</p>
-                                <button class="btn btn-outline-dark btn-sm w-100 mt-auto" data-bs-toggle="modal"
-                                    data-bs-target="#systemControlsModal">Buka Pengaturan</button>
                             </div>
                         </div>
 
@@ -1025,6 +1030,9 @@
                     </div>
                 </div>
                 <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-dark me-auto" onclick="fixAttendanceHyperlinksInSheets()">
+                        <i class="bi-wrench-adjustable-circle me-2"></i>Fix Hyperlink Absensi
+                    </button>
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
                     <button type="button" class="btn custom-btn" onclick="saveSystemControls()">Simpan Pengaturan</button>
                 </div>
