@@ -416,19 +416,21 @@
                             <div class="card dashboard-card admin-action-card h-100 bg-primary-var text-white-var">
                                 <div class="d-flex align-items-center mb-3">
                                     <i class="bi-clock-history fs-1 me-3 text-secondary-var"></i>
-                                    <h5 class="mb-0 text-white">Token Mingguan</h5>
+                                    <h5 class="mb-0 text-white">Absensi</h5>
                                 </div>
-                                <p class="small text-secondary-var">Tampilkan kode token mingguan
-                                    layar penuh.</p>
+                                <p class="small text-secondary-var">Pilih metode absensi: tampilkan token atau absensi manual untuk user.</p>
 
                                 <div class="d-none"> <!-- Hidden elements for state management -->
                                     <span id="weeklyCodeDisplay">-----</span>
                                     <span id="weeklyCodeTimer">30s</span>
                                 </div>
 
-                                <button type="button" class="btn btn-light w-100 mt-auto text-primary-var"
-                                    onclick="generateAndShowToken()">Munculkan
-                                    Token</button>
+                                <div class="d-grid gap-2 mt-auto">
+                                    <button type="button" class="btn btn-light w-100 text-primary-var"
+                                        onclick="generateAndShowToken()">Munculkan Token Absensi</button>
+                                    <button type="button" class="btn btn-outline-light w-100"
+                                        onclick="openManualAttendanceModal()">Absensi Manual</button>
+                                </div>
                             </div>
                         </div>
 
@@ -935,27 +937,15 @@
                     </div>
                     <form id="attendanceConfigForm">
                         <div class="mb-3 p-3 rounded border bg-white-var config-block">
-                            <h6 class="mb-3">Slot Waktu 1 (Tepat Waktu)</h6>
-                            <div class="row g-2 align-items-center">
-                                <div class="col-auto">Sampai jam:</div>
-                                <div class="col"><input type="time" class="form-control" id="slot1Time" required
-                                        value="09:05"></div>
-                                <div class="col-auto">Poin:</div>
-                                <div class="col"><input type="number" class="form-control" id="slot1Points" required
-                                        value="3"></div>
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h6 class="mb-0">Slot Waktu Absensi</h6>
+                                <button type="button" class="btn btn-sm btn-outline-dark" id="addAttendanceSlotBtn"
+                                    onclick="addAttendanceSlotRow()">
+                                    <i class="bi-plus-lg me-1"></i>Tambah Slot
+                                </button>
                             </div>
-                        </div>
-
-                        <div class="mb-3 p-3 rounded border bg-white-var config-block"> <!-- Updated -->
-                            <h6 class="mb-3">Slot Waktu 2 (Terlambat)</h6>
-                            <div class="row g-2 align-items-center">
-                                <div class="col-auto">Sampai jam:</div>
-                                <div class="col"><input type="time" class="form-control" id="slot2Time" required
-                                        value="09:20"></div>
-                                <div class="col-auto">Poin:</div>
-                                <div class="col"><input type="number" class="form-control" id="slot2Points" required
-                                        value="2"></div>
-                            </div>
+                            <div id="attendanceSlotsContainer" class="d-flex flex-column gap-2"></div>
+                            <div class="form-text mt-2">Tambahkan/hapus slot sesuka kamu dengan tombol + dan -.</div>
                         </div>
 
                         <div class="mb-3 p-3 rounded border bg-white-var config-block">
@@ -1203,6 +1193,42 @@
                         onclick="resetExportModal()">Batal</button>
                     <button type="button" class="btn custom-btn" id="submitExportBtn" disabled onclick="submitExport()">
                         <i class="bi-cloud-upload me-2"></i>Ekspor Sekarang
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Manual Attendance Modal -->
+    <div class="modal fade" id="manualAttendanceModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+        <div class="modal-dialog modal-dialog-centered admin-modal-dialog">
+            <div class="modal-content admin-modal-content">
+                <div class="modal-header admin-modal-header">
+                    <h5 class="modal-title"><i class="bi-person-check me-2"></i>Absensi Manual</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body admin-modal-body">
+                    <p class="text-muted small mb-3">Admin dapat mengabsenkan user tanpa scan dari HP user.</p>
+                    <form id="manualAttendanceForm" onsubmit="return false;">
+                        <div class="mb-3">
+                            <label class="form-label">Cari User</label>
+                            <input type="text" class="form-control" id="manualAttendanceUserSearch"
+                                placeholder="Ketik nama atau email user..." autocomplete="off">
+                            <input type="hidden" id="manualAttendanceUserId">
+                            <div id="manualAttendanceSearchResults" class="list-group mt-2 overflow-auto manual-attendance-results"></div>
+                            <div class="form-text" id="manualAttendanceSelectedLabel">Belum ada user dipilih.</div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Minggu Absensi</label>
+                            <input type="text" class="form-control" id="manualAttendanceWeek" readonly>
+                        </div>
+                    </form>
+                    <div class="small text-muted" id="manualAttendanceHint">Poin mengikuti aturan waktu absensi saat ini.</div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="button" class="btn custom-btn" id="submitManualAttendanceBtn" onclick="submitManualAttendance()">
+                        <i class="bi-check-circle me-2"></i>Submit Absensi
                     </button>
                 </div>
             </div>

@@ -3894,8 +3894,9 @@ nav[aria-label="breadcrumb"] {
 }
 
 /* Login Page Optimization */
-.min-vh-100 {
-  min-height: 100vh !important;
+
+.manual-attendance-results {
+  max-height: 220px;
 }
 
 .logo-sm {

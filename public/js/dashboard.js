@@ -49,6 +49,8 @@ let chartJsLoadPromise = null;
 let html5QrLoadPromise = null;
 let deferredListenersStarted = false;
 let weeklyTokenAutoclaimHandled = false;
+const PUBLIC_DASHBOARD_ORIGIN = 'https://teens-vdr.web.app';
+let manualAttendanceSearchBound = false;
 
 // --- Loading State ---
 let isInitialLoad = true;
@@ -288,12 +290,19 @@ function startDeferredListeners() {
             updateAttendanceConfigUI();
         } else {
             attendanceConfig = {
+                attendanceSlots: [
+                    { startTime: "00:00", endTime: "09:05", points: 3 },
+                    { startTime: "09:05", endTime: "09:20", points: 2 }
+                ],
+                slot1StartTime: "00:00",
+                slot1EndTime: "09:05",
                 slot1Time: "09:05",
                 slot1Points: 3,
                 slot2Time: "09:20",
                 slot2Points: 2,
                 defaultPoints: 0
             };
+            updateAttendanceConfigUI();
         }
     });
 
@@ -1194,20 +1203,7 @@ window.submitCode = async function () {
             }
 
             // B. Calculate Points (Time-based)
-            let earnedPoints = tokenData.points || 10;
-            if (attendanceConfig) {
-                const currentTimeStr = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
-                const slot1End = attendanceConfig.slot1Time || "09:05";
-                const slot2End = attendanceConfig.slot2Time || "09:20";
-
-                if (currentTimeStr <= slot1End) {
-                    earnedPoints = attendanceConfig.slot1Points ?? 3;
-                } else if (currentTimeStr <= slot2End) {
-                    earnedPoints = attendanceConfig.slot2Points ?? 2;
-                } else {
-                    earnedPoints = attendanceConfig.defaultPoints ?? 0;
-                }
-            }
+            const earnedPoints = calculateAttendancePoints_(now);
 
             // C. Execute Transaction/Batch
             const batch = writeBatch(db);
@@ -2317,11 +2313,109 @@ window.submitNewAccount = async function () {
 
 
 // --- Admin Features: Attendance Config ---
+function getLegacyAttendanceSlotsFromConfig_(cfg) {
+    const slot1Start = cfg?.slot1StartTime || "00:00";
+    const slot1End = cfg?.slot1EndTime || cfg?.slot1Time || "09:05";
+    const slot1Points = Number.isFinite(Number(cfg?.slot1Points)) ? Number(cfg.slot1Points) : 3;
+    const slot2End = cfg?.slot2Time || "09:20";
+    const slot2Points = Number.isFinite(Number(cfg?.slot2Points)) ? Number(cfg.slot2Points) : 2;
+
+    return [
+        { startTime: slot1Start, endTime: slot1End, points: slot1Points },
+        { startTime: slot1End, endTime: slot2End, points: slot2Points }
+    ];
+}
+
+function normalizeAttendanceSlots_(cfg) {
+    const rawSlots = Array.isArray(cfg?.attendanceSlots) && cfg.attendanceSlots.length
+        ? cfg.attendanceSlots
+        : getLegacyAttendanceSlotsFromConfig_(cfg || {});
+
+    return rawSlots
+        .map(slot => ({
+            startTime: String(slot?.startTime || '').trim(),
+            endTime: String(slot?.endTime || '').trim(),
+            points: Number(slot?.points || 0)
+        }))
+        .filter(slot => slot.startTime && slot.endTime && !Number.isNaN(slot.points));
+}
+
+function createAttendanceSlotRowEl_(slot, index) {
+    const row = document.createElement('div');
+    row.className = 'p-2 rounded border bg-light';
+    row.dataset.role = 'attendance-slot-row';
+    row.innerHTML = `
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <strong>Slot ${index + 1}</strong>
+            <button type="button" class="btn btn-sm btn-outline-danger remove-slot-btn">
+                <i class="bi-dash-lg"></i>
+            </button>
+        </div>
+        <div class="row g-2 align-items-center">
+            <div class="col-md-4">
+                <label class="small text-muted">Dari</label>
+                <input type="time" class="form-control slot-start" value="${slot.startTime || '00:00'}" required>
+            </div>
+            <div class="col-md-4">
+                <label class="small text-muted">Sampai</label>
+                <input type="time" class="form-control slot-end" value="${slot.endTime || '09:05'}" required>
+            </div>
+            <div class="col-md-4">
+                <label class="small text-muted">Poin</label>
+                <input type="number" class="form-control slot-points" value="${Number(slot.points || 0)}" required>
+            </div>
+        </div>
+    `;
+    row.querySelector('.remove-slot-btn')?.addEventListener('click', () => {
+        row.remove();
+        refreshAttendanceSlotLabels_();
+    });
+    return row;
+}
+
+function refreshAttendanceSlotLabels_() {
+    const rows = Array.from(document.querySelectorAll('#attendanceSlotsContainer [data-role="attendance-slot-row"]'));
+    rows.forEach((row, idx) => {
+        const titleEl = row.querySelector('strong');
+        if (titleEl) titleEl.textContent = `Slot ${idx + 1}`;
+    });
+}
+
+function renderAttendanceSlotsEditor_(slots) {
+    const container = document.getElementById('attendanceSlotsContainer');
+    if (!container) return;
+
+    container.innerHTML = '';
+    const source = Array.isArray(slots) ? slots : [];
+    source.forEach((slot, idx) => {
+        container.appendChild(createAttendanceSlotRowEl_(slot, idx));
+    });
+    refreshAttendanceSlotLabels_();
+}
+
+window.addAttendanceSlotRow = function () {
+    const container = document.getElementById('attendanceSlotsContainer');
+    if (!container) return;
+
+    const rows = Array.from(container.querySelectorAll('[data-role="attendance-slot-row"]'));
+    const lastRow = rows[rows.length - 1];
+    const newStart = lastRow?.querySelector('.slot-end')?.value || '00:00';
+
+    container.appendChild(createAttendanceSlotRowEl_({
+        startTime: newStart,
+        endTime: newStart,
+        points: 0
+    }, rows.length));
+    refreshAttendanceSlotLabels_();
+}
+
 window.saveAttendanceConfig = async function () {
-    const slot1Time = document.getElementById('slot1Time').value;
-    const slot1Points = parseInt(document.getElementById('slot1Points').value);
-    const slot2Time = document.getElementById('slot2Time').value;
-    const slot2Points = parseInt(document.getElementById('slot2Points').value);
+    const slotRows = Array.from(document.querySelectorAll('#attendanceSlotsContainer [data-role="attendance-slot-row"]'));
+    const attendanceSlots = slotRows.map((row) => ({
+        startTime: row.querySelector('.slot-start')?.value,
+        endTime: row.querySelector('.slot-end')?.value,
+        points: parseInt(row.querySelector('.slot-points')?.value)
+    }));
     const defaultPoints = parseInt(document.getElementById('defaultPoints').value);
 
     // New Settings
@@ -2329,14 +2423,36 @@ window.saveAttendanceConfig = async function () {
     const tokenValidity = parseInt(document.getElementById('tokenValidity').value);
 
     // Validate
-    if (!slot1Time || !slot2Time || isNaN(slot1Points) || isNaN(slot2Points) || isNaN(defaultPoints) || isNaN(tokenInterval) || isNaN(tokenValidity)) {
+    if (attendanceSlots.length === 0 || isNaN(defaultPoints) || isNaN(tokenInterval) || isNaN(tokenValidity)) {
         showToast('Input Error', 'Mohon lengkapi semua field dengan benar.', 'error');
         return;
     }
 
+    for (let i = 0; i < attendanceSlots.length; i++) {
+        const slot = attendanceSlots[i];
+        if (!slot.startTime || !slot.endTime || Number.isNaN(slot.points)) {
+            showToast('Input Error', `Slot ${i + 1} belum lengkap.`, 'error');
+            return;
+        }
+        if (slot.startTime > slot.endTime) {
+            showToast('Input Error', `Slot ${i + 1} tidak valid: jam mulai harus sebelum/sama dengan jam selesai.`, 'error');
+            return;
+        }
+    }
+
+    const slot1StartTime = attendanceSlots[0].startTime;
+    const slot1EndTime = attendanceSlots[0].endTime;
+    const slot1Points = attendanceSlots[0].points;
+    const slot2 = attendanceSlots[1] || attendanceSlots[0];
+    const slot2Time = slot2.endTime;
+    const slot2Points = slot2.points;
+
     try {
         await setDoc(doc(db, 'settings', 'attendanceConfig'), {
-            slot1Time,
+            attendanceSlots,
+            slot1StartTime,
+            slot1EndTime,
+            slot1Time: slot1EndTime, // backward compatibility for legacy readers
             slot1Points,
             slot2Time,
             slot2Points,
@@ -2397,18 +2513,12 @@ window.saveSystemControls = async function () {
 
 function updateAttendanceConfigUI() {
     if (!attendanceConfig) return;
-    const s1t = document.getElementById('slot1Time');
-    const s1p = document.getElementById('slot1Points');
-    const s2t = document.getElementById('slot2Time');
-    const s2p = document.getElementById('slot2Points');
     const dp = document.getElementById('defaultPoints');
     const ti = document.getElementById('tokenInterval');
     const tv = document.getElementById('tokenValidity');
 
-    if (s1t) s1t.value = attendanceConfig.slot1Time || "09:05";
-    if (s1p) s1p.value = attendanceConfig.slot1Points ?? 3;
-    if (s2t) s2t.value = attendanceConfig.slot2Time || "09:20";
-    if (s2p) s2p.value = attendanceConfig.slot2Points ?? 2;
+    const slots = normalizeAttendanceSlots_(attendanceConfig);
+    renderAttendanceSlotsEditor_(slots);
     if (dp) dp.value = attendanceConfig.defaultPoints ?? 0;
 
     // Default Fallbacks
@@ -2441,6 +2551,263 @@ function getWeekIdentifier(date = new Date()) {
     } catch (error) {
         console.error("Get week identifier error:", error);
         return "unknown-week";
+    }
+}
+
+function calculateAttendancePoints_(now = new Date()) {
+    let earnedPoints = 10;
+    if (!attendanceConfig) return earnedPoints;
+
+    const currentTimeStr = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
+    const slots = normalizeAttendanceSlots_(attendanceConfig);
+
+    for (const slot of slots) {
+        if (currentTimeStr >= slot.startTime && currentTimeStr <= slot.endTime) {
+            return slot.points;
+        }
+    }
+
+    earnedPoints = attendanceConfig.defaultPoints ?? 0;
+    return earnedPoints;
+}
+
+async function getActiveAttendanceWeek_() {
+    try {
+        const now = new Date();
+        const tokensRef = collection(db, 'weeklyTokens');
+        const snapshot = await getDocs(tokensRef);
+
+        const validTokens = snapshot.docs
+            .map(docSnap => docSnap.data())
+            .filter(token => token?.expiresAt?.toDate && token.expiresAt.toDate() > now);
+
+        if (!validTokens.length) return getWeekIdentifier(now);
+
+        validTokens.sort((a, b) => {
+            const aTime = a.generatedAt?.toMillis ? a.generatedAt.toMillis() : 0;
+            const bTime = b.generatedAt?.toMillis ? b.generatedAt.toMillis() : 0;
+            return bTime - aTime;
+        });
+
+        return validTokens[0].week || getWeekIdentifier(now);
+    } catch (error) {
+        console.error('Get active attendance week error:', error);
+        return getWeekIdentifier(new Date());
+    }
+}
+
+function getManualAttendanceUserMatches_(keyword) {
+    const needle = String(keyword || '').trim().toLowerCase();
+    const list = Array.isArray(accountsData) ? accountsData : [];
+
+    if (!needle) return list.slice(0, 30);
+
+    return list.filter(acc => {
+        const username = String(acc.username || '').toLowerCase();
+        const email = String(acc.email || '').toLowerCase();
+        const uid = String(acc.id || '').toLowerCase();
+        return username.includes(needle) || email.includes(needle) || uid.includes(needle);
+    }).slice(0, 30);
+}
+
+function setManualAttendanceSelectedUser_(userId) {
+    const hiddenInput = document.getElementById('manualAttendanceUserId');
+    const searchInput = document.getElementById('manualAttendanceUserSearch');
+    const selectedLabel = document.getElementById('manualAttendanceSelectedLabel');
+    if (!hiddenInput || !searchInput || !selectedLabel) return;
+
+    const user = accountsData.find(acc => acc.id === userId);
+    if (!user) return;
+
+    const name = user.username || user.email || user.id;
+    const email = user.email ? ` (${user.email})` : '';
+    hiddenInput.value = user.id;
+    searchInput.value = `${name}${email}`;
+    selectedLabel.textContent = `Terpilih: ${name}${email}`;
+}
+
+function renderManualAttendanceUserResults_(keyword) {
+    const resultEl = document.getElementById('manualAttendanceSearchResults');
+    if (!resultEl) return;
+
+    const matches = getManualAttendanceUserMatches_(keyword);
+    resultEl.innerHTML = '';
+
+    if (!matches.length) {
+        const empty = document.createElement('div');
+        empty.className = 'list-group-item text-muted small';
+        empty.textContent = 'Tidak ada user yang cocok.';
+        resultEl.appendChild(empty);
+        return;
+    }
+
+    matches.forEach(user => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'list-group-item list-group-item-action';
+
+        const name = user.username || user.email || user.id;
+        const email = user.email || '-';
+        btn.innerHTML = `<div class="fw-semibold">${name}</div><div class="small text-muted">${email}</div>`;
+        btn.addEventListener('click', () => {
+            setManualAttendanceSelectedUser_(user.id);
+            resultEl.innerHTML = '';
+        });
+        resultEl.appendChild(btn);
+    });
+}
+
+function bindManualAttendanceSearch_() {
+    if (manualAttendanceSearchBound) return;
+    manualAttendanceSearchBound = true;
+
+    const searchInput = document.getElementById('manualAttendanceUserSearch');
+    const hiddenInput = document.getElementById('manualAttendanceUserId');
+    const selectedLabel = document.getElementById('manualAttendanceSelectedLabel');
+    const modalEl = document.getElementById('manualAttendanceModal');
+    const resultEl = document.getElementById('manualAttendanceSearchResults');
+
+    if (!searchInput || !hiddenInput || !selectedLabel || !modalEl || !resultEl) return;
+
+    searchInput.addEventListener('input', () => {
+        hiddenInput.value = '';
+        selectedLabel.textContent = 'Belum ada user dipilih.';
+        renderManualAttendanceUserResults_(searchInput.value);
+    });
+
+    searchInput.addEventListener('focus', () => {
+        renderManualAttendanceUserResults_(searchInput.value);
+    });
+
+    modalEl.addEventListener('hidden.bs.modal', () => {
+        hiddenInput.value = '';
+        searchInput.value = '';
+        selectedLabel.textContent = 'Belum ada user dipilih.';
+        resultEl.innerHTML = '';
+    });
+}
+
+window.openManualAttendanceModal = async function () {
+    if (!isAdmin) {
+        showToast('Akses Ditolak', 'Hanya admin yang bisa absensi manual!', 'error');
+        return;
+    }
+
+    bindManualAttendanceSearch_();
+
+    const userSearchInput = document.getElementById('manualAttendanceUserSearch');
+    const hiddenUserId = document.getElementById('manualAttendanceUserId');
+    const selectedLabel = document.getElementById('manualAttendanceSelectedLabel');
+    const resultEl = document.getElementById('manualAttendanceSearchResults');
+    if (userSearchInput && hiddenUserId && selectedLabel && resultEl) {
+        userSearchInput.value = '';
+        hiddenUserId.value = '';
+        selectedLabel.textContent = 'Belum ada user dipilih.';
+        renderManualAttendanceUserResults_('');
+    }
+
+    const weekInput = document.getElementById('manualAttendanceWeek');
+    if (weekInput) {
+        weekInput.value = await getActiveAttendanceWeek_();
+    }
+
+    const modal = new bootstrap.Modal(document.getElementById('manualAttendanceModal'));
+    modal.show();
+}
+
+window.submitManualAttendance = async function () {
+    const hiddenUserId = document.getElementById('manualAttendanceUserId');
+    const weekInput = document.getElementById('manualAttendanceWeek');
+    const submitBtn = document.getElementById('submitManualAttendanceBtn');
+    if (!hiddenUserId || !weekInput || !submitBtn) return;
+
+    const userId = hiddenUserId.value;
+    if (!userId) {
+        showToast('Input Error', 'Cari lalu pilih user terlebih dahulu.', 'error');
+        return;
+    }
+
+    const attendanceBlockReason = getAttendanceRestrictionMessage_();
+    if (attendanceBlockReason) {
+        showToast('Absensi Ditutup', attendanceBlockReason, 'warning');
+        return;
+    }
+
+    const targetUser = accountsData.find(acc => acc.id === userId);
+    if (!targetUser) {
+        showToast('Error', 'User tidak ditemukan.', 'error');
+        return;
+    }
+
+    const week = weekInput.value || getWeekIdentifier();
+
+    try {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Menyimpan...';
+
+        const attendanceRef = collection(db, 'attendanceHistory');
+        const qCheck = query(attendanceRef, where('userId', '==', userId), where('week', '==', week));
+        const historySnap = await getDocs(qCheck);
+        if (!historySnap.empty) {
+            showToast('Info', `User ini sudah absen untuk minggu ${week}.`, 'info');
+            return;
+        }
+
+        const earnedPoints = calculateAttendancePoints_(new Date());
+        const displayName = targetUser.username || targetUser.email || targetUser.id;
+
+        const batch = writeBatch(db);
+
+        const newAttendanceRef = doc(collection(db, 'attendanceHistory'));
+        batch.set(newAttendanceRef, {
+            userId,
+            username: displayName,
+            code: 'MANUAL-ADMIN',
+            claimedAt: serverTimestamp(),
+            week,
+            points: earnedPoints,
+            status: 'hadir',
+            method: 'manual-admin',
+            claimedByAdmin: currentUser?.uid || 'admin'
+        });
+
+        const userRef = doc(db, 'users', userId);
+        batch.update(userRef, {
+            lastAttendance: serverTimestamp(),
+            totalAttendance: increment(1),
+            points: increment(earnedPoints)
+        });
+
+        const newHistRef = doc(collection(db, 'pointHistory'));
+        batch.set(newHistRef, {
+            userId,
+            description: `Kehadiran Mingguan (${week}) - Manual Admin`,
+            points: earnedPoints,
+            status: 'completed',
+            createdAt: serverTimestamp()
+        });
+
+        await batch.commit();
+
+        recordAttendanceToSheets({
+            uid: userId,
+            username: displayName,
+            email: targetUser.email || '',
+            points: earnedPoints,
+            week
+        });
+
+        const modalEl = document.getElementById('manualAttendanceModal');
+        const modal = bootstrap.Modal.getInstance(modalEl);
+        if (modal) modal.hide();
+
+        showToast('Berhasil', `Absensi manual tersimpan untuk ${displayName} (+${earnedPoints} poin).`, 'success');
+    } catch (error) {
+        console.error('Manual attendance error:', error);
+        showToast('Error', 'Gagal menyimpan absensi manual: ' + error.message, 'error');
+    } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<i class="bi-check-circle me-2"></i>Submit Absensi';
     }
 }
 
@@ -2523,7 +2890,7 @@ function updateTokenDisplay(code, seconds) {
         const codeDisplay = document.getElementById('weeklyCodeDisplay');
         const timerDisplay = document.getElementById('weeklyCodeTimer');
         const fullscreenQrImg = document.getElementById('fullscreenTokenQrImage');
-        const tokenLink = `${window.location.origin}/dashboard.html?wk=${encodeURIComponent(code)}`;
+        const tokenLink = `${PUBLIC_DASHBOARD_ORIGIN}/dashboard.html?wk=${encodeURIComponent(code)}`;
         const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=320x320&data=${encodeURIComponent(tokenLink)}`;
 
         if (codeDisplay) codeDisplay.textContent = code;
@@ -2642,21 +3009,8 @@ window.claimAttendance = async function () {
             }
         }
 
-        // 3. Calculate Points based on Time Rules (if config exists)
-        let earnedPoints = tokenData.points || 10; // Default fallback
-        if (attendanceConfig) {
-            const currentTimeStr = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
-            const slot1End = attendanceConfig.slot1Time || "09:05";
-            const slot2End = attendanceConfig.slot2Time || "09:20";
-
-            if (currentTimeStr <= slot1End) {
-                earnedPoints = attendanceConfig.slot1Points ?? 3;
-            } else if (currentTimeStr <= slot2End) {
-                earnedPoints = attendanceConfig.slot2Points ?? 2;
-            } else {
-                earnedPoints = attendanceConfig.defaultPoints ?? 0;
-            }
-        }
+        // 3. Calculate Points based on Time Rules
+        const earnedPoints = calculateAttendancePoints_(now);
 
         // 4. Save attendance
         await addDoc(collection(db, 'attendanceHistory'), {
@@ -2874,7 +3228,7 @@ function syncFullscreenWithToken() {
 
             if (fullscreenQr && weeklyCode) {
                 const code = (weeklyCode.textContent || '').trim();
-                const tokenLink = `${window.location.origin}/dashboard.html?wk=${encodeURIComponent(code)}`;
+                const tokenLink = `${PUBLIC_DASHBOARD_ORIGIN}/dashboard.html?wk=${encodeURIComponent(code)}`;
                 fullscreenQr.src = `https://api.qrserver.com/v1/create-qr-code/?size=320x320&data=${encodeURIComponent(tokenLink)}`;
             }
         }, 100);
@@ -3138,17 +3492,11 @@ function bindExportImportModalResetHooks_() {
         exportModalEl.addEventListener('hidden.bs.modal', () => {
             window.resetExportModal();
         });
-        exportModalEl.addEventListener('show.bs.modal', () => {
-            window.resetExportModal();
-        });
     }
 
     const importModalEl = document.getElementById('importConfirmModal');
     if (importModalEl) {
         importModalEl.addEventListener('hidden.bs.modal', () => {
-            window.resetImportModal();
-        });
-        importModalEl.addEventListener('show.bs.modal', () => {
             window.resetImportModal();
         });
     }
