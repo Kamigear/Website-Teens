@@ -142,9 +142,10 @@ window.saveEvent = async function () {
 async function uploadImageFile(file) {
     if (!file) return null;
 
-    // ⚠️ TODO: Replace with your own free API key from https://api.imgbb.com/
-    // This is a placeholder key (might not work forever)
-    const API_KEY = '930f654ad2ea9d2a7de3dac742b709e5';
+    const API_KEY = (window.VDR_IMGBB_API_KEY || '').trim();
+    if (!API_KEY) {
+        throw new Error('Upload file dinonaktifkan: API key belum dikonfigurasi. Gunakan URL gambar eksternal.');
+    }
 
     const formData = new FormData();
     formData.append('image', file);
@@ -277,3 +278,4 @@ document.getElementById('addEventModal')?.addEventListener('hidden.bs.modal', fu
     document.getElementById('enableActionButton').checked = false;
     toggleActionButtonFields();
 });
+

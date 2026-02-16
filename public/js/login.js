@@ -400,18 +400,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
             try {
                 let email = identifier;
-
-                // If input is not an email, lookup in Firestore
                 if (!identifier.includes('@')) {
-                    const usersRef = collection(db, 'users');
-                    const q = query(usersRef, where('username', '==', identifier));
-                    const querySnapshot = await getDocs(q);
-
-                    if (!querySnapshot.empty) {
-                        email = querySnapshot.docs[0].data().email;
-                    } else {
-                        throw new Error("Username tidak ditemukan.");
-                    }
+                    throw new Error("Masukkan email yang terdaftar untuk reset password.");
                 }
 
                 await sendPasswordResetEmail(auth, email);
@@ -428,8 +418,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 console.error("Reset password error:", error);
                 let errorText = "Gagal mengirim link reset password.";
 
-                if (error.code === 'auth/user-not-found' || error.message === "Username tidak ditemukan.") {
-                    errorText = "Username atau Email tidak terdaftar.";
+                if (error.code === 'auth/user-not-found') {
+                    errorText = "Email tidak terdaftar.";
                 } else if (error.code === 'auth/invalid-email') {
                     errorText = "Format email tidak valid.";
                 } else if (error.code === 'auth/too-many-requests') {

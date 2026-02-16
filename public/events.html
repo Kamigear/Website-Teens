@@ -10,6 +10,16 @@
     <link rel="icon" type="image/png" href="images/web-logo.png">
     <title>Kegiatan - VDR Teens</title>
     <link rel="canonical" href="https://teens-vdr.web.app/events.html">
+    <meta property="og:locale" content="id_ID">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Kegiatan VDR Teens">
+    <meta property="og:description" content="Lihat jadwal kegiatan spiritual dan sosial VDR Teens.">
+    <meta property="og:url" content="https://teens-vdr.web.app/events.html">
+    <meta property="og:image" content="https://teens-vdr.web.app/images/web-logo.png">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Kegiatan VDR Teens">
+    <meta name="twitter:description" content="Lihat jadwal kegiatan spiritual dan sosial VDR Teens.">
+    <meta name="twitter:image" content="https://teens-vdr.web.app/images/web-logo.png">
 
     <!-- CSS FILES -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -20,9 +30,6 @@
     <link href="css/bootstrap.min.css" rel="stylesheet">
     <link href="css/bootstrap-icons.css" rel="stylesheet">
     <link href="css/tooplate-gotto-job.css" rel="stylesheet">
-    <!-- Chart.js CDN -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
 </head>
 
 <body id="top">
@@ -211,11 +218,10 @@
 
                 <div class="col-lg-4 col-12 mt-3 mt-lg-0 ms-auto">
                     <h6 class="site-footer-title">Kontak Email Langsung</h6>
-                    <form class="custom-form newsletter-form"
-                        onclick="window.location.href='mailto:teensfordhamma@gmail.com'" method="post" role="form">
+                    <form class="custom-form newsletter-form" method="post" role="form">
                         <div class="input-group">
                             <span class="input-group-text" id="basic-addon1"><i class="bi-person"></i></span>
-                            <input type="text" name="newsletter-name" id="newsletter-name" class="form-control"
+                            <input type="email" name="newsletter-name" id="newsletter-name" class="form-control"
                                 placeholder="emailmu@gmail.com" required>
                             <button type="submit" class="form-control">
                                 <i class="bi-send"></i>
@@ -234,7 +240,7 @@
                     <div class="col-lg-4 col-12 d-flex justify-content-start mb-3 mb-lg-0">
                         <p class="mb-0 footer-credit">
                             <span class="credit-label">Design & Script:</span>
-                            <a class="credit-link" target="_blank">Richie Leonardo Cendana</a>
+                            <span class="credit-link">Richie Leonardo Cendana</span>
                         </p>
                     </div>
 
@@ -258,7 +264,9 @@
     <!-- Navbar Auth State -->
     <script type="module" src="js/navbar-auth.js"></script>
     <script src="js/mobile-nav-slide.js"></script>
+    <script src="js/newsletter-form.js"></script>
     <script type="module" src="js/events-display.js"></script>
 </body>
 
 </html>
+

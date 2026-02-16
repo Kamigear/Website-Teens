@@ -5,11 +5,10 @@
 const SHEET_NAMES = {
     ABSENCE: 'AbsenceData',
     USERS: 'UserData',
-    SERVER: 'ServerData',
-    STATS: 'Statistik'
+    SERVER: 'ServerData'
 };
 
-const ADMIN_PASSWORD = 'vdrteens';
+const ADMIN_PASSWORD = String(PropertiesService.getScriptProperties().getProperty('ADMIN_PASSWORD') || '');
 const THEME = {
     pureWhite: '#ffffff',
     white: '#E6E6E6',
@@ -24,6 +23,11 @@ const THEME = {
     alertSuccessBg: '#d4edda',
     alertErrorBg: '#ffe5e5'
 };
+
+
+function hasValidAdminPassword_(password) {
+    return ADMIN_PASSWORD && String(password || '') === ADMIN_PASSWORD;
+}
 
 // ==========================================
 // MAIN HANDLER
@@ -62,7 +66,7 @@ function doPost(e) {
 
 function exportServerData(data) {
     try {
-        if (data.password !== ADMIN_PASSWORD) return createResponse(false, 'Invalid password');
+        if (!hasValidAdminPassword_(data.password)) return createResponse(false, 'Invalid password');
 
         const ss = SpreadsheetApp.getActiveSpreadsheet();
         const sheet = getOrCreateSheet(SHEET_NAMES.SERVER);
@@ -125,7 +129,6 @@ function exportServerData(data) {
         });
 
         applyServerSheetStyle_(sheet);
-        refreshStatisticsSheet_();
 
         return createResponse(true, 'Success! Backed up ' + totalDocs + ' documents.');
     } catch (error) {
@@ -139,7 +142,7 @@ function exportServerData(data) {
 
 function exportUserData(data) {
     try {
-        if (data.password !== ADMIN_PASSWORD) return createResponse(false, 'Invalid password');
+        if (!hasValidAdminPassword_(data.password)) return createResponse(false, 'Invalid password');
         const sheet = getOrCreateSheet(SHEET_NAMES.USERS);
         sheet.clear();
 
@@ -162,7 +165,6 @@ function exportUserData(data) {
         // Start from column J and leave column I as spacing
         sheet.setColumnWidth(9, 28);
         renderBirthMonthSidebar_(sheet, users, 10);
-        refreshStatisticsSheet_();
 
         return createResponse(true, 'Exported ' + users.length + ' users');
     } catch (e) {
@@ -180,7 +182,7 @@ function exportUserData(data) {
  */
 function importUserData(data) {
     try {
-        if (data.password !== ADMIN_PASSWORD) return createResponse(false, 'Invalid password');
+        if (!hasValidAdminPassword_(data.password)) return createResponse(false, 'Invalid password');
 
         const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_NAMES.USERS);
         if (!sheet) return createResponse(false, 'UserData sheet not found');
@@ -219,7 +221,7 @@ function importUserData(data) {
  */
 function importServerData(data) {
     try {
-        if (data.password !== ADMIN_PASSWORD) return createResponse(false, 'Invalid password');
+        if (!hasValidAdminPassword_(data.password)) return createResponse(false, 'Invalid password');
 
         const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_NAMES.SERVER);
         if (!sheet) return createResponse(false, 'ServerData sheet not found');
@@ -349,7 +351,6 @@ function recordAttendance(data) {
         const insertedRow = sheet.getLastRow();
         applyUserDataHyperlinks_(sheet, insertedRow, att.uid, att.username);
         applyAbsenceSheetStyle_(sheet);
-        refreshStatisticsSheet_();
 
         return createResponse(true, 'Record added');
     } catch (e) {
@@ -425,7 +426,7 @@ function createResponse(success, message, data) {
 
 function fixAttendanceHyperlinks(data) {
     try {
-        if (data.password !== ADMIN_PASSWORD) return createResponse(false, 'Invalid password');
+        if (!hasValidAdminPassword_(data.password)) return createResponse(false, 'Invalid password');
 
         const ss = SpreadsheetApp.getActiveSpreadsheet();
         const absenceSheet = ss.getSheetByName(SHEET_NAMES.ABSENCE);
@@ -608,135 +609,6 @@ function applyServerSheetStyle_(sheet) {
     sheet.autoResizeColumns(1, lastCol);
 }
 
-function refreshStatisticsSheet_() {
-    const ss = SpreadsheetApp.getActiveSpreadsheet();
-    const statsSheet = getOrCreateSheet(SHEET_NAMES.STATS);
-    const usersSheet = ss.getSheetByName(SHEET_NAMES.USERS);
-    const absenceSheet = ss.getSheetByName(SHEET_NAMES.ABSENCE);
-
-    statsSheet.clear();
-    statsSheet.clearCharts();
-    statsSheet.getRange('A1:Z200').breakApart();
-    statsSheet.setHiddenGridlines(true);
-    statsSheet.setTabColor(THEME.secondary);
-    statsSheet.getRange('A1:Z200').setBackground(THEME.white).setFontFamily('Calibri').setFontColor(THEME.p);
-
-    const usersData = usersSheet && usersSheet.getLastRow() > 1
-        ? usersSheet.getRange(2, 1, usersSheet.getLastRow() - 1, 7).getValues()
-        : [];
-    const absenceData = absenceSheet && absenceSheet.getLastRow() > 1
-        ? absenceSheet.getRange(2, 1, absenceSheet.getLastRow() - 1, 7).getValues()
-        : [];
-
-    const totalUsers = usersData.length;
-    const totalAdmins = usersData.filter(function (r) { return String(r[5]).toLowerCase() === 'yes'; }).length;
-    const totalPoints = usersData.reduce(function (sum, r) { return sum + (Number(r[3]) || 0); }, 0);
-    const avgPoints = totalUsers ? totalPoints / totalUsers : 0;
-    const totalAbsensi = absenceData.length;
-
-    const today = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'yyyy-MM-dd');
-    const absensiHariIni = absenceData.filter(function (r) {
-        return String(r[3] || '') === today;
-    }).length;
-
-    statsSheet.getRange('A1:G1').merge().setValue('Dashboard Statistik VDR Teens');
-    statsSheet.getRange('A1:G1')
-        .setBackground(THEME.primary)
-        .setFontColor(THEME.pureWhite)
-        .setFontWeight('bold')
-        .setFontSize(16)
-        .setHorizontalAlignment('center');
-    statsSheet.getRange('A2:G2').merge().setValue('Ringkasan otomatis dari UserData dan AbsenceData');
-    statsSheet.getRange('A2:G2').setFontColor(THEME.secondWhite).setFontStyle('italic').setHorizontalAlignment('center');
-
-    // KPI cards
-    setKpiCard_(statsSheet, 'A4:B6', 'Total Pengguna', totalUsers, THEME.primary);
-    setKpiCard_(statsSheet, 'C4:D6', 'Total Admin', totalAdmins, THEME.socialIcon);
-    setKpiCard_(statsSheet, 'E4:F6', 'Total Absensi', totalAbsensi, THEME.customBtn);
-    setKpiCard_(statsSheet, 'A8:B10', 'Absensi Hari Ini', absensiHariIni, THEME.primary);
-    setKpiCard_(statsSheet, 'C8:D10', 'Total Poin', totalPoints, THEME.socialIcon);
-    setKpiCard_(statsSheet, 'E8:F10', 'Rata-rata Poin', avgPoints.toFixed(2), THEME.customBtn);
-
-    const summaryHeaders = [['Metrik', 'Nilai']];
-    const summaryValues = [
-        ['Total Pengguna', totalUsers],
-        ['Total Admin', totalAdmins],
-        ['Total Poin Pengguna', totalPoints],
-        ['Rata-rata Poin', avgPoints],
-        ['Total Log Absensi', totalAbsensi],
-        ['Absensi Hari Ini', absensiHariIni]
-    ];
-    statsSheet.getRange(12, 1, 1, 2).setValues(summaryHeaders);
-    applyHeaderStyle_(statsSheet.getRange(12, 1, 1, 2));
-    statsSheet.getRange(13, 1, summaryValues.length, 2).setValues(summaryValues);
-    statsSheet.getRange(13, 2, summaryValues.length, 1).setNumberFormat('#,##0.00');
-    statsSheet.getRange(13, 1, summaryValues.length, 2).applyRowBanding(SpreadsheetApp.BandingTheme.LIGHT_GREY);
-
-    const topUsers = usersData
-        .map(function (r) { return [String(r[1] || '-'), Number(r[3]) || 0]; })
-        .sort(function (a, b) { return b[1] - a[1]; })
-        .slice(0, 5);
-    statsSheet.getRange(12, 4, 1, 2).setValues([['Top Pengguna', 'Poin']]);
-    applyHeaderStyle_(statsSheet.getRange(12, 4, 1, 2));
-    if (topUsers.length > 0) {
-        statsSheet.getRange(13, 4, topUsers.length, 2).setValues(topUsers);
-        statsSheet.getRange(13, 4, topUsers.length, 2).applyRowBanding(SpreadsheetApp.BandingTheme.LIGHT_GREY);
-    }
-
-    // Data chart
-    statsSheet.getRange(20, 1, 1, 2).setValues([['Kategori', 'Nilai']]);
-    applyHeaderStyle_(statsSheet.getRange(20, 1, 1, 2));
-    statsSheet.getRange(21, 1, 4, 2).setValues([
-        ['Pengguna', totalUsers],
-        ['Admin', totalAdmins],
-        ['Absensi', totalAbsensi],
-        ['Absensi Hari Ini', absensiHariIni]
-    ]);
-
-    const chartRange = statsSheet.getRange(20, 1, 5, 2);
-    const chart = statsSheet.newChart()
-        .setChartType(Charts.ChartType.COLUMN)
-        .addRange(chartRange)
-        .setPosition(20, 4, 0, 0)
-        .setOption('title', 'Ringkasan Aktivitas')
-        .setOption('backgroundColor', THEME.pureWhite)
-        .setOption('legend', { position: 'none' })
-        .setOption('colors', [THEME.customBtn])
-        .build();
-    statsSheet.insertChart(chart);
-
-    const pie = statsSheet.newChart()
-        .setChartType(Charts.ChartType.PIE)
-        .addRange(statsSheet.getRange(12, 4, Math.max(topUsers.length, 1) + 1, 2))
-        .setPosition(20, 15, 0, 0)
-        .setOption('title', 'Distribusi Top Poin')
-        .setOption('backgroundColor', THEME.pureWhite)
-        .build();
-    if (topUsers.length > 0) statsSheet.insertChart(pie);
-
-    renderAttendanceDatePanel_(statsSheet);
-
-    statsSheet.setFrozenRows(2);
-    statsSheet.setColumnWidths(1, 1, 170);
-    statsSheet.setColumnWidths(2, 1, 120);
-    statsSheet.setColumnWidths(3, 1, 25);
-    statsSheet.setColumnWidths(4, 1, 190);
-    statsSheet.setColumnWidths(5, 1, 120);
-    statsSheet.setColumnWidths(6, 1, 25);
-    statsSheet.setColumnWidths(7, 1, 25);
-    statsSheet.setColumnWidths(8, 1, 30);
-    statsSheet.setColumnWidths(9, 1, 135);
-    statsSheet.setColumnWidths(10, 1, 140);
-    statsSheet.setColumnWidths(11, 1, 135);
-    statsSheet.setColumnWidths(12, 1, 220);
-    statsSheet.setColumnWidths(13, 1, 110);
-    statsSheet.setColumnWidths(14, 1, 110);
-    statsSheet.setColumnWidths(15, 1, 100);
-    statsSheet.setColumnWidths(16, 1, 120);
-    statsSheet.setColumnWidths(17, 1, 120);
-    statsSheet.autoResizeRows(1, 30);
-}
-
 function ensureFilter_(sheet, range) {
     const existing = sheet.getFilter();
     if (existing) existing.remove();
@@ -747,100 +619,6 @@ function paintSheetBase_(sheet, rows, cols) {
     sheet.setTabColor(THEME.secondary);
     sheet.setHiddenGridlines(false);
     sheet.getRange(1, 1, rows, cols).setFontFamily('Calibri').setFontColor(THEME.p);
-}
-
-function setKpiCard_(sheet, a1, title, value, accentColor) {
-    const range = sheet.getRange(a1);
-    range
-        .setBackground(THEME.pureWhite)
-        .setBorder(true, true, true, true, true, true, THEME.border, SpreadsheetApp.BorderStyle.SOLID);
-
-    const first = range.getRow();
-    const col = range.getColumn();
-    const h = range.getNumRows();
-    const w = range.getNumColumns();
-
-    sheet.getRange(first, col, 1, w)
-        .merge()
-        .setValue(title)
-        .setFontSize(10)
-        .setFontWeight('bold')
-        .setFontColor(THEME.p)
-        .setHorizontalAlignment('left')
-        .setBackground(THEME.secondary);
-
-    sheet.getRange(first + 1, col, h - 1, w)
-        .merge()
-        .setValue(value)
-        .setFontSize(16)
-        .setFontWeight('bold')
-        .setFontColor(accentColor)
-        .setHorizontalAlignment('center')
-        .setVerticalAlignment('middle')
-        .setBackground(THEME.pureWhite);
-}
-
-function renderAttendanceDatePanel_(sheet) {
-    // Panel title
-    sheet.getRange('I1:M1')
-        .merge()
-        .setValue('Filter Absensi Berdasarkan Tanggal')
-        .setBackground(THEME.primary)
-        .setFontColor(THEME.pureWhite)
-        .setFontWeight('bold')
-        .setHorizontalAlignment('center')
-        .setVerticalAlignment('middle')
-        .setFontFamily('Calibri');
-
-    sheet.getRange('I2:M2')
-        .merge()
-        .setValue('Atur tanggal untuk melihat siapa yang absen pada hari/rentang tertentu')
-        .setFontColor(THEME.secondWhite)
-        .setFontStyle('italic')
-        .setHorizontalAlignment('center');
-
-    // Inputs
-    sheet.getRange('I4').setValue('Tanggal Mulai');
-    sheet.getRange('I5').setValue('Tanggal Akhir');
-    sheet.getRange('I6').setValue('Tanggal Spesifik');
-    sheet.getRange('I4:I6')
-        .setFontWeight('bold')
-        .setBackground(THEME.secondary)
-        .setFontColor(THEME.p)
-        .setHorizontalAlignment('left');
-
-    const today = new Date();
-    const start = new Date(today.getTime() - (7 * 24 * 60 * 60 * 1000));
-
-    sheet.getRange('J4').setValue(start);
-    sheet.getRange('J5').setValue(today);
-    sheet.getRange('J6').setValue(today);
-    sheet.getRange('J4:J6').setNumberFormat('yyyy-mm-dd').setBackground(THEME.pureWhite);
-
-    sheet.getRange('K4:M6')
-        .merge()
-        .setValue('Tip: untuk lihat tanggal tunggal (mis. 21 Januari), isi Tanggal Mulai dan Tanggal Akhir dengan tanggal yang sama.')
-        .setWrap(true)
-        .setFontColor(THEME.secondWhite)
-        .setBackground(THEME.white)
-        .setHorizontalAlignment('left')
-        .setVerticalAlignment('middle');
-
-    // Range result table header
-    sheet.getRange('I8:O8').setValues([['UID', 'Nama', 'Email', 'Tanggal', 'Jam', 'Poin', 'Minggu']]);
-    applyHeaderStyle_(sheet.getRange('I8:O8'));
-    sheet.getRange('I9').setFormula('=IFERROR(FILTER(AbsenceData!A2:G, AbsenceData!D2:D>=TEXT($J$4,\"yyyy-mm-dd\"), AbsenceData!D2:D<=TEXT($J$5,\"yyyy-mm-dd\")), \"Tidak ada data pada rentang tanggal ini\")');
-    sheet.getRange('I9').setFontColor(THEME.p);
-
-    // Specific-day result table header
-    sheet.getRange('I20:O20').setValues([['UID', 'Nama', 'Email', 'Tanggal', 'Jam', 'Poin', 'Minggu']]);
-    applyHeaderStyle_(sheet.getRange('I20:O20'));
-    sheet.getRange('I21').setFormula('=IFERROR(FILTER(AbsenceData!A2:G, AbsenceData!D2:D=TEXT($J$6,\"yyyy-mm-dd\")), \"Tidak ada data pada tanggal ini\")');
-    sheet.getRange('I21').setFontColor(THEME.p);
-
-    // Panel border frame
-    sheet.getRange('I1:O26')
-        .setBorder(true, true, true, true, true, true, THEME.border, SpreadsheetApp.BorderStyle.SOLID);
 }
 
 function renderBirthMonthSidebar_(sheet, users, startCol) {
@@ -917,3 +695,4 @@ function extractMonthFromBirthdate_(birthdateValue) {
 
     return null;
 }
+

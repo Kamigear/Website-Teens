@@ -9,6 +9,8 @@ document.addEventListener('DOMContentLoaded', function () {
     const contactForm = document.getElementById('contactForm');
     const statusEl = document.getElementById('contactFormStatus');
     const submitBtn = contactForm?.querySelector('button[type="submit"]');
+    const cooldownKey = 'vdrteens_contact_last_submit_at';
+    const cooldownMs = 45 * 1000;
     if (!contactForm) return;
 
     contactForm.addEventListener('submit', async function (event) {
@@ -17,8 +19,20 @@ document.addEventListener('DOMContentLoaded', function () {
         const name = (document.getElementById('full-name')?.value || '').trim();
         const email = (document.getElementById('email')?.value || '').trim();
         const message = (document.getElementById('message')?.value || '').trim();
+        const website = (document.getElementById('website')?.value || '').trim();
 
-        if (!name || !email || !message) {
+        const lastSubmitAt = Number(localStorage.getItem(cooldownKey) || '0');
+        const now = Date.now();
+        if (lastSubmitAt && (now - lastSubmitAt) < cooldownMs) {
+            const waitSeconds = Math.ceil((cooldownMs - (now - lastSubmitAt)) / 1000);
+            if (statusEl) {
+                statusEl.className = 'text-warning';
+                statusEl.textContent = `Tunggu ${waitSeconds} detik sebelum kirim pesan lagi.`;
+            }
+            return;
+        }
+
+        if (!name || !email || !message || website) {
             if (statusEl) {
                 statusEl.className = 'text-danger';
                 statusEl.textContent = 'Mohon isi nama, email, dan pesan.';
@@ -37,10 +51,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 name,
                 email,
                 message,
-                status: 'new',
                 source: 'contact.html',
+                website: '',
                 createdAt: serverTimestamp()
             });
+
+            localStorage.setItem(cooldownKey, String(now));
 
             if (statusEl) {
                 statusEl.className = 'text-success';

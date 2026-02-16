@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="id">
 
 <head>
     <meta charset="utf-8">
@@ -11,6 +11,16 @@
 
     <title>Kontak - VDR Teens</title>
     <link rel="canonical" href="https://teens-vdr.web.app/contact.html">
+    <meta property="og:locale" content="id_ID">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Kontak VDR Teens">
+    <meta property="og:description" content="Hubungi VDR Teens melalui WhatsApp, Instagram, email, atau form kontak.">
+    <meta property="og:url" content="https://teens-vdr.web.app/contact.html">
+    <meta property="og:image" content="https://teens-vdr.web.app/images/contact-illustration.png">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Kontak VDR Teens">
+    <meta name="twitter:description" content="Hubungi VDR Teens melalui WhatsApp, Instagram, email, atau form kontak.">
+    <meta name="twitter:image" content="https://teens-vdr.web.app/images/contact-illustration.png">
 
     <!-- CSS FILES -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -21,9 +31,6 @@
     <link href="css/bootstrap.min.css" rel="stylesheet">
     <link href="css/bootstrap-icons.css" rel="stylesheet">
     <link href="css/tooplate-gotto-job.css" rel="stylesheet">
-    <!-- Chart.js CDN -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
 </head>
 
 <body id="top">
@@ -131,7 +138,7 @@
                             </div>
                             <h5 class="fw-bold">WhatsApp</h5>
                             <p class="text-muted">Bertanya via chat</p>
-                            <a href="https://chat.whatsapp.com/KUdvHjj8Ipz6JfiHgXWaGQ?mode=hqrt3" target="_blank"
+                            <a href="https://chat.whatsapp.com/KUdvHjj8Ipz6JfiHgXWaGQ?mode=hqrt3" target="_blank" rel="noopener noreferrer"
                                 class="btn btn-outline-dark rounded-pill px-4">Gabung Grup</a>
                         </div>
                     </div>
@@ -144,7 +151,7 @@
                             </div>
                             <h5 class="fw-bold">Instagram</h5>
                             <p class="text-muted">@vdrteens</p>
-                            <a href="https://www.instagram.com/vdrteens/" target="_blank"
+                            <a href="https://www.instagram.com/vdrteens/" target="_blank" rel="noopener noreferrer"
                                 class="btn btn-outline-dark rounded-pill px-4">Follow Kami</a>
                         </div>
                     </div>
@@ -190,7 +197,7 @@
                                         <p class="text-white-50 mb-0">Ruangan berkaca di depan tangga utama</p>
                                     </div>
                                 </div>
-                                <a href="https://www.google.com/maps/dir//Vihara+Dharma+Ratna" target="_blank"
+                                <a href="https://www.google.com/maps/dir//Vihara+Dharma+Ratna" target="_blank" rel="noopener noreferrer"
                                     class="btn btn-light rounded-pill py-3 fw-bold">Buka di Google Maps</a>
                             </div>
                         </div>
@@ -221,6 +228,11 @@
                                             <textarea name="message" rows="5"
                                                 class="form-control form-control-custom-contact" id="message"
                                                 placeholder="Apa yang ingin kamu sampaikan?" required></textarea>
+                                        </div>
+                                        <div class="d-none">
+                                            <label for="website">Website</label>
+                                            <input type="text" id="website" name="website" tabindex="-1"
+                                                autocomplete="off">
                                         </div>
 
                                         <div class="col-lg-5 col-12">
@@ -299,11 +311,10 @@
 
                 <div class="col-lg-4 col-12 mt-3 mt-lg-0 ms-auto">
                     <h6 class="site-footer-title">Kontak Email Langsung</h6>
-                    <form class="custom-form newsletter-form"
-                        onclick="window.location.href='mailto:teensfordhamma@gmail.com'" method="post" role="form">
+                    <form class="custom-form newsletter-form" method="post" role="form">
                         <div class="input-group">
                             <span class="input-group-text" id="basic-addon1"><i class="bi-person"></i></span>
-                            <input type="text" name="newsletter-name" id="newsletter-name" class="form-control"
+                            <input type="email" name="newsletter-name" id="newsletter-name" class="form-control"
                                 placeholder="emailmu@gmail.com" required>
                             <button type="submit" class="form-control">
                                 <i class="bi-send"></i>
@@ -322,7 +333,7 @@
                     <div class="col-lg-4 col-12 d-flex justify-content-start mb-3 mb-lg-0">
                         <p class="mb-0 footer-credit">
                             <span class="credit-label">Design & Script:</span>
-                            <a class="credit-link" target="_blank">Richie Leonardo Cendana</a>
+                            <span class="credit-link">Richie Leonardo Cendana</span>
                         </p>
                     </div>
 
@@ -346,8 +357,10 @@
     <!-- Navbar Auth State -->
     <script type="module" src="js/navbar-auth.js"></script>
     <script src="js/mobile-nav-slide.js"></script>
+    <script src="js/newsletter-form.js"></script>
     <script type="module" src="js/contact-form.js"></script>
 
 </body>
 
 </html>
+

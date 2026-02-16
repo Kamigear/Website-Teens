@@ -688,11 +688,10 @@
 
                 <div class="col-lg-4 col-12 mt-3 mt-lg-0 ms-auto">
                     <h6 class="site-footer-title">Kontak Email Langsung</h6>
-                    <form class="custom-form newsletter-form"
-                        onclick="window.location.href='mailto:teensfordhamma@gmail.com'" method="post" role="form">
+                    <form class="custom-form newsletter-form" method="post" role="form">
                         <div class="input-group">
                             <span class="input-group-text" id="basic-addon1"><i class="bi-person"></i></span>
-                            <input type="text" name="newsletter-name" id="newsletter-name" class="form-control"
+                            <input type="email" name="newsletter-name" id="newsletter-name" class="form-control"
                                 placeholder="emailmu@gmail.com" required>
                             <button type="submit" class="form-control">
                                 <i class="bi-send"></i>
@@ -711,7 +710,7 @@
                     <div class="col-lg-4 col-12 d-flex justify-content-start mb-3 mb-lg-0">
                         <p class="mb-0 footer-credit">
                             <span class="credit-label">Design & Script:</span>
-                            <a class="credit-link" target="_blank">Richie Leonardo Cendana</a>
+                            <span class="credit-link">Richie Leonardo Cendana</span>
                         </p>
                     </div>
 
@@ -1416,7 +1415,8 @@
                             <div class="input-group mb-2">
                                 <input type="file" class="form-control" id="eventImageFile" accept="image/*">
                             </div>
-                            <small class="text-muted d-block mb-2">Upload gambar dari komputer Anda (Max 2MB)</small>
+                            <small class="text-muted d-block mb-2">Upload gambar dari komputer Anda (Max 2MB). Perlu
+                                konfigurasi `window.VDR_IMGBB_API_KEY` untuk upload langsung.</small>
 
                             <div class="text-center my-2 text-muted">- ATAU -</div>
 
@@ -1492,8 +1492,10 @@
 
 
     <script src="js/mobile-nav-slide.js"></script>
+    <script src="js/newsletter-form.js"></script>
     <script type="module" src="js/navbar-auth.js"></script>
     <script type="module" src="js/dashboard.js?v=2"></script>
 </body>
 
 </html>
+

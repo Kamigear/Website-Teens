@@ -15,8 +15,8 @@ service cloud.firestore {
     // USERS
     // =========================
     match /users/{userId} {
-      // Allow listing users (adjust if you want to restrict later)
-      allow list: if true;
+      // Only admins can list users
+      allow list: if isAdmin();
 
       // Users can read/write their own data, admins can do anything
       allow get, create, update, delete:
@@ -94,18 +94,21 @@ service cloud.firestore {
     match /contactMessages/{messageId} {
       // Public can submit contact form
       allow create: if
-        request.resource.data.keys().hasOnly(['name', 'email', 'message', 'status', 'source', 'createdAt']) &&
+        request.resource.data.keys().hasOnly(['name', 'email', 'message', 'source', 'createdAt', 'website']) &&
         request.resource.data.name is string &&
         request.resource.data.email is string &&
         request.resource.data.message is string &&
+        request.resource.data.website is string &&
         request.resource.data.name.size() > 0 &&
         request.resource.data.email.size() > 0 &&
         request.resource.data.message.size() > 0 &&
         request.resource.data.name.size() <= 120 &&
         request.resource.data.email.size() <= 190 &&
         request.resource.data.message.size() <= 3000 &&
-        request.resource.data.status == 'new' &&
-        request.resource.data.source == 'contact.html';
+        request.resource.data.email.matches('^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$') &&
+        request.resource.data.source == 'contact.html' &&
+        request.resource.data.website == '' &&
+        request.resource.data.createdAt == request.time;
 
       // Only admins can read/manage incoming messages
       allow read, update, delete: if isAdmin();

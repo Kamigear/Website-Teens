@@ -3272,11 +3272,6 @@ window.submitExport = async function () {
         return;
     }
 
-    if (password !== 'vdrteens') {
-        showToast('Error', 'Password salah!', 'error');
-        return;
-    }
-
     // Check if Google Script URL is configured
     if (GOOGLE_SCRIPT_URL === 'YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE') {
         showToast('Konfigurasi Error',
