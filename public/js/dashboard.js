@@ -2313,11 +2313,48 @@ window.submitNewAccount = async function () {
 
 
 // --- Admin Features: Attendance Config ---
+function normalizeTimeValue_(value, fallback = "00:00") {
+    if (value === null || value === undefined) return fallback;
+
+    // Firestore Timestamp support
+    if (typeof value?.toDate === 'function') {
+        const d = value.toDate();
+        const hh = String(d.getHours()).padStart(2, '0');
+        const mm = String(d.getMinutes()).padStart(2, '0');
+        return `${hh}:${mm}`;
+    }
+
+    const raw = String(value).trim();
+    if (!raw) return fallback;
+
+    // HH:mm or HH:mm:ss(.SSS)
+    let m = raw.match(/^(\d{2}):(\d{2})(?::\d{2}(?:\.\d{1,3})?)?$/);
+    if (m) return `${m[1]}:${m[2]}`;
+
+    // H:mm
+    m = raw.match(/^(\d):(\d{2})$/);
+    if (m) return `0${m[1]}:${m[2]}`;
+
+    // ISO-like datetime -> take HH:mm part without timezone shifting
+    m = raw.match(/T(\d{2}):(\d{2})/);
+    if (m) return `${m[1]}:${m[2]}`;
+
+    // Fallback Date parse
+    const parsed = new Date(raw);
+    if (!Number.isNaN(parsed.getTime())) {
+        const hh = String(parsed.getHours()).padStart(2, '0');
+        const mm = String(parsed.getMinutes()).padStart(2, '0');
+        return `${hh}:${mm}`;
+    }
+
+    return fallback;
+}
+
 function getLegacyAttendanceSlotsFromConfig_(cfg) {
-    const slot1Start = cfg?.slot1StartTime || "00:00";
-    const slot1End = cfg?.slot1EndTime || cfg?.slot1Time || "09:05";
+    const slot1Start = normalizeTimeValue_(cfg?.slot1StartTime, "00:00");
+    const slot1End = normalizeTimeValue_(cfg?.slot1EndTime || cfg?.slot1Time, "09:05");
     const slot1Points = Number.isFinite(Number(cfg?.slot1Points)) ? Number(cfg.slot1Points) : 3;
-    const slot2End = cfg?.slot2Time || "09:20";
+    const slot2End = normalizeTimeValue_(cfg?.slot2Time, "09:20");
     const slot2Points = Number.isFinite(Number(cfg?.slot2Points)) ? Number(cfg.slot2Points) : 2;
 
     return [
@@ -2333,8 +2370,8 @@ function normalizeAttendanceSlots_(cfg) {
 
     return rawSlots
         .map(slot => ({
-            startTime: String(slot?.startTime || '').trim(),
-            endTime: String(slot?.endTime || '').trim(),
+            startTime: normalizeTimeValue_(slot?.startTime, ''),
+            endTime: normalizeTimeValue_(slot?.endTime, ''),
             points: Number(slot?.points || 0)
         }))
         .filter(slot => slot.startTime && slot.endTime && !Number.isNaN(slot.points));
