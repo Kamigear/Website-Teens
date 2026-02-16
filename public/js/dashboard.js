@@ -2805,20 +2805,25 @@ function showTokenFullscreen() {
                     <i class="bi-arrow-left me-2"></i>Kembali
                 </button>
                 <div class="token-content">
-                    <h2 class="token-title">Kode Kehadiran Mingguan</h2>
-                    <h1 id="fullscreenCodeDisplay" class="token-code">-----</h1>
-                    <div class="mb-4 text-center">
-                        <div class="small text-white-50 mb-2">Pindai dengan dashboard atau Camera</div>
-                        <img id="fullscreenTokenQrImage"
-                            src="https://api.qrserver.com/v1/create-qr-code/?size=340x340&data=KODE"
-                            alt="QR Token Mingguan"
-                            class="img-fluid bg-white p-2 rounded"
-                            style="max-width: 260px;">
-                    </div>
-                    <div class="token-timer-section">
-                        <h3 class="token-timer-label">Kode Valid Untuk:</h3>
-                        <div id="fullscreenTimer" class="token-timer">30</div>
-                        <small class="token-timer-unit">Detik</small>
+                    <h2 class="token-title">Absen</h2>
+                    <p class="token-scan-hint">Gunakan Kode atau QR untuk absen</p>
+                    <div class="token-main-row">
+                        <div class="token-code-panel">
+                            <div class="token-panel-label">Kode</div>
+                            <div id="fullscreenCodeDisplay" class="token-code">-----</div>
+                        </div>
+                        <div class="token-timer-section token-middle-timer">
+                            <h3 class="token-timer-label">Timer</h3>
+                            <div id="fullscreenTimer" class="token-timer">30</div>
+                            <small class="token-timer-unit">Detik</small>
+                        </div>
+                        <div class="token-qr-panel">
+                            <div class="token-panel-label">QR</div>
+                            <img id="fullscreenTokenQrImage"
+                                src="https://api.qrserver.com/v1/create-qr-code/?size=340x340&data=KODE"
+                                alt="QR Token Mingguan"
+                                class="img-fluid bg-white p-2 rounded token-qr-image">
+                        </div>
                     </div>
                 </div>
             `;

@@ -3706,6 +3706,193 @@ nav[aria-label="breadcrumb"] {
   }
 }
 
+/*---------------------------------------
+  TOKEN FULLSCREEN LAYOUT (SCOPED)
+-----------------------------------------*/
+#tokenFullscreenOverlay.token-fullscreen-overlay {
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  justify-content: center !important;
+  align-items: center !important;
+  padding: 12px 12px max(12px, env(safe-area-inset-bottom)) !important;
+}
+
+#tokenFullscreenOverlay .token-content {
+  width: min(98vw, 1280px) !important;
+  max-width: 1280px !important;
+  padding-top: 0 !important;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(10px, 1.8vh, 16px);
+  text-align: center;
+}
+
+#tokenFullscreenOverlay .token-title {
+  font-size: clamp(1.4rem, 4vw, 2.2rem) !important;
+  margin: 0 !important;
+}
+
+#tokenFullscreenOverlay .token-main-row {
+  width: 100%;
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  gap: clamp(10px, 1.6vw, 18px) !important;
+  align-items: center;
+}
+
+#tokenFullscreenOverlay .token-code-panel,
+#tokenFullscreenOverlay .token-qr-panel {
+  background: #ffffff;
+  border: 1px solid #d8d8d8;
+  border-radius: 14px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: clamp(220px, 42vh, 420px);
+}
+
+#tokenFullscreenOverlay .token-middle-timer {
+  min-width: clamp(92px, 10vw, 128px);
+  align-self: center;
+  justify-self: center;
+  margin: 0 !important;
+}
+
+#tokenFullscreenOverlay .token-code-panel {
+  align-items: stretch;
+}
+
+#tokenFullscreenOverlay .token-panel-label {
+  font-size: clamp(1.2rem, 2.6vw, 1.8rem) !important;
+  font-weight: 700;
+  color: #1f1f1f;
+  margin-bottom: 10px;
+}
+
+#tokenFullscreenOverlay #fullscreenCodeDisplay.token-code {
+  flex: 1 1 auto;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  font-size: clamp(3rem, 10vw, 6.8rem) !important;
+  letter-spacing: clamp(0.08em, 0.22vw, 0.16em) !important;
+  line-height: 1 !important;
+  white-space: nowrap !important;
+  word-break: normal !important;
+  font-family: 'Courier New', monospace !important;
+  margin: 0 !important;
+}
+
+#tokenFullscreenOverlay .token-qr-image,
+#tokenFullscreenOverlay #fullscreenTokenQrImage {
+  width: min(36vmin, 320px) !important;
+  max-width: 320px !important;
+  height: auto !important;
+  aspect-ratio: 1 / 1;
+}
+
+#tokenFullscreenOverlay .token-scan-hint {
+  font-size: clamp(1rem, 2vw, 1.3rem) !important;
+  font-weight: 700 !important;
+  color: #1f1f1f !important;
+  margin: 0 !important;
+}
+
+#tokenFullscreenOverlay .token-timer-section {
+  margin-top: 4px !important;
+}
+
+#tokenFullscreenOverlay .token-timer-label {
+  font-size: clamp(1rem, 2.8vw, 1.4rem) !important;
+  margin: 0 0 0.2rem !important;
+}
+
+#tokenFullscreenOverlay .token-timer {
+  font-size: clamp(2.1rem, 6.8vw, 3.2rem) !important;
+  line-height: 1 !important;
+  margin: 0 !important;
+}
+
+#tokenFullscreenOverlay .token-timer-unit {
+  font-size: clamp(0.85rem, 2.2vw, 1rem) !important;
+}
+
+#tokenFullscreenOverlay .token-back-btn {
+  position: fixed !important;
+  top: max(12px, env(safe-area-inset-top)) !important;
+  left: 12px !important;
+  z-index: 10001;
+}
+
+@media (max-width: 767px) {
+  #tokenFullscreenOverlay.token-fullscreen-overlay {
+    padding: 10px 10px max(12px, env(safe-area-inset-bottom)) !important;
+  }
+
+  #tokenFullscreenOverlay .token-content {
+    width: min(96vw, 520px) !important;
+    gap: 10px !important;
+  }
+
+  #tokenFullscreenOverlay .token-main-row {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 8px !important;
+  }
+
+  #tokenFullscreenOverlay .token-code-panel,
+  #tokenFullscreenOverlay .token-qr-panel {
+    min-height: 122px;
+    padding: 6px;
+    border-radius: 10px;
+  }
+
+  #tokenFullscreenOverlay .token-middle-timer {
+    grid-column: 1 / -1;
+    min-width: 0;
+    margin-top: 2px !important;
+  }
+
+  #tokenFullscreenOverlay .token-panel-label {
+    font-size: clamp(1.1rem, 4.8vw, 1.45rem) !important;
+    margin-bottom: 8px;
+  }
+
+  #tokenFullscreenOverlay #fullscreenCodeDisplay.token-code {
+    font-size: clamp(2rem, 10vw, 3.6rem) !important;
+    letter-spacing: clamp(0.06em, 0.4vw, 0.1em) !important;
+  }
+
+  #tokenFullscreenOverlay .token-qr-image,
+  #tokenFullscreenOverlay #fullscreenTokenQrImage {
+    width: min(35vmin, 142px) !important;
+    max-width: 142px !important;
+  }
+
+  #tokenFullscreenOverlay .token-scan-hint {
+    font-size: clamp(0.9rem, 3.5vw, 1.02rem) !important;
+  }
+
+  #tokenFullscreenOverlay .token-back-btn {
+    top: max(10px, env(safe-area-inset-top)) !important;
+    left: 10px !important;
+    padding: 8px 14px;
+    font-size: 0.95rem;
+  }
+
+  #tokenFullscreenOverlay .token-timer-label {
+    font-size: clamp(1rem, 4.2vw, 1.15rem) !important;
+  }
+
+  #tokenFullscreenOverlay .token-timer {
+    font-size: clamp(1.7rem, 7.6vw, 2.2rem) !important;
+  }
+}
+
 /* Login Page Optimization */
 .min-vh-100 {
   min-height: 100vh !important;
