@@ -119,6 +119,20 @@ async function changePasswordFn(newPassword) {
     }
 }
 
+function getPostLoginRedirectUrl() {
+    const params = new URLSearchParams(window.location.search);
+    const next = params.get('next');
+    if (!next) return 'dashboard.html';
+
+    try {
+        const decoded = decodeURIComponent(next);
+        if (!decoded.startsWith('/')) return 'dashboard.html';
+        return decoded;
+    } catch (error) {
+        return 'dashboard.html';
+    }
+}
+
 document.addEventListener('DOMContentLoaded', function () {
     let initialAuthResolved = false;
 
@@ -205,7 +219,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 return;
             }
 
-            window.location.href = 'dashboard.html';
+            window.location.href = getPostLoginRedirectUrl();
         } catch (error) {
             console.error('Auth redirect check error:', error);
             showLoginForm();
@@ -268,7 +282,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 switchToPasswordChange();
             } else {
                 // Redirect to dashboard
-                window.location.href = 'dashboard.html';
+                window.location.href = getPostLoginRedirectUrl();
             }
 
         } catch (error) {
@@ -328,7 +342,7 @@ document.addEventListener('DOMContentLoaded', function () {
             // Success! Show message and redirect
             showToast('Berhasil', 'Password berhasil diubah! Anda akan diarahkan ke dashboard.', 'success');
             setTimeout(() => {
-                window.location.href = 'dashboard.html';
+                window.location.href = getPostLoginRedirectUrl();
             }, 1000);
 
         } catch (error) {

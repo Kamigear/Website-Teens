@@ -48,6 +48,7 @@ let currentWeeklyToken = null;
 let chartJsLoadPromise = null;
 let html5QrLoadPromise = null;
 let deferredListenersStarted = false;
+let weeklyTokenAutoclaimHandled = false;
 
 // --- Loading State ---
 let isInitialLoad = true;
@@ -368,14 +369,17 @@ onAuthStateChanged(auth, async (user) => {
             } else {
                 console.error("User document missing. Signing out.");
                 await signOut(auth);
-                window.location.href = 'login.html';
+                const next = encodeURIComponent(`${window.location.pathname}${window.location.search}`);
+                window.location.href = `login.html?next=${next}`;
             }
         } catch (error) {
             console.error("Auth state error:", error);
-            window.location.href = 'login.html';
+            const next = encodeURIComponent(`${window.location.pathname}${window.location.search}`);
+            window.location.href = `login.html?next=${next}`;
         }
     } else {
-        window.location.href = 'login.html';
+        const next = encodeURIComponent(`${window.location.pathname}${window.location.search}`);
+        window.location.href = `login.html?next=${next}`;
     }
 });
 
@@ -396,9 +400,46 @@ function initDashboard() {
         if (!isAdmin) {
             updateUserAttendanceDisplay();
         }
+
+        tryAutoclaimWeeklyTokenFromUrl_();
     } catch (error) {
         console.error("Dashboard initialization error:", error);
     }
+}
+
+function getWeeklyTokenFromUrl_() {
+    const params = new URLSearchParams(window.location.search);
+    const raw = String(params.get('wk') || '').trim().toUpperCase();
+    if (!raw) return '';
+    return /^[A-Z]{5}$/.test(raw) ? raw : '';
+}
+
+function clearWeeklyTokenFromUrl_() {
+    const url = new URL(window.location.href);
+    url.searchParams.delete('wk');
+    const nextUrl = `${url.pathname}${url.search}${url.hash}`;
+    window.history.replaceState({}, '', nextUrl);
+}
+
+async function tryAutoclaimWeeklyTokenFromUrl_() {
+    if (weeklyTokenAutoclaimHandled) return;
+    const tokenCode = getWeeklyTokenFromUrl_();
+    if (!tokenCode) return;
+
+    weeklyTokenAutoclaimHandled = true;
+
+    if (isAdmin) {
+        showToast('Info', 'Link token untuk absensi member. Gunakan akun member untuk klaim.', 'info');
+        clearWeeklyTokenFromUrl_();
+        return;
+    }
+
+    const codeInput = document.getElementById('codeInput');
+    if (!codeInput) return;
+
+    codeInput.value = tokenCode;
+    await window.submitCode();
+    clearWeeklyTokenFromUrl_();
 }
 
 // --- Update User Info Display ---
@@ -2481,8 +2522,12 @@ function updateTokenDisplay(code, seconds) {
     try {
         const codeDisplay = document.getElementById('weeklyCodeDisplay');
         const timerDisplay = document.getElementById('weeklyCodeTimer');
+        const fullscreenQrImg = document.getElementById('fullscreenTokenQrImage');
+        const tokenLink = `${window.location.origin}/dashboard.html?wk=${encodeURIComponent(code)}`;
+        const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=320x320&data=${encodeURIComponent(tokenLink)}`;
 
         if (codeDisplay) codeDisplay.textContent = code;
+        if (fullscreenQrImg) fullscreenQrImg.src = qrUrl;
 
         if (timerDisplay) {
             // Clear existing interval if any
@@ -2762,6 +2807,14 @@ function showTokenFullscreen() {
                 <div class="token-content">
                     <h2 class="token-title">Kode Kehadiran Mingguan</h2>
                     <h1 id="fullscreenCodeDisplay" class="token-code">-----</h1>
+                    <div class="mb-4 text-center">
+                        <div class="small text-white-50 mb-2">Pindai dengan dashboard atau Camera</div>
+                        <img id="fullscreenTokenQrImage"
+                            src="https://api.qrserver.com/v1/create-qr-code/?size=340x340&data=KODE"
+                            alt="QR Token Mingguan"
+                            class="img-fluid bg-white p-2 rounded"
+                            style="max-width: 260px;">
+                    </div>
                     <div class="token-timer-section">
                         <h3 class="token-timer-label">Kode Valid Untuk:</h3>
                         <div id="fullscreenTimer" class="token-timer">30</div>
@@ -2794,6 +2847,7 @@ function syncFullscreenWithToken() {
     try {
         const fullscreenCode = document.getElementById('fullscreenCodeDisplay');
         const fullscreenTimer = document.getElementById('fullscreenTimer');
+        const fullscreenQr = document.getElementById('fullscreenTokenQrImage');
         const weeklyCode = document.getElementById('weeklyCodeDisplay');
         const weeklyTimer = document.getElementById('weeklyCodeTimer');
 
@@ -2811,6 +2865,12 @@ function syncFullscreenWithToken() {
             if (fullscreenTimer && weeklyTimer) {
                 const timerText = weeklyTimer.textContent.replace('s', '');
                 fullscreenTimer.textContent = timerText;
+            }
+
+            if (fullscreenQr && weeklyCode) {
+                const code = (weeklyCode.textContent || '').trim();
+                const tokenLink = `${window.location.origin}/dashboard.html?wk=${encodeURIComponent(code)}`;
+                fullscreenQr.src = `https://api.qrserver.com/v1/create-qr-code/?size=320x320&data=${encodeURIComponent(tokenLink)}`;
             }
         }, 100);
     } catch (error) {
