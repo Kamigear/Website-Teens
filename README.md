@@ -1,38 +1,38 @@
-# VDR Teens - v1.0
+# VDR Teens - v1.0.0
 
-VDR Teens is a Firebase-hosted web app for a youth Buddhist community. It includes member login, attendance using weekly tokens/QR, points tracking, event management, and admin data backup/import with Google Sheets.
+VDR Teens adalah aplikasi web berbasis Firebase untuk komunitas remaja Buddhis. Fitur utamanya mencakup login anggota, absensi dengan token mingguan/QR, sistem poin, manajemen kegiatan, serta backup/import data admin ke Google Sheets.
 
-## Features
+## Fitur
 
-- User authentication (Firebase Auth)
-- User dashboard:
-  - Submit attendance code
-  - View points and attendance history
-- Admin dashboard:
-  - Manage users
-  - Manage events
-  - Generate fullscreen attendance token + QR
-  - Manual attendance (admin can mark attendance without user phone)
-  - Configure attendance points by time slots
-  - Export/import data to Google Sheets via Google Apps Script
-- SEO basics:
-  - `sitemap.xml`, `robots.txt`, Open Graph tags
-  - favicon and web manifest
+- Autentikasi pengguna (Firebase Auth)
+- Dashboard pengguna:
+  - Submit kode absensi
+  - Lihat poin dan riwayat kehadiran
+- Dashboard admin:
+  - Kelola akun pengguna
+  - Kelola kegiatan
+  - Tampilkan token absensi fullscreen + QR
+  - Absensi manual (admin dapat mengabsenkan user tanpa HP user)
+  - Atur poin absensi berdasarkan slot waktu
+  - Export/import data ke Google Sheets via Google Apps Script
+- Dasar SEO:
+  - `sitemap.xml`, `robots.txt`, tag Open Graph
+  - favicon dan web manifest
 
 ## Tech Stack
 
-- Frontend: HTML, CSS (Tooplate custom layer), Bootstrap utilities/components
+- Frontend: HTML, CSS (lapisan kustom Tooplate), Bootstrap utilities/components
 - JavaScript: Vanilla JS modules
-- Backend services: Firebase Auth + Firestore
+- Backend service: Firebase Auth + Firestore
 - Hosting: Firebase Hosting
-- External integration: Google Apps Script (for sheet backup/sync)
+- Integrasi eksternal: Google Apps Script (backup/sinkronisasi Sheets)
 
-## Project Structure
+## Struktur Proyek
 
-- `public/` - static site files (HTML/CSS/JS/images)
-- `public/js/firebase-config.js` - Firebase client config
-- `public/js/dashboard.js` - core dashboard/admin logic
-- `public/css/tooplate-gotto-job.css` - custom UI styling
-- `public/site.webmanifest`, `public/sitemap.xml`, `public/robots.txt` - SEO/PWA basics
-- `firebase.json` - Firebase Hosting config
-- `.gemini/google-apps-script.js` - Apps Script source used for Sheets integration
+- `public/` - file statis website (HTML/CSS/JS/images)
+- `public/js/firebase-config.js` - konfigurasi Firebase client
+- `public/js/dashboard.js` - logika utama dashboard/admin
+- `public/css/tooplate-gotto-job.css` - styling kustom UI
+- `public/site.webmanifest`, `public/sitemap.xml`, `public/robots.txt` - komponen SEO/PWA
+- `firebase.json` - konfigurasi Firebase Hosting
+- `.gemini/google-apps-script.js` - source Apps Script untuk integrasi Google Sheets
