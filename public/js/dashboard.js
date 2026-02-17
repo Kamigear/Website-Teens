@@ -1775,10 +1775,24 @@ function renderAccountsTable() {
     try {
         const tbody = document.getElementById('accountsTableBody');
         if (!tbody) return;
+        const searchInput = document.getElementById('manageAccountsSearchInput');
+        const keyword = String(searchInput?.value || '').trim().toLowerCase();
 
         tbody.innerHTML = '';
+        const filteredAccounts = !keyword
+            ? accountsData
+            : accountsData.filter(acc => {
+                const username = String(acc.username || '').toLowerCase();
+                const email = String(acc.email || '').toLowerCase();
+                return username.includes(keyword) || email.includes(keyword);
+            });
 
-        accountsData.forEach(acc => {
+        if (!filteredAccounts.length) {
+            tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted">Tidak ada akun yang cocok</td></tr>';
+            return;
+        }
+
+        filteredAccounts.forEach(acc => {
             const isTargetAdmin = acc.isAdmin === true;
             const isSelf = currentUser && acc.id === currentUser.uid;
             const deleteDisabled = isTargetAdmin || isSelf;
@@ -1928,18 +1942,22 @@ window.editAccount = async function (id) {
         // Charts Container
         html += `<div class="row g-3 mb-3">
                     <div class="col-md-6">
-                        <div class="card h-100 shadow-sm">
+                        <div class="card shadow-sm edit-user-chart-card">
                             <div class="card-header bg-transparent small fw-bold text-secondary text-center">This Month (Weekly)</div>
                             <div class="card-body">
-                                <canvas id="chartMonthly" height="200"></canvas>
+                                <div class="edit-user-chart-wrap">
+                                    <canvas id="chartMonthly"></canvas>
+                                </div>
                             </div>
                         </div>
                     </div>
                     <div class="col-md-6">
-                        <div class="card h-100 shadow-sm">
+                        <div class="card shadow-sm edit-user-chart-card">
                              <div class="card-header bg-transparent small fw-bold text-secondary text-center">This Year (Monthly)</div>
                             <div class="card-body">
-                                <canvas id="chartYearly" height="200"></canvas>
+                                <div class="edit-user-chart-wrap">
+                                    <canvas id="chartYearly"></canvas>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -1956,7 +1974,7 @@ window.editAccount = async function (id) {
         if (pointSnap.empty) {
             html += '<p class="text-muted small">No history found.</p>';
         } else {
-            html += '<div class="table-responsive" style="max-height: 250px; overflow-y:auto;">';
+            html += '<div class="table-responsive max-rows-6">';
             html += '<table class="table table-sm table-hover font-monospace" style="font-size: 0.8rem;">';
             html += '<thead class="table-light sticky-top"><tr><th>Date</th><th>Desc</th><th>Pt</th><th>Action</th></tr></thead><tbody>';
 
@@ -2195,6 +2213,8 @@ window.deleteAccount = async function (id) {
         }
     }
 }
+window.renderAccountsTable = renderAccountsTable;
+window.loadEventsTable = loadEventsTable;
 
 window.addNewAccount = function () {
     const modalEl = document.getElementById('createUserModal');

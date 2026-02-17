@@ -301,7 +301,7 @@
                                 <div class="card-skeleton"></div>
                                 <div class="card-content">
                                     <h4 class="mb-4">Riwayat Poin</h4>
-                                    <div class="table-responsive">
+                                    <div class="table-responsive max-rows-6">
                                         <table class="table table-hover">
                                             <thead>
                                                 <tr>
@@ -543,7 +543,7 @@
                                     <h5 class="mb-0">Pesan Masuk Kontak</h5>
                                     <span class="badge bg-dark text-white rounded-pill" id="contactMessagesCount">0 pesan</span>
                                 </div>
-                                <div class="table-responsive">
+                                <div class="table-responsive max-rows-6">
                                     <table class="table table-sm table-hover">
                                         <thead>
                                             <tr>
@@ -596,7 +596,7 @@
                                 </form>
                                 <div class="mt-4">
                                     <h6 class="mb-3">Daftar Kode Aktif</h6>
-                                    <div class="table-responsive">
+                                    <div class="table-responsive max-rows-6">
                                         <table class="table table-sm table-hover" id="activeCodesTable">
                                             <thead>
                                                 <tr>
@@ -837,6 +837,10 @@
                         <p class="mb-0 text-muted small">Daftar anggota dan pengelolaan akun.</p>
                         <button class="btn custom-btn btn-sm rounded-pill px-4" onclick="addNewAccount()"><i
                                 class="bi-plus-circle me-2"></i>Tambah Akun</button>
+                    </div>
+                    <div class="mb-3">
+                        <input type="search" class="form-control" id="manageAccountsSearchInput"
+                            placeholder="Cari nama atau email..." oninput="renderAccountsTable()">
                     </div>
                     <div class="table-responsive admin-table-wrap">
                         <table class="table table-hover align-middle admin-list-table">
@@ -1320,7 +1324,11 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body admin-modal-body">
-                    <div class="d-flex justify-content-end mb-3">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-3">
+                        <input type="search" class="form-control" id="manageEventsSearchInput"
+                            placeholder="Cari judul, lokasi, atau status kegiatan..."
+                            oninput="window.loadEventsTable && window.loadEventsTable()"
+                            style="max-width: 420px;">
                         <button class="btn custom-btn btn-sm rounded-pill px-4" data-bs-toggle="modal" data-bs-target="#addEventModal">
                             <i class="bi-plus-circle me-2"></i>Tambah Kegiatan
                         </button>

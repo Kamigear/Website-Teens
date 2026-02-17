@@ -4832,6 +4832,17 @@ html {
   padding: 20px;
 }
 
+#manageEventsModal .admin-modal-content {
+  max-height: min(92dvh, 860px);
+  display: flex;
+  flex-direction: column;
+}
+
+#manageEventsModal .admin-modal-body {
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
 .admin-modal-tools {
   padding: 6px 2px 2px 2px;
 }
@@ -4840,11 +4851,28 @@ html {
   border: 1px solid var(--border-color);
   border-radius: 14px;
   background: #fff;
-  overflow: hidden;
+  max-height: calc(56px * 6 + 56px);
+  overflow: auto;
 }
 
 .admin-list-table {
   margin-bottom: 0;
+}
+
+.max-rows-6 {
+  max-height: calc(56px * 6 + 56px);
+  overflow: auto;
+}
+
+.max-rows-6 table {
+  margin-bottom: 0;
+}
+
+.max-rows-6 thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: #fff;
 }
 
 .admin-list-table thead th {
@@ -4987,6 +5015,22 @@ html {
   background: #fff;
 }
 
+.edit-user-chart-card .card-body {
+  padding: 10px;
+}
+
+.edit-user-chart-wrap {
+  position: relative;
+  height: 210px;
+  min-height: 210px;
+}
+
+.edit-user-chart-wrap canvas {
+  width: 100% !important;
+  height: 100% !important;
+  display: block;
+}
+
 .admin-confirm-modal-content .alert {
   border-radius: 12px;
 }
@@ -5087,9 +5131,22 @@ html {
     -webkit-overflow-scrolling: touch;
   }
 
+  #manageEventsModal .admin-modal-content {
+    max-height: calc(100dvh - 1rem);
+  }
+
+  #manageEventsModal .admin-modal-body {
+    max-height: calc(100dvh - 170px);
+    overflow-y: auto;
+  }
+
   #manageAccountsModal .admin-table-wrap {
-    max-height: 52dvh;
+    max-height: min(52dvh, calc(56px * 6 + 56px));
     overflow: auto;
+  }
+
+  .max-rows-6 {
+    max-height: min(52dvh, calc(56px * 6 + 56px));
   }
 
   .admin-scan-guide {
@@ -5118,6 +5175,11 @@ html {
 
   .edit-user-modal-content #dynamicFormFields {
     padding: 10px;
+  }
+
+  .edit-user-chart-wrap {
+    height: 155px;
+    min-height: 155px;
   }
 
   .user-modal-intro {
@@ -5149,6 +5211,18 @@ html {
   .code-submit-btn {
     width: 100%;
     min-height: 52px;
+  }
+}
+
+@media (max-height: 740px) {
+  #manageEventsModal .admin-modal-content {
+    max-height: calc(100dvh - 1rem);
+  }
+
+  #manageEventsModal .admin-modal-body {
+    max-height: calc(100dvh - 170px);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
   }
 }
 

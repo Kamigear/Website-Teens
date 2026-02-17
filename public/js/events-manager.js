@@ -16,6 +16,8 @@ import {
 export async function loadEventsTable() {
     const tbody = document.getElementById('eventsTableBody');
     if (!tbody) return;
+    const searchInput = document.getElementById('manageEventsSearchInput');
+    const keyword = String(searchInput?.value || '').trim().toLowerCase();
 
     try {
         const eventsQuery = query(collection(db, 'events'), orderBy('date', 'desc'));
@@ -28,7 +30,27 @@ export async function loadEventsTable() {
             return;
         }
 
-        querySnapshot.forEach((doc) => {
+        const docs = querySnapshot.docs.filter((docSnap) => {
+            if (!keyword) return true;
+            const event = docSnap.data();
+            const title = String(event.title || '').toLowerCase();
+            const location = String(event.location || '').toLowerCase();
+            const status = String(event.status || '').toLowerCase();
+            const date = String(event.date || '').toLowerCase();
+            return (
+                title.includes(keyword) ||
+                location.includes(keyword) ||
+                status.includes(keyword) ||
+                date.includes(keyword)
+            );
+        });
+
+        if (!docs.length) {
+            tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">Tidak ada kegiatan yang cocok</td></tr>';
+            return;
+        }
+
+        docs.forEach((doc) => {
             const event = doc.data();
             const row = document.createElement('tr');
 
