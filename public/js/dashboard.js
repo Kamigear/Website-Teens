@@ -1779,6 +1779,12 @@ function renderAccountsTable() {
         tbody.innerHTML = '';
 
         accountsData.forEach(acc => {
+            const isTargetAdmin = acc.isAdmin === true;
+            const isSelf = currentUser && acc.id === currentUser.uid;
+            const deleteDisabled = isTargetAdmin || isSelf;
+            const deleteTitle = isTargetAdmin
+                ? 'Akun admin tidak bisa dihapus'
+                : (isSelf ? 'Tidak bisa menghapus akun sendiri' : 'Hapus akun');
             const row = document.createElement('tr');
             row.innerHTML = `
                 <td>${acc.username || acc.email}</td>
@@ -1788,7 +1794,8 @@ function renderAccountsTable() {
                     <button class="btn btn-sm btn-outline-primary me-2" onclick="editAccount('${acc.id}')">
                         <i class="bi-pencil"></i>
                     </button>
-                    <button class="btn btn-sm btn-outline-danger" onclick="deleteAccount('${acc.id}')">
+                    <button class="btn btn-sm btn-outline-danger" onclick="deleteAccount('${acc.id}')"
+                        ${deleteDisabled ? 'disabled' : ''} title="${deleteTitle}">
                         <i class="bi-trash"></i>
                     </button>
                 </td>
@@ -2168,13 +2175,23 @@ window.saveUserChanges = async function () {
 }
 
 window.deleteAccount = async function (id) {
+    const target = accountsData.find(acc => acc.id === id);
+    if (target?.isAdmin === true) {
+        showToast('Error', 'Akun admin tidak bisa dihapus.', 'error');
+        return;
+    }
+    if (currentUser && id === currentUser.uid) {
+        showToast('Error', 'Tidak bisa menghapus akun sendiri.', 'error');
+        return;
+    }
+
     if (confirm("Apakah anda yakin ingin menghapus akun ini?")) {
         try {
             await deleteDoc(doc(db, "users", id));
-            showToast('Berhasil', 'Akun berhasil dihapus!', 'success');
+            showToast('Berhasil', 'Akun berhasil dihapus dari Firestore.', 'success');
         } catch (error) {
             console.error("Error deleting account:", error);
-            showToast('Error', 'Gagal menghapus akun: ' + error.message, 'error');
+            showToast('Error', 'Gagal menghapus akun: ' + (error?.message || 'Unknown error'), 'error');
         }
     }
 }
@@ -2241,19 +2258,25 @@ window.submitNewAccount = async function () {
         showToast('Input Error', 'Password minimal 6 karakter!', 'error');
         return;
     }
+    if (!birthdate) {
+        showToast('Input Error', 'Tanggal lahir wajib diisi!', 'error');
+        return;
+    }
 
     let age = null;
-    if (birthdate) {
-        const birth = new Date(birthdate);
-        if (!Number.isNaN(birth.getTime())) {
-            const today = new Date();
-            let calculatedAge = today.getFullYear() - birth.getFullYear();
-            const m = today.getMonth() - birth.getMonth();
-            if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) {
-                calculatedAge--;
-            }
-            age = calculatedAge;
+    const birth = new Date(birthdate);
+    if (Number.isNaN(birth.getTime())) {
+        showToast('Input Error', 'Format tanggal lahir tidak valid!', 'error');
+        return;
+    }
+    {
+        const today = new Date();
+        let calculatedAge = today.getFullYear() - birth.getFullYear();
+        const m = today.getMonth() - birth.getMonth();
+        if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) {
+            calculatedAge--;
         }
+        age = calculatedAge;
     }
 
     const cleanUsername = username.replace(/\s+/g, '').toLowerCase();
@@ -4116,14 +4139,33 @@ async function importUsersFromSheets(password) {
             return;
         }
 
-        // Import to Firestore
-        const batch = writeBatch(db);
-        let importCount = 0;
+        // Replace mode: wipe current users collection, then insert imported users
+        const usersCol = collection(db, 'users');
 
-        users.forEach(user => {
-            if (user.uid) {
+        // Delete all existing users in chunks (Firestore batch max 500 ops)
+        let deletedCount = 0;
+        while (true) {
+            const existingSnap = await getDocs(query(usersCol, limit(450)));
+            if (existingSnap.empty) break;
+
+            const deleteBatch = writeBatch(db);
+            existingSnap.docs.forEach((d) => {
+                deleteBatch.delete(d.ref);
+                deletedCount++;
+            });
+            await deleteBatch.commit();
+        }
+
+        // Insert imported users in chunks
+        let importCount = 0;
+        for (let i = 0; i < users.length; i += 400) {
+            const chunk = users.slice(i, i + 400);
+            const insertBatch = writeBatch(db);
+
+            chunk.forEach(user => {
+                if (!user.uid) return;
                 const userRef = doc(db, 'users', user.uid);
-                batch.set(userRef, {
+                insertBatch.set(userRef, {
                     username: user.username,
                     email: user.email,
                     points: user.points,
@@ -4132,13 +4174,14 @@ async function importUsersFromSheets(password) {
                     birthdate: user.birthdate || '',
                     age: typeof user.age === 'number' ? user.age : null,
                     createdAt: user.createdAt
-                }, { merge: true }); // merge: true to update existing or create new
+                });
                 importCount++;
-            }
-        });
+            });
 
-        await batch.commit();
-        showToast('Berhasil', `Berhasil mengimport ${importCount} user ke Firestore!`, 'success');
+            await insertBatch.commit();
+        }
+
+        showToast('Berhasil', `Import replace selesai. Hapus lama: ${deletedCount}, import baru: ${importCount}.`, 'success');
 
     } catch (error) {
         console.error('Import users error:', error);

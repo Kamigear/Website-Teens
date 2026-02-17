@@ -18,9 +18,15 @@ service cloud.firestore {
       // Only admins can list users
       allow list: if isAdmin();
 
-      // Users can read/write their own data, admins can do anything
-      allow get, create, update, delete:
+      // Users can read/write their own data, admins can do anything except deleting admin accounts
+      allow get, create, update:
         if request.auth != null && (request.auth.uid == userId || isAdmin());
+
+      // Disallow deleting documents that are marked as admin
+      allow delete:
+        if request.auth != null
+          && (request.auth.uid == userId || isAdmin())
+          && resource.data.isAdmin != true;
     }
 
     // =========================

@@ -1,4 +1,4 @@
-# VDR Teens - v1.0.2
+# VDR Teens - v1.0.3
 
 VDR Teens adalah aplikasi web berbasis Firebase untuk komunitas remaja Buddhis. Fitur utamanya mencakup login anggota, absensi dengan token mingguan/QR, sistem poin, manajemen kegiatan, serta backup/import data admin ke Google Sheets.
 
@@ -10,12 +10,15 @@ VDR Teens adalah aplikasi web berbasis Firebase untuk komunitas remaja Buddhis. 
   - Lihat poin dan riwayat kehadiran
 - Dashboard admin:
   - Kelola akun pengguna
+  - Proteksi akun admin (akun dengan `isAdmin: true` tidak bisa dihapus)
   - Kelola kegiatan
   - Tampilkan token absensi fullscreen + QR
   - Absensi manual (admin dapat mengabsenkan user tanpa HP user)
   - Absensi manual dengan pencarian user (search bar)
+  - Validasi tanggal lahir wajib saat membuat akun
   - Atur poin absensi berdasarkan slot waktu dinamis (`+`/`-` slot)
   - Export/import data ke Google Sheets via Google Apps Script
+  - Import user mode replace (mengganti seluruh data `users` di Firestore, bukan menambah)
 - Dasar SEO:
   - `sitemap.xml`, `robots.txt`, tag Open Graph
   - favicon dan web manifest
@@ -38,4 +41,3 @@ VDR Teens adalah aplikasi web berbasis Firebase untuk komunitas remaja Buddhis. 
 - `firebase.json` - konfigurasi Firebase Hosting
 - `.external/google-apps-script.js` - source Apps Script untuk integrasi Google Sheets
 - `.external/firestore.rules` - salinan rules Firestore eksternal
-
