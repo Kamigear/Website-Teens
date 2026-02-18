@@ -1,22 +1,12 @@
-# VDR Teens v1.1.0
-
-Minor release.
+# VDR Teens v1.1.1
 
 ## Perubahan
 
-- Kelola kegiatan:
-  - Pengelolaan data kegiatan dibuat lebih rapi dan lebih mudah digunakan di dashboard admin.
-  - Alur tambah, edit, dan hapus kegiatan ditingkatkan agar lebih konsisten.
-
-- Chart:
-  - Tampilan chart pada area admin diperbaiki agar lebih stabil.
-  - Optimasi responsif untuk layar kecil supaya chart tidak merusak layout.
-
-- Search bar:
-  - Ditambahkan pencarian cepat pada dashboard admin.
-  - Memudahkan filter data akun dan kegiatan secara realtime.
+- Mobile hamburger menu (phones):
+  - Menambahkan skeleton loading untuk tombol auth di menu hamburger saat Firebase/Auth belum selesai load.
+  - Skeleton akan hilang otomatis setelah status auth Firebase sudah resolved.
+  - Menambahkan fallback agar tombol tetap muncul (pakai email) jika fetch data user ke Firestore gagal.
 
 ## Catatan
 
-- Fokus rilis ini adalah peningkatan pengalaman penggunaan (usability) dan tampilan antarmuka admin.
-- Tidak ada breaking change pada struktur data utama.
+- Tidak ada breaking change.
